@@ -1,0 +1,58 @@
+
+# PHP CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-php/ for more details
+#
+## Defines images and working directory.
+defaults: &defaults
+  docker:
+    - image: circleci/php:7.2-stretch-node-browsers
+    - image: selenium/standalone-chrome-debug:3.141.59-oxygen
+    - image: mariadb:10.3
+
+## Defines the cache restoring mechanism.
+restore_cache: &restore_cache
+  # We use the composer.lock as a way to determine if we can cache our build.
+  keys:
+  - v1-dependencies-{{ checksum "composer.lock" }}
+  # fallback to using the latest cache if no exact match is found
+  - v1-dependencies-
+
+# Jobs
+build_and_test: &build_and_test
+  <<: *defaults
+  steps:
+    - checkout
+    - run: composer install
+    - run: vendor/bin/phpunit
+    # Run linting here
+
+deploy: &deploy
+  <<: *defaults
+  steps:
+    - run: echo "Deploy stage"
+#    - attach_workspace:
+#        at: /home/circleci
+#    - add_ssh_keys:
+#        fingerprints:
+#          - "27:ff:5a:fa:94:df:d0:94:7c:dd:0f:0a:17:15:61:72"
+#    - run: echo '$FINGERPRINT' >> ~/.ssh/known_hosts
+#    - run: scp /home/circleci/hammer/build ssh -o $USER@$HOST:/$PATH
+
+
+# Declare all of the jobs we should run.
+version: 2
+jobs:
+  build_and_test:
+     <<: *build_and_test
+  deploy:
+     <<: *deploy
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build_and_test
+      - deploy:
+          requires:
+            - build_and_test
