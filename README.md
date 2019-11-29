@@ -1,4 +1,4 @@
-# Data store
+# Hammer Datastore
 
 To set up run:
 
