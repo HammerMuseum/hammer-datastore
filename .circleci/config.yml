@@ -7,8 +7,6 @@
 defaults: &defaults
   docker:
     - image: circleci/php:7.2-stretch-node-browsers
-    - image: selenium/standalone-chrome-debug:3.141.59-oxygen
-    - image: mariadb:10.3
 
 ## Defines the cache restoring mechanism.
 restore_cache: &restore_cache
@@ -25,34 +23,82 @@ build_and_test: &build_and_test
     - checkout
     - run: composer install
     - run: vendor/bin/phpunit
+    - run: npm install
+    - run: npm run prod
     # Run linting here
+    - persist_to_workspace:
+        root: /home/circleci/project
+        paths:
+          - vendor/
+          - public/css/
+          - public/js/
 
 deploy: &deploy
   <<: *defaults
   steps:
-    - run: echo "Deploy stage"
-#    - attach_workspace:
-#        at: /home/circleci
-#    - add_ssh_keys:
-#        fingerprints:
-#          - "27:ff:5a:fa:94:df:d0:94:7c:dd:0f:0a:17:15:61:72"
-#    - run: echo '$FINGERPRINT' >> ~/.ssh/known_hosts
-#    - run: scp /home/circleci/hammer/build ssh -o $USER@$HOST:/$PATH
+    - checkout
+    - aws-cli/setup
+    - aws-white-list-circleci-ip/add:
+        port: 22
+        tag-key: group
+        tag-value: bastion
+    - attach_workspace:
+        at: /home/circleci/project
+    - add_ssh_keys:
+        fingerprints:
+          - "a2:22:da:24:fd:c3:76:8d:80:de:ae:af:a3:00:c3:3e"
+    - run: ssh-keyscan -H $(echo "datastore.hammer.cogapp.com" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
+    - run: php artisan deploy datastore.hammer.cogapp.com
+    - aws-white-list-circleci-ip/remove:
+        port: 22
+        tag-key: group
+        tag-value: bastion
 
+deploy_stage: &deploy_stage
+  <<: *defaults
+  steps:
+    - checkout
+    - aws-cli/setup
+    - aws-white-list-circleci-ip/add:
+        port: 22
+        tag-key: group
+        tag-value: bastion
+    - attach_workspace:
+        at: /home/circleci/project
+    - add_ssh_keys:
+        fingerprints:
+          - "a2:22:da:24:fd:c3:76:8d:80:de:ae:af:a3:00:c3:3e"
+    - run: ssh-keyscan -H $(echo "stage.datastore.hammer.cogapp.com" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
+    - run: php artisan deploy stage.datastore.hammer.cogapp.com
+    - aws-white-list-circleci-ip/remove:
+        port: 22
+        tag-key: group
+        tag-value: bastion
 
 # Declare all of the jobs we should run.
-version: 2
+version: 2.1
+orbs:
+  aws-cli: circleci/aws-cli@0.1.18
+  aws-white-list-circleci-ip: configure/aws-white-list-circleci-ip@1.0.0
+
 jobs:
   build_and_test:
      <<: *build_and_test
+  deploy_stage:
+     <<: *deploy_stage
   deploy:
      <<: *deploy
 
 workflows:
-  version: 2
   build_and_test:
     jobs:
       - build_and_test
+      - deploy_stage:
+          requires:
+            - build_and_test
       - deploy:
           requires:
             - build_and_test
+          filters:
+            branches:
+              only: master
