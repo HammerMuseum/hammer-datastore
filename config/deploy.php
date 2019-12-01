@@ -51,7 +51,7 @@ return [
     | Hooks
     |--------------------------------------------------------------------------
     |
-    | Hooks let you customize your deployments conveniently by pushing tasks 
+    | Hooks let you customize your deployments conveniently by pushing tasks
     | into strategic places of your deployment flow. Each of the official
     | strategies invoke hooks in different ways to implement their logic.
     |
@@ -106,9 +106,9 @@ return [
     'options' => [
         'application' => env('APP_NAME', 'Laravel'),
         'http_user' => 'www-data',
-        'upload_vendors' => TRUE,
+        'upload_vendors' => true,
         'upload_options' => [
-            'options' => [ 
+            'options' => [
                 '--exclude=.git',
                 '--exclude=/vendor', // unless `upload_vendors` is set to `true`
                 '--exclude=node_modules',
@@ -159,7 +159,7 @@ return [
     | Include additional Deployer recipes
     |--------------------------------------------------------------------------
     |
-    | Here, you can add any third party recipes to provide additional tasks, 
+    | Here, you can add any third party recipes to provide additional tasks,
     | options and strategies. Therefore, it also allows you to create and
     | include your own recipes to define more complex deployment flows.
     |

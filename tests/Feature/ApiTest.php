@@ -16,7 +16,6 @@ class ApiTest extends TestCase
     public function testExample()
     {
         $response = $this->get('/api/test');
-
         $response->assertStatus(200);
     }
 }

@@ -3,29 +3,70 @@
 #
 # Check https://circleci.com/docs/2.0/language-php/ for more details
 #
-## Defines images and working directory.
+
+# Defines images and working directory.
 defaults: &defaults
   docker:
-    - image: circleci/php:7.2-stretch-node-browsers
+    - image: circleci/php:7.2-buster-node-browsers  
+      environment:
+        HOST_URL: datastore.hammer.cogapp.com
+        STAGE_HOST_URL: stage.datastore.hammer.cogapp.com
 
-## Defines the cache restoring mechanism.
+# Defines the cache restore mechanism for composer dependencies.
 restore_cache: &restore_cache
   # We use the composer.lock as a way to determine if we can cache our build.
   keys:
-  - v1-dependencies-{{ checksum "composer.lock" }}
+  - composer-v1-{{ checksum "composer.lock" }}
   # fallback to using the latest cache if no exact match is found
-  - v1-dependencies-
+  - composer-v1-
+
+# Defines the cache saving mechanism for composer dependencies.
+save_cache: &save_cache
+  key: composer-v1-{{ checksum "composer.lock" }}
+  paths:
+    - vendor
+
+# Defines the cache restore mechanism for node dependencies.
+restore_node_cache: &restore_node_cache
+  keys:
+    - node-v1-{{ checksum "package.json" }}
+    - node-v1-
+
+# Defines the cache saving mechanism for node dependencies.
+save_node_cache: &save_node_cache
+  key: node-v1-{{ checksum "package.json" }}
+  paths:
+    - node_modules
+    - /home/circleci/.npm
 
 # Jobs
 build_and_test: &build_and_test
   <<: *defaults
   steps:
     - checkout
-    - run: composer install
-    - run: vendor/bin/phpunit
+    
+    # Install Composer dependencies.
+    - restore_cache: *restore_cache
+    - run: composer install -n -q
+    - save_cache: *save_cache
+
+    # Install Node dependencies.
+    - restore_cache: *restore_cache
     - run: npm install
+    - save_cache: *save_cache
     - run: npm run prod
-    # Run linting here
+
+    # prepare database
+    - run: touch storage/testing.sqlite
+    - run: php artisan key:generate --env=testing
+    - run: php artisan migrate --env=testing --database=sqlite_testing --force
+    
+    # Run tests
+    - run: ./vendor/bin/phpunit
+
+    # Run linting
+    - run: ./vendor/bin/phpcs
+
     - persist_to_workspace:
         root: /home/circleci/project
         paths:
@@ -37,18 +78,19 @@ deploy: &deploy
   <<: *defaults
   steps:
     - checkout
+    - add_ssh_keys:
+        fingerprints:
+          - "a2:22:da:24:fd:c3:76:8d:80:de:ae:af:a3:00:c3:3e" 
+    - attach_workspace:
+        at: /home/circleci/project
+    - run: composer install --optimize-autoloader --no-dev
     - aws-cli/setup
     - aws-white-list-circleci-ip/add:
         port: 22
         tag-key: group
         tag-value: bastion
-    - attach_workspace:
-        at: /home/circleci/project
-    - add_ssh_keys:
-        fingerprints:
-          - "a2:22:da:24:fd:c3:76:8d:80:de:ae:af:a3:00:c3:3e"
-    - run: ssh-keyscan -H $(echo "datastore.hammer.cogapp.com" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: php artisan deploy datastore.hammer.cogapp.com
+    - run: ssh-keyscan -H $(echo "$HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
+    - run: php artisan deploy $HOST_URL
     - aws-white-list-circleci-ip/remove:
         port: 22
         tag-key: group
@@ -58,18 +100,19 @@ deploy_stage: &deploy_stage
   <<: *defaults
   steps:
     - checkout
+    - add_ssh_keys:
+        fingerprints:
+          - "a2:22:da:24:fd:c3:76:8d:80:de:ae:af:a3:00:c3:3e"
+    - attach_workspace:
+        at: /home/circleci/project
+    - run: composer install --optimize-autoloader --no-dev
     - aws-cli/setup
     - aws-white-list-circleci-ip/add:
         port: 22
         tag-key: group
         tag-value: bastion
-    - attach_workspace:
-        at: /home/circleci/project
-    - add_ssh_keys:
-        fingerprints:
-          - "a2:22:da:24:fd:c3:76:8d:80:de:ae:af:a3:00:c3:3e"
-    - run: ssh-keyscan -H $(echo "stage.datastore.hammer.cogapp.com" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: php artisan deploy stage.datastore.hammer.cogapp.com
+    - run: ssh-keyscan -H $(echo "$STAGE_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
+    - run: php artisan deploy $STAGE_HOST_URL
     - aws-white-list-circleci-ip/remove:
         port: 22
         tag-key: group
@@ -96,6 +139,10 @@ workflows:
       - deploy_stage:
           requires:
             - build_and_test
+          filters:
+            branches:
+              only: develop
+
       - deploy:
           requires:
             - build_and_test
