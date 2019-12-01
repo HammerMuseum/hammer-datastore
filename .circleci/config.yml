@@ -47,7 +47,7 @@ build_and_test: &build_and_test
     
     # Install Composer dependencies.
     - restore_cache: *restore_cache
-    - run: composer install -n -q
+    - run: composer install
     - save_cache: *save_cache
 
     # Install Node dependencies.
