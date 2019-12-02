@@ -129,11 +129,11 @@ return [
     */
 
     'hosts' => [
-        'video.hammer.cogapp.com' => [
+        'datastore.hammer.cogapp.com' => [
             'deploy_path' => '/var/www/datastore.hammer.cogapp.com',
             'user' => 'deploy',
         ],
-        'stage.video.hammer.cogapp.com' => [
+        'stage.datastore.hammer.cogapp.com' => [
             'deploy_path' => '/var/www/stage.datastore.hammer.cogapp.com',
             'user' => 'deploy',
         ],
