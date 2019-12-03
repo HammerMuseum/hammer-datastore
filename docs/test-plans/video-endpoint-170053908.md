@@ -26,7 +26,7 @@ A test plan for the initial datastore API endpoints. The tester should prove the
 
 ## Test Plan
 - Using the documentation available in the repository, make an authenticated POST request to the datastore, adding a new video.
-    - You should receive a response in form of a JSON representation of the exact data you sent and a success message.
+    - You should receive a response indicating success.
     - The status code should be 200
     - Check in the `video` table in the database
         - Your video's data should be in the table
