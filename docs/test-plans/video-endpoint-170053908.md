@@ -21,7 +21,7 @@ A test plan for the initial datastore API endpoints. The tester should prove the
 - Calling the API endpoint with a specific video ID returns the correct metadata 
 
 ## Requirements to test
-- A local setup of the `hammer-datastore` repository with a database attached (follow the getting started guide to ensure your setup is complete)
+- A local setup of the `hammer-datastore` repository with a database attached (follow the [getting started](../getting-started.md) guide to ensure your setup is complete)
 - Any setup to allow the tester to make API POST requests e.g curl.
 
 ## Test Plan
