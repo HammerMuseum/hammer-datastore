@@ -17,4 +17,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('test', 'TestController@index');
+Route::get('video/id/{id}', 'VideoController@getById');
+Route::get ('video/all', 'VideoController@getAllVideos');
