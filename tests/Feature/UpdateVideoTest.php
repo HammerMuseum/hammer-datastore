@@ -24,6 +24,7 @@ class UpdateVideoTest extends TestCase
             'duration' => '01:01:01'
         ]);
 
+        $apiToken = config('config_file.API_TOKEN');
         $headers = [
             'accept' => 'application/json',
             'content-type' => 'application/json'
@@ -35,7 +36,8 @@ class UpdateVideoTest extends TestCase
             'title' => 'Sample video',
             'description' => 'An updated description of the sample video.',
             'date_recorded' => '2019-01-01',
-            'duration' => '01:01:01'
+            'duration' => '01:01:01',
+            'api_token' => $apiToken
         ];
         $this->json('PUT', '/api/video/update/123', $payload, $headers)
             ->assertStatus(200)
@@ -51,7 +53,8 @@ class UpdateVideoTest extends TestCase
             'title' => 'Hammer Test Video',
             'description' => 'An updated description video to test the Hammer API',
             'date_recorded' => '2019-01-01',
-            'duration' => '01:01:01'
+            'duration' => '01:01:01',
+            'api_token' => $apiToken
         ];
 
         $this->json('PUT', '/api/video/update/1234567890', $payload, $headers)

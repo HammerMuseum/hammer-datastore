@@ -21,6 +21,7 @@ class CreateVideoTest extends TestCase
      */
     public function testCreate()
     {
+        $apiToken = config('config_file.API_TOKEN');
         $headers = [
             'accept' => 'application/json',
             'content-type' => 'application/json'
@@ -32,7 +33,8 @@ class CreateVideoTest extends TestCase
             'title' => 'My video asset',
             'description' => 'A description of my video asset',
             'date_recorded' => '2019-01-01',
-            'duration' => '01:01:01'
+            'duration' => '01:01:01',
+            'api_token' => $apiToken
         ];
         $this->json('POST', '/api/video/create', $payload, $headers)
             ->assertStatus(201)
@@ -47,7 +49,8 @@ class CreateVideoTest extends TestCase
             'title' => 'My video asset',
             'description' => 'A description of my video asset',
             'date_recorded' => '2019-01-01',
-            'duration' => '01:01:01'
+            'duration' => '01:01:01',
+            'api_token' => $apiToken
         ];
         $this->json('POST', '/api/video/create', $payload, $headers)
             ->assertStatus(200)
