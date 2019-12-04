@@ -9,23 +9,20 @@ use Tests\TestCase;
 class GetVideoTest extends TestCase
 {
     /**
-     * A basic feature test example.
+     * Test getById() in App\VideoController
      *
      * @return void
      */
     public function testGetById()
     {
-        $response = $this->get('/api/video/all');
-
+        $response = $this->get('/api/video/id/1');
         $response->assertStatus(200);
-//        $response->assertJsonStructure([
-//            'data' => [
-//                'asset_id',
-//                'title',
-//                'description',
-//                'date_recorded',
-//                'duration'
-//            ]
-//        ]);
+        $response->assertJsonStructure([
+                'asset_id',
+                'title',
+                'description',
+                'date_recorded',
+                'duration'
+        ]);
     }
 }

@@ -22,7 +22,7 @@ class VideoController extends Controller
     public function getById(Request $request, $id)
     {
         $video = new VideoResource(
-            Video::find($id)
+            Video::findOrFail($id)
         );
         return response()->json($video, 200);
     }
@@ -34,8 +34,9 @@ class VideoController extends Controller
      */
     public function getAllVideos()
     {
-        return new VideoCollection(
+        $videoCollection = new VideoCollection(
             Video::all()
         );
+        return response()->json($videoCollection, 200);
     }
 }
