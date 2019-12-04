@@ -9,7 +9,7 @@ use Tests\TestCase;
 class GetAllVideosTest extends TestCase
 {
     /**
-     * Test getAllVideos() in App\VideoController
+     * Test getAllVideos() in App\Http\Controllers\VideoController
      *
      * @return void
      */

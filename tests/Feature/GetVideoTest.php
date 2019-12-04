@@ -9,7 +9,7 @@ use Tests\TestCase;
 class GetVideoTest extends TestCase
 {
     /**
-     * Test getById() in App\VideoController
+     * Test getById() in App\Http\Controllers\VideoController
      *
      * @return void
      */

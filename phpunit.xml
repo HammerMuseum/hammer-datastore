@@ -13,6 +13,8 @@
     <testsuites>
         <testsuite name="Unit">
             <directory suffix="Test.php">./tests/Unit</directory>
+            <file>UpdateVideoTest.php</file>
+            <file>DeleteVideoTest.php</file>
         </testsuite>
 
         <testsuite name="Feature">
