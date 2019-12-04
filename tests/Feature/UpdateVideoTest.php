@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Video;
+use App\User;
 
 class UpdateVideoTest extends TestCase
 {
@@ -21,10 +22,14 @@ class UpdateVideoTest extends TestCase
             'title' => 'Sample video',
             'description' => 'Description of the sample video.',
             'date_recorded' => '2019-01-01',
-            'duration' => '01:01:01'
+            'duration' => '01:01:01',
+            'thumbnail_url' => 'http://url.com',
+            'video_url' => 'http://url.com',
         ]);
 
-        $apiToken = config('config_file.API_TOKEN');
+        $user = factory(User::class)->create();
+        $apiToken = $user->api_token;
+
         $headers = [
             'accept' => 'application/json',
             'content-type' => 'application/json'
@@ -37,6 +42,8 @@ class UpdateVideoTest extends TestCase
             'description' => 'An updated description of the sample video.',
             'date_recorded' => '2019-01-01',
             'duration' => '01:01:01',
+            'thumbnail_url' => 'http://url.com',
+            'video_url' => 'http://url.com',
             'api_token' => $apiToken
         ];
         $this->json('PUT', '/api/video/update/123', $payload, $headers)
@@ -54,6 +61,8 @@ class UpdateVideoTest extends TestCase
             'description' => 'An updated description video to test the Hammer API',
             'date_recorded' => '2019-01-01',
             'duration' => '01:01:01',
+            'thumbnail_url' => 'http://url.com',
+            'video_url' => 'http://url.com',
             'api_token' => $apiToken
         ];
 

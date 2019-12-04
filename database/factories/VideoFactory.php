@@ -21,6 +21,8 @@ $factory->define(Video::class, function (Faker $faker) {
         'asset_id' => 1234,
         'title' => 'Sample video',
         'description' => 'Description of the sample video.',
+        'thumbnail_url' => 'http://url.com',
+        'video_url' => 'http://url.com',
         'date_recorded' => '2019-01-01',
         'duration' => '01:01:01'
     ];

@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Video;
+use App\User;
 
 class DeleteVideoTest extends TestCase
 {
@@ -24,11 +25,14 @@ class DeleteVideoTest extends TestCase
             'duration' => '01:01:01'
         ]);
 
+        $user = factory(User::class)->create();
+        $apiToken = $user->api_token;
+
         $headers = [
             'accept' => 'application/json',
             'content-type' => 'application/json'
         ];
-        $this->json('DELETE', '/api/video/delete/1234?api_token=', [], $headers)
+        $this->json('DELETE', '/api/video/delete/1234?api_token=' . $apiToken, [], $headers)
             ->assertStatus(200)
             ->assertJson([
                 'success' => true,

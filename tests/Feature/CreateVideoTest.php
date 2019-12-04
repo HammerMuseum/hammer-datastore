@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Video;
+use App\User;
 
 /**
  * Class CreateVideoTest
@@ -21,11 +22,13 @@ class CreateVideoTest extends TestCase
      */
     public function testCreate()
     {
-        $apiToken = config('config_file.API_TOKEN');
         $headers = [
             'accept' => 'application/json',
             'content-type' => 'application/json'
         ];
+
+        $user = factory(User::class)->create();
+        $apiToken = $user->api_token;
 
         // First test creating a new video
         $payload = [
@@ -34,6 +37,8 @@ class CreateVideoTest extends TestCase
             'description' => 'A description of my video asset',
             'date_recorded' => '2019-01-01',
             'duration' => '01:01:01',
+            'thumbnail_url' => 'http://url.com',
+            'video_url' => 'http://url.com',
             'api_token' => $apiToken
         ];
         $this->json('POST', '/api/video/create', $payload, $headers)
@@ -50,6 +55,8 @@ class CreateVideoTest extends TestCase
             'description' => 'A description of my video asset',
             'date_recorded' => '2019-01-01',
             'duration' => '01:01:01',
+            'thumbnail_url' => 'http://url.com',
+            'video_url' => 'http://url.com',
             'api_token' => $apiToken
         ];
         $this->json('POST', '/api/video/create', $payload, $headers)

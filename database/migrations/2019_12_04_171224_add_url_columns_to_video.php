@@ -13,8 +13,9 @@ class AddUrlColumnsToVideo extends Migration
      */
     public function up()
     {
-        Schema::table('video', function (Blueprint $table) {
-            //
+        Schema::table('videos', function (Blueprint $table) {
+            $table->string('thumbnail_url')->after('description')->nullable(true);
+            $table->string('video_url')->after('thumbnail_url')->nullable(true);
         });
     }
 

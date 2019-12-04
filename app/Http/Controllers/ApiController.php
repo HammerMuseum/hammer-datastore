@@ -23,13 +23,7 @@ class ApiController extends Controller
         $assetId = $request->asset_id;
         $videoExists = Video::where('asset_id', $assetId)->get();
         if (!count($videoExists)) {
-            $video = Video::create([
-                'asset_id' => $request->asset_id,
-                'title' => $request->title,
-                'description' => $request->description,
-                'date_recorded' => $request->date_recorded,
-                'duration' => $request->duration
-            ]);
+            $video = Video::create($request->all());
             $video->save();
             return response()->json([
                 'success' => true,
@@ -58,13 +52,7 @@ class ApiController extends Controller
         $video = Video::where('asset_id', $assetId)->first();
         if (!is_null($video) && isset($video->id)) {
                 $videoId = $video->id;
-                $video->update([
-                    'asset_id' => $request->asset_id,
-                    'title' => $request->title,
-                    'description' => $request->description,
-                    'date_recorded' => $request->date_recorded,
-                    'duration' => $request->duration
-                ]);
+                $video->update($request->all());
                 return response()->json([
                     'success'  => true,
                     'message' => 'Video asset successfully updated',
