@@ -11,6 +11,7 @@ Populate your database credentials in the `.env` file e.g:
         DB_USERNAME=*
         DB_PASSWORD=*
 
+Check that all of the database credentials in `config/database.php` are pointing to the correct place.
 
 ## Using Docker
 
