@@ -8,12 +8,20 @@ use Tests\TestCase;
 use App\Video;
 use App\User;
 
+/**
+ * Class UpdateVideoTest
+ * @package Tests\Feature
+ */
 class UpdateVideoTest extends TestCase
 {
+    /** @var User */
     protected $testUser;
 
+    /** @var Video */
+    protected $testVideo;
+
     /**
-     * A basic feature test example.
+     * Test update() in App\Http|Controllers\ApiController
      *
      * @return void
      */
@@ -29,6 +37,7 @@ class UpdateVideoTest extends TestCase
             'video_url' => 'http://url.com',
         ]);
 
+        $this->testVideo = $video;
         $user = factory(User::class)->create();
         $this->testUser = $user;
         $apiToken = $user->api_token;
@@ -57,18 +66,6 @@ class UpdateVideoTest extends TestCase
             ]);
 
         // Second test updating a video that doesn't exist
-        // First test updating a real video
-        $payload = [
-            'asset_id' => 123,
-            'title' => 'Hammer Test Video',
-            'description' => 'An updated description video to test the Hammer API',
-            'date_recorded' => '2019-01-01',
-            'duration' => '01:01:01',
-            'thumbnail_url' => 'http://url.com',
-            'video_url' => 'http://url.com',
-            'api_token' => $apiToken
-        ];
-
         $this->json('PUT', '/api/video/update/1234567890', $payload, $headers)
             ->assertStatus(200)
             ->assertJson([
@@ -81,9 +78,7 @@ class UpdateVideoTest extends TestCase
     public function tearDown() : void
     {
         // Remove the created users and videos
-        $video = Video::where('asset_id', 123)->first();
-        $video->forceDelete();
-
+        $this->testVideo->forceDelete();
         $this->testUser->delete();
     }
 }

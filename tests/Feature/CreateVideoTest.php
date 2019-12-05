@@ -15,10 +15,11 @@ use App\User;
  */
 class CreateVideoTest extends TestCase
 {
+    /** @var User */
     protected $testUser;
 
     /**
-     * Test the creation of video resources
+     * Test create() in App\Http|Controllers\ApiController
      *
      * @return void
      */
@@ -52,16 +53,6 @@ class CreateVideoTest extends TestCase
             ]);
 
         // Second test creating a video with an existing asset ID
-        $payload = [
-            'asset_id' => 12,
-            'title' => 'My video asset',
-            'description' => 'A description of my video asset',
-            'date_recorded' => '2019-01-01',
-            'duration' => '01:01:01',
-            'thumbnail_url' => 'http://url.com',
-            'video_url' => 'http://url.com',
-            'api_token' => $apiToken
-        ];
         $this->json('POST', '/api/video/create', $payload, $headers)
             ->assertStatus(200)
             ->assertJson([

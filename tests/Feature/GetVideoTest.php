@@ -6,6 +6,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
+/**
+ * Class GetVideoTest
+ * @package Tests\Feature
+ */
 class GetVideoTest extends TestCase
 {
     /**

@@ -8,12 +8,20 @@ use Tests\TestCase;
 use App\Video;
 use App\User;
 
+/**
+ * Class DeleteVideoTest
+ * @package Tests\Feature
+ */
 class DeleteVideoTest extends TestCase
 {
+    /** @var User */
     protected $testUser;
 
+    /** @var Video */
+    protected $testVideo;
+
     /**
-     * A basic feature test example.
+     * Test delete() in App\Http|Controllers\ApiController
      *
      * @return void
      */
@@ -27,6 +35,7 @@ class DeleteVideoTest extends TestCase
             'duration' => '01:01:01'
         ]);
 
+        $this->testVideo = $video;
         $user = factory(User::class)->create();
         $this->testUser = $user;
         $apiToken = $user->api_token;
@@ -45,7 +54,8 @@ class DeleteVideoTest extends TestCase
 
     public function tearDown() : void
     {
-        parent::tearDown();
         $this->testUser->delete();
+
+        $this->testVideo->forceDelete();
     }
 }

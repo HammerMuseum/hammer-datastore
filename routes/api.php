@@ -22,4 +22,4 @@ Route::group(['middleware' => 'auth:api'], function() {
     Route::delete('video/delete/{id}', 'ApiController@delete');
 });
 
-Route::post('login', 'Auth\LoginController@login');
+Route::post('login', ['as' => 'login', 'uses' => 'Auth\LoginController@login'])->name('login');

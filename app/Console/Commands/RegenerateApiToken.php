@@ -12,7 +12,7 @@ class RegenerateApiToken extends Command
      *
      * @var string
      */
-    protected $signature = 'token:refresh';
+    protected $signature = 'api:refresh-token';
 
     /**
      * The console command description.

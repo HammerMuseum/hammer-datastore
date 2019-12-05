@@ -12,7 +12,7 @@ class RegisterUser extends Command
      *
      * @var string
      */
-    protected $signature = 'register:user';
+    protected $signature = 'api:register-user';
 
     /**
      * The console command description.
