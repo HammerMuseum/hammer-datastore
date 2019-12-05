@@ -66,25 +66,31 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::forceCreate([
+        return User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-            'api_token' => Str::random(80),
+            'password' => Hash::make($data['password'])
         ]);
     }
 
-    public function register(Request $request)
+    /**
+     * Register a user
+     *
+     * @param $data
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function register($data)
     {
         // Here the request is validated. The validator method is located
         // inside the RegisterController, and makes sure the name, email
         // password and password_confirmation fields are required.
-        $this->validator($request->all())->validate();
+        $this->validator($data)->validate();
 
         // A Registered event is created and will trigger any relevant
         // observers, such as sending a confirmation email or any
         // code that needs to be run as soon as the user is created.
-        event(new Registered($user = $this->create($request->all())));
+        event(new Registered($user = $this->create($data)));
+        $user->generateApiToken();
 
         // After the user is created, he's logged in.
         $this->guard()->login($user);
@@ -93,12 +99,18 @@ class RegisterController extends Controller
         // registered() method or it returns null, redirect him to
         // some other URL. In our case, we just need to implement
         // that method to return the correct response.
-        return $this->registered($request, $user)
+        return $this->registered($user)
             ?: redirect($this->redirectPath());
     }
 
-    protected function registered(Request $request, $user)
+    /**
+     * Return the registered user's data
+     *
+     * @param $user
+     * @return mixed
+     */
+    protected function registered($user)
     {
-        return response()->json(['data' => $user->toArray()], 201);
+        return $user->toArray();
     }
 }

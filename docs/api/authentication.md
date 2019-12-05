@@ -8,3 +8,11 @@ When setting up API authentication for the first time, run the following:
         -d '{"name": "Your name", "email": "your.email@cogapp.com", "password": "yourPassword", "password_confirmation": "yourPassword"}'
         
 The returned data will contain an `api_token`. This value will need to be appended to any payloads in requests using the `api_token` key.
+
+When making normal `GET` or `DELETE` requests, append
+
+        ?api_token=YOUR_API_TOKEN
+        
+to each request.
+
+To make unauthenticated requests, remove the `api_token` key from any payloads or URLs. 

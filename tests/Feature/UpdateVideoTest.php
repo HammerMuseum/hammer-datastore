@@ -10,6 +10,8 @@ use App\User;
 
 class UpdateVideoTest extends TestCase
 {
+    protected $testUser;
+
     /**
      * A basic feature test example.
      *
@@ -28,6 +30,7 @@ class UpdateVideoTest extends TestCase
         ]);
 
         $user = factory(User::class)->create();
+        $this->testUser = $user;
         $apiToken = $user->api_token;
 
         $headers = [
@@ -73,5 +76,14 @@ class UpdateVideoTest extends TestCase
                 'message' => 'Unable to find video asset in the datastore to update.',
                 'data_id' => null
             ]);
+    }
+
+    public function tearDown() : void
+    {
+        // Remove the created users and videos
+        $video = Video::where('asset_id', 123)->first();
+        $video->forceDelete();
+
+        $this->testUser->delete();
     }
 }

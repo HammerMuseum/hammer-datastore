@@ -15,6 +15,8 @@ use App\User;
  */
 class CreateVideoTest extends TestCase
 {
+    protected $testUser;
+
     /**
      * Test the creation of video resources
      *
@@ -28,6 +30,7 @@ class CreateVideoTest extends TestCase
         ];
 
         $user = factory(User::class)->create();
+        $this->testUser = $user;
         $apiToken = $user->api_token;
 
         // First test creating a new video
@@ -75,5 +78,7 @@ class CreateVideoTest extends TestCase
     {
         $video = Video::where('asset_id', 12)->first();
         $video->forceDelete();
+
+        $this->testUser->delete();
     }
 }

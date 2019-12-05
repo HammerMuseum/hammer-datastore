@@ -13,8 +13,6 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::post('register', 'Auth\RegisterController@register');
-
 Route::get('video/id/{id}', 'VideoController@getById');
 Route::get ('video/all', 'VideoController@getAllVideos');
 
@@ -24,3 +22,4 @@ Route::group(['middleware' => 'auth:api'], function() {
     Route::delete('video/delete/{id}', 'ApiController@delete');
 });
 
+Route::post('login', 'Auth\LoginController@login');

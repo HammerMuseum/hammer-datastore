@@ -23,6 +23,7 @@ A test plan for the initial datastore API endpoints. The tester should prove the
 ## Requirements to test
 - A local setup of the `hammer-datastore` repository with a database attached (follow the [getting started](../getting-started.md) guide to ensure your setup is complete)
 - Any setup to allow the tester to make API POST requests e.g curl.
+- **Equally, using [Postman](https://www.getpostman.com/) to test the endpoints is very reliable and recommended**.
 
 ## Test Plan
 - Using the documentation available in the repository, make an authenticated POST request to the datastore, adding a new video.

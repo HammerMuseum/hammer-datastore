@@ -10,6 +10,8 @@ use App\User;
 
 class DeleteVideoTest extends TestCase
 {
+    protected $testUser;
+
     /**
      * A basic feature test example.
      *
@@ -26,6 +28,7 @@ class DeleteVideoTest extends TestCase
         ]);
 
         $user = factory(User::class)->create();
+        $this->testUser = $user;
         $apiToken = $user->api_token;
 
         $headers = [
@@ -38,5 +41,11 @@ class DeleteVideoTest extends TestCase
                 'success' => true,
                 'message' => 'Video asset successfully deleted.',
             ]);
+    }
+
+    public function tearDown() : void
+    {
+        parent::tearDown();
+        $this->testUser->delete();
     }
 }
