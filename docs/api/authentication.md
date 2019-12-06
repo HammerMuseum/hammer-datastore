@@ -2,7 +2,7 @@
 
 When setting up API authentication for the first time, use the following command:
 
-        php artisan register:user
+        php artisan api:register-user
         
 Follow the steps to create your user.
         
@@ -12,6 +12,6 @@ To make unauthenticated requests, remove the `api_token` key from any payloads o
 
 To generate a new API token, run:
 
-        php artisan token:refresh
+        php artisan api:refresh-token
         
 and enter the email address you used to create the token.
