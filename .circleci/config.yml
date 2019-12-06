@@ -43,6 +43,7 @@ save_node_cache: &save_node_cache
 build_and_test: &build_and_test
   <<: *defaults
   steps:
+    - run: sudo apt install -y libsqlite3-dev zlib1g-dev
     - checkout
 
     # Install Composer dependencies.
