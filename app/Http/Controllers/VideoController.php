@@ -28,7 +28,7 @@ class VideoController extends Controller
             );
             return response()->json($video, 200);
         } catch (ModelNotFoundException $e) {
-            return response()->json($e->getMessage(), 400);
+            return response()->json('404: Resource not found.', 404);
         }
     }
 
