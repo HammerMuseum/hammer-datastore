@@ -23,6 +23,7 @@ class Video extends JsonResource
             'title' => $this->title,
             'description' => $this->description,
             'date_recorded' => $this->date_recorded,
+            'video_url' => $this->video_url,
             'duration' => $this->duration
         ];
     }

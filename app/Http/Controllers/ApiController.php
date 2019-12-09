@@ -75,7 +75,7 @@ class ApiController extends Controller
      */
     public function delete(Request $request, $assetId)
     {
-        // If the video exists
+        // Check that the asset to be updated actually exists
         $video = Video::where('asset_id', $assetId)->first();
         if (!is_null($video) && isset($video->id)) {
             try {

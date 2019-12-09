@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Http\Resources\Video as VideoResource;
 use App\Http\Resources\VideoCollection;
@@ -21,10 +22,14 @@ class VideoController extends Controller
      */
     public function getById(Request $request, $id)
     {
-        $video = new VideoResource(
-            Video::findOrFail($id)
-        );
-        return response()->json($video, 200);
+        try {
+            $video = new VideoResource(
+                Video::findOrFail($id)
+            );
+            return response()->json($video, 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json($e->getMessage(), 400);
+        }
     }
 
     /**
