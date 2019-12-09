@@ -28,13 +28,13 @@ class ApiController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Video asset added to datastore.',
-                'data_id' => $video->id
+                'id' => $video->id
             ], 201);
         } else {
             return response()->json([
                 'success' => false,
                 'message' => 'Video asset with ID ' . $assetId . ' already exists in datastore.',
-                'data_id' => null
+                'id' => null
             ], 200);
         }
     }
@@ -56,13 +56,13 @@ class ApiController extends Controller
                 return response()->json([
                     'success'  => true,
                     'message' => 'Video asset successfully updated',
-                    'data_id' => $videoId
+                    'id' => $videoId
                 ], 200);
         }
         return response()->json([
             'success' => false,
             'message' => 'Unable to find video asset in the datastore to update.',
-            'data_id' => null
+            'id' => null
         ], 200);
     }
 
