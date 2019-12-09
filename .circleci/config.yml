@@ -60,6 +60,7 @@ build_and_test: &build_and_test
     # prepare database
     - run: touch storage/testing.sqlite
     - run: php artisan key:generate --env=testing
+    - run: php artisan config:cache
     - run: php artisan migrate --env=testing --database=sqlite_testing --force
 
     # Run tests
