@@ -58,7 +58,7 @@ class UpdateVideoTest extends TestCase
             'video_url' => 'http://url.com',
             'api_token' => $apiToken
         ];
-        $this->json('PUT', '/api/video/update/123', $payload, $headers)
+        $this->json('PUT', '/api/videos/123', $payload, $headers)
             ->assertStatus(200)
             ->assertJson([
                 'success'  => true,
@@ -66,12 +66,12 @@ class UpdateVideoTest extends TestCase
             ]);
 
         // Second test updating a video that doesn't exist
-        $this->json('PUT', '/api/video/update/1234567890', $payload, $headers)
+        $this->json('PUT', '/api/videos/123456', $payload, $headers)
             ->assertStatus(200)
             ->assertJson([
                 'success' => false,
                 'message' => 'Unable to find video asset in the datastore to update.',
-                'data_id' => null
+                'id' => null
             ]);
     }
 

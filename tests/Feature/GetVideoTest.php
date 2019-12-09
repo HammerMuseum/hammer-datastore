@@ -19,7 +19,7 @@ class GetVideoTest extends TestCase
      */
     public function testGetById()
     {
-        $response = $this->get('/api/video/id/1');
+        $response = $this->get('/api/videos/1');
         $response->assertStatus(200);
         $response->assertJsonStructure([
                 'asset_id',

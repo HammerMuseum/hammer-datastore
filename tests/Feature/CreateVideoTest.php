@@ -45,7 +45,7 @@ class CreateVideoTest extends TestCase
             'video_url' => 'http://url.com',
             'api_token' => $apiToken
         ];
-        $this->json('POST', '/api/video/create', $payload, $headers)
+        $this->json('POST', '/api/videos', $payload, $headers)
             ->assertStatus(201)
             ->assertJson([
                 'success' => true,
@@ -53,12 +53,12 @@ class CreateVideoTest extends TestCase
             ]);
 
         // Second test creating a video with an existing asset ID
-        $this->json('POST', '/api/video/create', $payload, $headers)
+        $this->json('POST', '/api/videos', $payload, $headers)
             ->assertStatus(200)
             ->assertJson([
                 'success' => false,
                 'message' => 'Video asset with ID 12 already exists in datastore.',
-                'data_id' => null
+                'id' => null
             ]);
     }
 

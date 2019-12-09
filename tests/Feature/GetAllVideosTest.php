@@ -19,7 +19,7 @@ class GetAllVideosTest extends TestCase
      */
     public function testGetAllVideos()
     {
-        $response = $this->get('/api/video/all');
+        $response = $this->get('/api/videos');
         $response->assertStatus(200);
         $response->assertJsonStructure([
             'data' => []

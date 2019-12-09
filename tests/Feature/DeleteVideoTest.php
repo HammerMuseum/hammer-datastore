@@ -44,7 +44,7 @@ class DeleteVideoTest extends TestCase
             'accept' => 'application/json',
             'content-type' => 'application/json'
         ];
-        $this->json('DELETE', '/api/video/delete/1234?api_token=' . $apiToken, [], $headers)
+        $this->json('DELETE', '/api/videos/1234?api_token=' . $apiToken, [], $headers)
             ->assertStatus(200)
             ->assertJson([
                 'success' => true,
