@@ -11,6 +11,13 @@ defaults: &defaults
       environment:
         HOST_URL: datastore.hammer.cogapp.com
         STAGE_HOST_URL: stage.datastore.hammer.cogapp.com
+    
+    - image: circleci/mariadb:latest
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+        MYSQL_DATABASE: testing
+        MYSQL_USER: testing
+        MYSQL_PASSWORD: testing
 
 # Defines the cache restore mechanism for composer dependencies.
 restore_cache: &restore_cache
@@ -43,6 +50,10 @@ save_node_cache: &save_node_cache
 build_and_test: &build_and_test
   <<: *defaults
   steps:
+    - run: sudo apt-get update
+    - run: sudo docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd
+    - run: sudo docker-php-ext-install zip bcmath pdo_mysql
+      
     - checkout
 
     # Install Composer dependencies.
@@ -51,15 +62,15 @@ build_and_test: &build_and_test
     - save_cache: *save_cache
 
     # Install Node dependencies.
-    - restore_cache: *restore_cache
+    - restore_cache: *restore_node_cache
     - run: npm install
-    - save_cache: *save_cache
+    - save_cache: *save_node_cache
     - run: npm run prod
 
     # prepare database
-    - run: touch storage/testing.sqlite
     - run: php artisan key:generate --env=testing
-    - run: php artisan migrate --env=testing --database=sqlite_testing --force
+    - run: php artisan config:clear
+    - run: php artisan migrate --env=testing --database=mysql_testing --force
 
     # Run tests
     - run: ./vendor/bin/phpunit

@@ -13,6 +13,8 @@
     <testsuites>
         <testsuite name="Unit">
             <directory suffix="Test.php">./tests/Unit</directory>
+            <file>UpdateVideoTest.php</file>
+            <file>DeleteVideoTest.php</file>
         </testsuite>
 
         <testsuite name="Feature">
@@ -31,5 +33,6 @@
         <server name="MAIL_DRIVER" value="array"/>
         <server name="QUEUE_CONNECTION" value="sync"/>
         <server name="SESSION_DRIVER" value="array"/>
+        <server name="DB_CONNECTION" value="mysql_testing" />
     </php>
 </phpunit>

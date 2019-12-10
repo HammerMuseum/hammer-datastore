@@ -13,8 +13,13 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::get('videos/{id}', 'VideoController@getById');
+Route::get('videos', 'VideoController@getAllVideos');
+
+Route::group(['middleware' => 'auth:api'], function () {
+    Route::post('videos', 'ApiController@create');
+    Route::put('videos/{id}', 'ApiController@update');
+    Route::delete('videos/{id}', 'ApiController@delete');
 });
 
-Route::get('test', 'TestController@index');
+Route::post('login', ['as' => 'login', 'uses' => 'Auth\LoginController@login'])->name('login');
