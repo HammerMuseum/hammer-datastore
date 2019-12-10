@@ -15,7 +15,7 @@ use App\Video;
 class VideoController extends Controller
 {
     /**
-     * Get a video by its Datastore ID
+     * Get a video by its asset ID
      *
      * @param $id
      * @return VideoResource
@@ -23,10 +23,10 @@ class VideoController extends Controller
     public function getById(Request $request, $id)
     {
         try {
-            $video = new VideoResource(
-                Video::findOrFail($id)
-            );
-            return response()->json($video, 200);
+            $video = Video::where('asset_id', $id)->get()->take(1);
+            if (count($video)) {
+                return response()->json($video[0], 200);
+            }
         } catch (ModelNotFoundException $e) {
             return response()->json('404: Resource not found.', 404);
         }
