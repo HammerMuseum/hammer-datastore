@@ -14,61 +14,75 @@ To make unauthenticated requests, remove the `api_token` key from any payloads o
 To generate a new API token, run:
 
         php artisan api:refresh-token
-        
+
 and enter the email address you used to create the token.
 
-Add the `api_token` parameter to `POST` and `PUT` requests.
+Use the `api_token` parameter to authenticate API requests that require authentication.
 
-## C(R)UD
+## Endpoints
 
-The operations for creating, updating or deleting data from the Hammer Datastore:
+Methods to create, read, update and delete resources from the Hammer Datastore.
 
+### GET /api/videos/:asset_id
 
-### Create a new video
-        
-        curl -X POST http://YOURDATASTOREURL/api/videos \  
+Retrieve a video.
+
+        curl -X GET https://datastore.url/api/videos/:asset_id
+
+See `App\Controllers\VideoController->getById()`
+
+### GET /api/videos
+
+Retrieve all videos.
+
+        curl -X GET https://datastore.url/api/videos
+
+See `App\Controllers\VideoController->getAllVideos()`
+
+### POST /api/videos
+
+Add a video.
+
+        curl -X POST https://datastore.url/api/videos \  
         -H "Accept: application/json" \
         -H "Content-type: application/json" \
         -d '{"asset_id": "6", "title": "test", "description": "test desc", "date_recorded": "2019-01-01", "duration": "01:01:33"}'
 
+#### Arguments
+
+api_token **required**
+
+A valid API token.
 
 See `App\Controllers\ApiController->create()`
 
-### Update a video in the datastore
-        curl -X PUT http://YOURDATASTOREURL/api/videos/5 \                                                                             
+### PUT /api/videos
+
+Update a video.
+
+        curl -X PUT https://datastore.url/api/videos/:asset_id \
         -H "Accept: application/json" \
         -H "Content-type: application/json" \
         -d '{"asset_id": "5", "title": "API TEST", "description": "An updated API request description", "date_recorded": "2019-12-04", "duration": "0:01:01"}'
 
-This is updated by `asset_id`.
+#### Arguments
+
+api_token **required**
+
+A valid API token.
 
 See `App\Controllers\ApiController->update()`
 
+### DELETE /api/videos/:asset_id
 
-### Delete a video in the datastore
+Delete a video.
 
-        curl -X DELETE http://YOURDATASTOREURL/api/videos/6  
-        
-Where `6` is the value of `asset_id`.
+        curl -X DELETE https://datastore.url/api/videos/:asset_id  
 
-The system utilises soft deletes.
+#### Arguments
 
+api_token **required**
 
-## GET
+A valid API token.
 
-The two main operations for retrieving data from the Hammer Datastore:
-
-
-### Get a video by its datastore ID
-        /api/videos/1
-        
-where 1 is the datastore ID.
-
-See `App\Controllers\VideoController->getById()`
-
-### Get all videos from the datastore
-        /api/videos
-        
-As of the time of writing this, results are not paginated, but should be in the future.
-
-See `App\Controllers\VideoController->getAllVideos()`
+See `App\Controllers\ApiController->delete()`
