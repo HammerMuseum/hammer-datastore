@@ -14,9 +14,9 @@ use Illuminate\Http\Request;
 */
 
 Route::get('videos/{id}', 'VideoController@getById');
-Route::get ('videos', 'VideoController@getAllVideos');
+Route::get('videos', 'VideoController@getAllVideos');
 
-Route::group(['middleware' => 'auth:api'], function() {
+Route::group(['middleware' => 'auth:api'], function () {
     Route::post('videos', 'ApiController@create');
     Route::put('videos/{id}', 'ApiController@update');
     Route::delete('videos/{id}', 'ApiController@delete');
