@@ -21,6 +21,9 @@ class Video extends Model
         'description',
         'date',
         'duration',
+        'video_url',
+        'thumbnail_url',
+        'date_recorded'
     ];
 
     /**

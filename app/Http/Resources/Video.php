@@ -24,6 +24,7 @@ class Video extends JsonResource
             'description' => $this->description,
             'date_recorded' => $this->date_recorded,
             'video_url' => $this->video_url,
+            'thumbnail_url' => $this->thumbnail_url,
             'duration' => $this->duration
         ];
     }
