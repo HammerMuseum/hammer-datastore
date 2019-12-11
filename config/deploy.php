@@ -105,6 +105,7 @@ return [
     'options' => [
         'application' => env('APP_NAME', 'Laravel'),
         'php_fpm_service' => 'php7.2-fpm',
+        'php_fpm_command' => 'echo "" | sudo systemctl restart php7.2-fpm.service',
         'http_user' => 'www-data',
         'upload_vendors' => true,
         'upload_options' => [
