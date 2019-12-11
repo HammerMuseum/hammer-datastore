@@ -74,6 +74,8 @@ return [
             'artisan:view:clear',
             'artisan:cache:clear',
             'artisan:config:cache',
+            'artisan:migrate',
+            'artisan:opcache:clear'
         ],
         
         // Deployment is done and live
@@ -82,8 +84,6 @@ return [
         
         // Deployment succeeded.
         'success' => [
-            'artisan:migrate',
-            'artisan:opcache:clear'
         ],
         
         // Deployment failed.
