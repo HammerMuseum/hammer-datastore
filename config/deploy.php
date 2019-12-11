@@ -78,7 +78,8 @@ return [
         
         // Deployment is done and live
         'done' => [
-            //
+            'artisan:migrate',
+            'artisan:opcache:clear'
         ],
         
         // Deployment succeeded.

@@ -19,7 +19,7 @@ class ConvertTimestampFieldToDate extends Migration
         });
 
         Schema::table('videos', function (Blueprint $table) {
-            $table->date('date_recorded');
+            $table->date('date_recorded')->nullable();
         });
     }
 
