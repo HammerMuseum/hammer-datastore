@@ -78,6 +78,7 @@ return [
         
         // Deployment is done and live
         'done' => [
+            'artisan:migrate'
         ],
         
         // Deployment succeeded.
