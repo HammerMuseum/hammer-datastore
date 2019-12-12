@@ -78,7 +78,7 @@ return [
         
         // Deployment is done and live
         'done' => [
-            'fpm:reload'
+
         ],
         
         // Deployment succeeded.
@@ -104,8 +104,6 @@ return [
 
     'options' => [
         'application' => env('APP_NAME', 'Laravel'),
-        'php_fpm_service' => 'php7.2-fpm',
-        'php_fpm_command' => 'sudo systemctl restart php7.2-fpm.service',
         'http_user' => 'www-data',
         'upload_vendors' => true,
         'upload_options' => [
