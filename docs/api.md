@@ -50,6 +50,8 @@ Add a video.
 
 #### Arguments
 
+**Headers**: `"Accept": "application/json"`
+
 api_token **required**
 
 A valid API token.
@@ -67,6 +69,8 @@ Update a video.
 
 #### Arguments
 
+**Headers**: `"Accept": "application/json"`
+
 api_token **required**
 
 A valid API token.
@@ -80,6 +84,8 @@ Delete a video.
         curl -X DELETE https://datastore.url/api/videos/:asset_id  
 
 #### Arguments
+
+**Headers**: `"Accept": "application/json"`
 
 api_token **required**
 
