@@ -78,7 +78,6 @@ return [
         
         // Deployment is done and live
         'done' => [
-
         ],
         
         // Deployment succeeded.

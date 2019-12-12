@@ -81,7 +81,7 @@
 
             <div class="content">
                 <div class="title m-b-md">
-                    Hammer Video: Data-Store
+                    Hammer Video: DataStore
                 </div>
 
                 <div class="links">
