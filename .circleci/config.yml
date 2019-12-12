@@ -105,6 +105,7 @@ deploy: &deploy
         tag-value: bastion
     - run: ssh-keyscan -H $(echo "$HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $HOST_URL
+    - run: ssh deploy@$HOST_URL sudo systemctl reload php7.2-fpm.service
     - aws-white-list-circleci-ip/remove:
         port: 22
         tag-key: group
@@ -130,7 +131,7 @@ deploy_stage: &deploy_stage
         tag-value: bastion
     - run: ssh-keyscan -H $(echo "$STAGE_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $STAGE_HOST_URL
-    - run: sudo systemctl restart php7.2-fpm.service
+    - run: ssh deploy@$STAGE_HOST_URL sudo systemctl reload php7.2-fpm.service
     - aws-white-list-circleci-ip/remove:
         port: 22
         tag-key: group
