@@ -25,11 +25,20 @@ class VideoController extends Controller
         try {
             $video = Video::where('asset_id', $id)->get()->take(1);
             if (count($video) && count($video) > 0) {
-                return response()->json($video[0], 200);
+                return response()->json([
+                    'success' => true,
+                    'data' => $video[0]
+                ], 200);
             }
-            return response()->json(['success' => false, 'message' => 'Resource not found.'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Resource not found.'
+            ], 404);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['success' => false, 'message' => 'Resource not found.'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Resource not found.'
+            ], 404);
         }
     }
 
