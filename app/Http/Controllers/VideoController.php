@@ -52,7 +52,8 @@ class VideoController extends Controller
         $videoCollection = new VideoCollection(
             Video::all()
         );
-        if (isset($videoCollection['data']) && !empty($videoCollection['data'])) {
+        $count = $videoCollection->count();
+        if ($count > 0) {
             return response()->json($videoCollection, 200);
         }
         return response()->json(['success' => false, 'message' => 'No video resources found.'], 404);
