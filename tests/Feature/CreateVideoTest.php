@@ -54,7 +54,7 @@ class CreateVideoTest extends TestCase
 
         // Second test creating a video with an existing asset ID
         $this->json('POST', '/api/videos', $payload, $headers)
-            ->assertStatus(200)
+            ->assertStatus(400)
             ->assertJson([
                 'success' => false,
                 'message' => 'Video asset with ID 12 already exists in datastore.',

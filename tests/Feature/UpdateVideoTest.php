@@ -67,7 +67,7 @@ class UpdateVideoTest extends TestCase
 
         // Second test updating a video that doesn't exist
         $this->json('PUT', '/api/videos/123456', $payload, $headers)
-            ->assertStatus(200)
+            ->assertStatus(404)
             ->assertJson([
                 'success' => false,
                 'message' => 'Unable to find video asset in the datastore to update.',

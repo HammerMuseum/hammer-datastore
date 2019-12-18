@@ -56,6 +56,9 @@ class VideoController extends Controller
         if ($count > 0) {
             return response()->json($videoCollection, 200);
         }
-        return response()->json(['success' => false, 'message' => 'No video resources found.'], 404);
+        return response()->json([
+            'success' => false,
+            'message' => 'No video resources found.'
+        ], 404);
     }
 }

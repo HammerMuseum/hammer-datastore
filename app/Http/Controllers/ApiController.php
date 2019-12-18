@@ -35,7 +35,7 @@ class ApiController extends Controller
                 'success' => false,
                 'message' => 'Video asset with ID ' . $assetId . ' already exists in datastore.',
                 'id' => null
-            ], 200);
+            ], 400);
         }
     }
 
@@ -63,7 +63,7 @@ class ApiController extends Controller
             'success' => false,
             'message' => 'Unable to find video asset in the datastore to update.',
             'id' => null
-        ], 200);
+        ], 404);
     }
 
     /**
@@ -88,12 +88,12 @@ class ApiController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Unable to delete video asset: ' . $e->getMessage(),
-                ], 200);
+                ], 400);
             }
         }
         return response()->json([
             'success' => false,
             'message' => 'Unable to find video asset to delete.',
-        ], 200);
+        ], 404);
     }
 }
