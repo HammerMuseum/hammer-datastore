@@ -136,6 +136,10 @@ return [
             'deploy_path' => '/var/www/stage.datastore.hammer.cogapp.com',
             'user' => 'deploy',
         ],
+        'dev.datastore.hammer.cogapp.com' => [
+            'deploy_path' => '/var/www/dev.datastore.hammer.cogapp.com',
+            'user' => 'deploy',
+        ]
     ],
 
     /*
