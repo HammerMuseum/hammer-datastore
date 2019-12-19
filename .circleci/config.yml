@@ -7,10 +7,11 @@
 # Defines images and working directory.
 defaults: &defaults
   docker:
-    - image: circleci/php:7.2-buster-node-browsers
+    - image: circleci/php:7.2-buster-node-browsers-legacy
       environment:
         HOST_URL: datastore.hammer.cogapp.com
         STAGE_HOST_URL: stage.datastore.hammer.cogapp.com
+        DEV_HOST_URL: dev.datastore.hammer.cogapp.com
     
     - image: circleci/mariadb:latest
       environment:
@@ -137,6 +138,32 @@ deploy_stage: &deploy_stage
         tag-key: group
         tag-value: bastion
 
+deploy_dev: &deploy_dev
+  <<: *defaults
+  steps:
+    - checkout
+    - add_ssh_keys:
+        fingerprints:
+          - "a2:22:da:24:fd:c3:76:8d:80:de:ae:af:a3:00:c3:3e"
+    - attach_workspace:
+        at: /home/circleci/project
+    - run:
+        name: Install deploy dependency rsync
+        command: sudo apt install rsync
+    - run: composer install --optimize-autoloader --no-dev
+    - aws-cli/setup
+    - aws-white-list-circleci-ip/add:
+        port: 22
+        tag-key: group
+        tag-value: bastion
+    - run: ssh-keyscan -H $(echo "$DEV_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
+    - run: php artisan deploy $DEV_HOST_URL
+    - run: ssh deploy@$DEV_HOST_URL sudo systemctl reload php7.2-fpm.service
+    - aws-white-list-circleci-ip/remove:
+        port: 22
+        tag-key: group
+        tag-value: bastion
+
 # Declare all of the jobs we should run.
 version: 2.1
 orbs:
@@ -145,23 +172,35 @@ orbs:
 
 jobs:
   build_and_test:
-     <<: *build_and_test
+    <<: *build_and_test
+  deploy_dev:
+    <<: *deploy_dev
   deploy_stage:
-     <<: *deploy_stage
+    <<: *deploy_stage
   deploy:
-     <<: *deploy
+    <<: *deploy
 
 workflows:
   build_and_test:
     jobs:
-      - build_and_test
+      - build_and_test:
+          filters:
+            tags:
+              only: /.*/
+      - deploy_dev:
+          requires:
+            - build_and_test
+          filters:
+            tags:
+              only: /^dev-.*/
+            branches:
+              ignore: /.*/
       - deploy_stage:
           requires:
             - build_and_test
           filters:
             branches:
               only: develop
-
       - deploy:
           requires:
             - build_and_test
