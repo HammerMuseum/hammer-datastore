@@ -47,6 +47,18 @@ See `App\Controllers\VideoController->getAllVideos()`
 * `200` if successful
 * `404` if failed (resource not found)
 
+### GET /api/search/:term
+
+Search for a video in the ElasticSearch index.
+
+        curl -X GET https://datastore.url/api/search/:term  
+
+#### Arguments
+
+**Headers**: `"Accept": "application/json"`
+
+See `App\Controllers\SearchController->search()`
+
 ### POST /api/videos
 
 Add a video.
@@ -113,5 +125,3 @@ See `App\Controllers\ApiController->delete()`
 * `200` if successful
 * `404` if failed (resource not found)
 * `400` if failed (unable to delete)
-
-
