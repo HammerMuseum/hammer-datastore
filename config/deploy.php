@@ -139,7 +139,7 @@ return [
         'dev.datastore.hammer.cogapp.com' => [
             'deploy_path' => '/var/www/dev.datastore.hammer.cogapp.com',
             'user' => 'deploy',
-        ]
+        ],
     ],
 
     /*
