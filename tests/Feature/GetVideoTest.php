@@ -34,11 +34,13 @@ class GetVideoTest extends TestCase
         $response = $this->get('/api/videos/' . $id);
         $response->assertStatus(200);
         $response->assertJsonStructure([
-            'asset_id',
-            'title',
-            'description',
-            'date_recorded',
-            'duration'
+            'data' => [
+                'asset_id',
+                'title',
+                'description',
+                'date_recorded',
+                'duration'
+            ]
         ]);
     }
 }
