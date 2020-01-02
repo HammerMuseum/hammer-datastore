@@ -37,14 +37,14 @@ class SearchController extends Controller
             if ($results) {
                 return response()->json([
                     'success' => true,
-                    'result' => $results,
+                    'data' => $results,
                     'message' => false
                 ], 200);
             }
         }
         return response()->json([
             'success' => false,
-            'result' => false,
+            'data' => false,
             'message' => 'No results found.'
         ], 404);
     }
