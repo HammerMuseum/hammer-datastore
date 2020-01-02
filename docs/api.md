@@ -92,3 +92,15 @@ api_token **required**
 A valid API token.
 
 See `App\Controllers\ApiController->delete()`
+
+### GET /api/search/:term
+
+Search for a video in the ElasticSearch index.
+
+        curl -X GET https://datastore.url/api/search/:term  
+
+#### Arguments
+
+**Headers**: `"Accept": "application/json"`
+
+See `App\Controllers\SearchController->search()`
