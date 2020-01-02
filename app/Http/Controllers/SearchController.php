@@ -32,7 +32,7 @@ class SearchController extends Controller
     public function search(Request $request, $term)
     {
         if (!is_null($term)) {
-            $results = $this->search->search($term);
+            $results = $this->search->match($term);
 
             if ($results) {
                 return response()->json([
