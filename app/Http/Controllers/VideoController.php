@@ -24,11 +24,21 @@ class VideoController extends Controller
     {
         try {
             $video = Video::where('asset_id', $id)->get()->take(1);
-            if (count($video)) {
-                return response()->json($video[0], 200);
+            if (count($video) && count($video) > 0) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $video[0]
+                ], 200);
             }
+            return response()->json([
+                'success' => false,
+                'message' => 'Resource not found.'
+            ], 404);
         } catch (ModelNotFoundException $e) {
-            return response()->json('404: Resource not found.', 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Resource not found.'
+            ], 404);
         }
     }
 
@@ -42,6 +52,13 @@ class VideoController extends Controller
         $videoCollection = new VideoCollection(
             Video::all()
         );
-        return response()->json($videoCollection, 200);
+        $count = $videoCollection->count();
+        if ($count > 0) {
+            return response()->json($videoCollection, 200);
+        }
+        return response()->json([
+            'success' => false,
+            'message' => 'No video resources found.'
+        ], 404);
     }
 }
