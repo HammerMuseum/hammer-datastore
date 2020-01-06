@@ -7,70 +7,37 @@ class ElasticsearchAdaptor():
     """
     The location of the data to be adapted for Elasticsearch.
     """
-    input_data = None
-
-    """Logger as set by the add_logging() method."""
     logger = None
 
-    """Log level for logging module."""
-    log_level = logging.INFO
-
-    """Formatter for logging messages."""
-    log_formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-    def __init__(self, options):
+    def __init__(self, input_data):
         # load config to provide all of the following property values
-        self.es_domain = options['es_domain']
+        # self.es_domain = 'https://search-hammermuseum-7ugp6zl6uxoivh2ihpx56t7wxu.us-west-1.es.amazonaws.com'
+        self.es_domain = 'http://localhost'
         self.es_index = "videos"
         self.es_type = "video"
         self.es = Elasticsearch(
             self.es_domain,
-            scheme="https",
-            port=443,
+            # scheme="https",
+            port=9201,
         )
-        
-
-    def add_logging(self, log_directory, log_file, log_name='elasticsearch'):
-        """
-        Add a basic logger.
-        """
-        logger = logging.getLogger(log_name)
-        logger.setLevel(self.log_level)
-
-        # Only add the handlers once
-        if not logger.hasHandlers():
-            log_path = os.path.join(log_directory, log_file)
-            ch1 = logging.FileHandler(log_path)
-            ch1.setLevel(self.log_level)
-            ch1.setFormatter(self.log_formatter)
-            logger.addHandler(ch1)
-
-            ch2 = logging.StreamHandler()
-            ch2.setLevel(self.log_level)
-            ch2.setFormatter(self.log_formatter)
-            logger.addHandler(ch2)
-
-        self.logger = logger
+        self.input_data_path = input_data
 
 
     def process(self):
-        self.logger.info('Beginning Elasticsearch Adaptor processing')
-        # load records for processing
-        records = load_records()
+        # self.logger.info('Beginning Elasticsearch Adaptor processing')
         # validation
         # send to elasticsearch
-        self.send_to_elasticsearch()
+        self.submit(self.input_data_path)
 
         # Tidy up run
-        self.logger.info('Ending processing run')
-        self.logger.info('%i records processed' % self.records_processed)
-        self.logger.info('%i records failed' % self.records_failed)
+        # self.logger.info('Ending processing run')
+        # self.logger.info('%i records processed' % self.records_processed)
+        # self.logger.info('%i records failed' % self.records_failed)
 
-        if self.success:
-            self.logger.info('Harvest succeeded')
-        else:
-            self.logger.info('Harvest failed')
+        # if self.success:
+        #     print('Processing succeeded')
+        # else:
+        #     print('Processing failed')
 
 
     def load_records(self, directory):
@@ -82,6 +49,10 @@ class ElasticsearchAdaptor():
                     yield data
 
 
-    def send_to_elasticsearch(self):
-        helpers.bulk(self.es, self.load_json(self.current_output_path),
-                     index=self.es_index, doc_type=self.es_type)
+    def submit(self, data_location):
+        try:
+            response = helpers.bulk(self.es, self.load_records(data_location),
+                        index=self.es_index, doc_type=self.es_type)
+            print("Successfully processed: {} records".format(response[0]))
+        except Exception as e:
+            print("ERROR:", e)

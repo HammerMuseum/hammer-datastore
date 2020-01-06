@@ -5,6 +5,7 @@ import argparse
 import traceback
 import dateparser
 from datetime import datetime
+
 from harvester.harvester.assetbank import AssetBankHarvester
 from harvester.components.adaptors import ElasticsearchAdaptor
 
@@ -64,7 +65,11 @@ if __name__ == '__main__':
         # If submit option is enabled also adapt and send
         # the records to any registered outputs.
         if args.submit:
-            ElasticsearchAdaptor.process()
+            logger.info('Creating Elasticsearch adaptor process')
+            adaptor = ElasticsearchAdaptor(harvester.current_output_path)
+            # adaptor.add_logger('../logs',
+                                    # 'elasticsearch.log', 'ElasticsearchAdaptor')
+            adaptor.process()
 
 
     except Exception as e:
