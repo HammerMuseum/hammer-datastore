@@ -12,7 +12,6 @@ from lxml import etree
 from collections import OrderedDict
 from harvester.harvester import HarvesterBase
 from harvester.processors import DelimiterProcessor
-from elasticsearch import Elasticsearch, helpers
 
 
 class AssetBankHarvester(HarvesterBase):
@@ -25,7 +24,7 @@ class AssetBankHarvester(HarvesterBase):
     errors = 0
 
     """
-    The current location of the mill output.
+    The current location of the output.
     This may change during the run as directories are renamed.
     """
     current_output_path = None
@@ -37,16 +36,6 @@ class AssetBankHarvester(HarvesterBase):
         self.url = url
         self.assetType = options['assetType']
         self.docs = []
-        self.api_token = options['api_token']
-        self.datastore_url = options['datastore_url']
-        self.es_domain = options['es_domain']
-        self.es_index = "videos"
-        self.es_type = "video"
-        self.es = Elasticsearch(
-            self.es_domain,
-            scheme="https",
-            port=443,
-        )
 
     def harvest(self):
         # Add a log handler for the run
@@ -61,7 +50,7 @@ class AssetBankHarvester(HarvesterBase):
         self.do_harvest()
 
         self.logger.info('Ending Harvester run')
-        self.logger.info('%i records processed' % self.records_processed)
+        self.logger.info('%i records harvested' % self.records_processed)
         self.logger.info('%i records failed' % self.records_failed)
 
         if self.records_processed > 0:
@@ -77,46 +66,11 @@ class AssetBankHarvester(HarvesterBase):
 
 
     def postprocess(self):
-        """Postprocessing callback."""
-        self.send_to_elasticsearch()
-        self.send_to_datastore(self.current_output_path)
-        # Write out the summary
+        """
+        Postprocessing callback.
+        """
         self.write_summary()
 
-
-    def load_json(self, directory):
-        for filename in os.listdir(directory):
-            if filename.endswith('.json'):
-                with open(os.path.join(directory, filename), 'r') as f:
-                    data = json.load(f)
-                    data['_id'] = data['asset_id']
-                    yield data
-
-
-    def send_to_elasticsearch(self):
-        helpers.bulk(self.es, self.load_json(self.current_output_path),
-                     index=self.es_index, doc_type=self.es_type)
-
-
-    def send_to_datastore(self, directory):
-
-        for filename in os.listdir(directory):
-            if filename.endswith('.json'):
-                with open(os.path.join(directory, filename), 'r') as f:
-                    payload = json.load(f)
-                    params = {
-                        'api_token': self.api_token
-                    }
-                    headers = {'Accept': 'application/json'}
-                    r = requests.get(self.datastore_url + "/" + str(payload['asset_id']), headers=headers)
-                    json_response = r.json()
-                    if json_response['asset_id'] > 0:
-                        r = requests.put(self.datastore_url + "/" + str(payload['asset_id']), headers=headers, params=params, data=payload)
-                    else:
-                        r = requests.post(self.datastore_url + "/" + str(payload['asset_id']), headers=headers, params=params, data=payload)
-                    # if not r.ok:
-                    #     print(r.text)
-                    #     print("Failed to process " + filename)
 
     def do_harvest(self):
         """
@@ -129,28 +83,23 @@ class AssetBankHarvester(HarvesterBase):
         )
         root = etree.fromstring(response.content)
         assets = root.xpath('//assetSummary')
-        size = len(assets)
 
         # Iterate over all resources
-        with tqdm(total=int(size)) as progress:
-            for asset in assets:
-                # self.logger.debug('Processing data record {!s}'.format(record.header.identifier)
+        for asset in tqdm(assets):
+            identifier = asset.xpath('id')[0].text
+            self.logger.debug('Processing data record {!s}'.format(identifier))
+            
+            # process the record
+            asset_url = asset.xpath('fullAssetUrl')[0].text
+            record = requests.get(asset_url)
+            record_success = self.do_record_harvest(record.content, identifier)
 
-                # process the record
-                asset_url = asset.xpath('fullAssetUrl')[0].text
-                identifier = asset.xpath('id')[0].text
-                record = requests.get(asset_url)
-                record_success = self.do_record_harvest(record.content, identifier)
+            self.records_processed += 1
 
-                self.records_processed += 1
-
-                if record_success:
-                    self.records_succeeded += 1
-                else:
-                    self.records_failed += 1
-                
-                # Update CLI progress bar
-                progress.update(1)
+            if record_success:
+                self.records_succeeded += 1
+            else:
+                self.records_failed += 1
 
 
     def do_record_harvest(self, record, identifier):
@@ -165,7 +114,7 @@ class AssetBankHarvester(HarvesterBase):
         json_record = {}
         root = etree.fromstring(record)
         
-        json_record['video_url'] = root.xpath('//asset/contentUrl/text()')[0]
+        json_record['video_url'] = root.xpath('//asset/displayUrl/text()')[0]
         json_record['thumbnail_url'] = root.xpath('//asset/thumbnailUrl/text()')[0]
 
         attributes = {

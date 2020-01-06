@@ -1,5 +1,5 @@
 import os
-from eap_harvester.harvester import HarvesterBase
+from harvester.harvester import HarvesterBase
 
 
 class HarvesterSimple(HarvesterBase):
@@ -16,14 +16,14 @@ class HarvesterSimple(HarvesterBase):
 
 
 myRecord = {}
-harvestDir = '/var/eap_harvester/HarvesterSimple'
+harvestDir = '/var/harvester/HarvesterSimple'
 
 if not os.path.exists(harvestDir):
     os.mkdir(harvestDir)
 
 # Example usage
 myHarvester = HarvesterSimple()
-myHarvester.add_logger('/var/log/eap_harvester', 'eap_harvester.log')
+myHarvester.add_logger('/var/log/harvester', 'harvester.log')
 myHarvester.logger.info('This is a log message')
 myHarvester.outputDirectory = harvestDir
 myHarvester.harvest()
