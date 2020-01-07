@@ -1,24 +1,25 @@
 import os 
 import logging
 import json
+import confuse
 from elasticsearch import Elasticsearch, helpers
 
-class ElasticsearchAdaptor():
+class ElasticsearchAdaptor  ():
     """
     The location of the data to be adapted for Elasticsearch.
     """
     logger = None
+    config = None
 
-    def __init__(self, input_data):
-        # load config to provide all of the following property values
-        # self.es_domain = 'https://search-hammermuseum-7ugp6zl6uxoivh2ihpx56t7wxu.us-west-1.es.amazonaws.com'
-        self.es_domain = 'http://localhost'
-        self.es_index = "videos"
-        self.es_type = "video"
+    def __init__(self, input_data, es_domain, port='443', scheme='https'):
+        # Move this out to a config file
+        self.es_domain = es_domain
+        self.es_index = 'videos'
+        self.es_type = 'video'
         self.es = Elasticsearch(
             self.es_domain,
-            # scheme="https",
-            port=9201,
+            scheme=scheme,
+            port=port
         )
         self.input_data_path = input_data
 

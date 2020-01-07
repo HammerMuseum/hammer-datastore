@@ -10,12 +10,12 @@ from harvester.harvester.assetbank import AssetBankHarvester
 from harvester.components.adaptors import ElasticsearchAdaptor
 
 parser = argparse.ArgumentParser('Run the Asset Bank harvester')
-parser.add_argument('--short', action='store_true')
-parser.add_argument('--submit', action='store_true')
+parser.add_argument('url', type=str, help='The URL of the Asset Bank resource.')
+parser.add_argument('type', type=str, help='The Asset Bank asset type identifier.')
+parser.add_argument('--submit', action='store_true', help='If set, will attempt to submit the harvested records to the search index.')
+parser.add_argument('--search-domain', type=str, help='The URL of the search index to populate. Required when using --submit.', dest='search_host')
 parser.add_argument('--debug', action='store_true')
-parser.add_argument('--url', type=str, required=True, help='The URL of the Asset Bank resource.')
-parser.add_argument('--type', type=str, required=True,
-                    help=' Required. The Asset Bank asset type identifier.', dest='type')
+parser.add_argument('--short', action='store_true', help='Only harvest 10 records at most.')
 parser.add_argument('--since', help='Optional. A date relative to today, can be "2019-01-01" or "yesterday" or "2 days ago" etc', dest='since')
 args = parser.parse_args()
 
@@ -27,6 +27,13 @@ options = {
 if args.since:
     optional = {'from': dateparser.parse(args.since).strftime('%Y-%m-%d')}
     options = dict(options, **optional)
+
+if args.submit:
+    if not args.search_host:
+        print('\nError: The "--search-domain" option is required when using "--submit"\n')
+        exit(1)
+    else:
+        options['search_host'] = args.search_host
 
 if __name__ == '__main__':
     logger = logging.getLogger('run_assetbank')
@@ -66,7 +73,10 @@ if __name__ == '__main__':
         # the records to any registered outputs.
         if args.submit:
             logger.info('Creating Elasticsearch adaptor process')
-            adaptor = ElasticsearchAdaptor(harvester.current_output_path)
+            adaptor = ElasticsearchAdaptor(
+                harvester.current_output_path,
+                options['search_host']
+            )
             # adaptor.add_logger('../logs',
                                     # 'elasticsearch.log', 'ElasticsearchAdaptor')
             adaptor.process()
