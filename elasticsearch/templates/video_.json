@@ -1,0 +1,38 @@
+{
+  "index_patterns": [
+    "video_*"
+  ],
+  "mappings": {
+    "_doc": {
+      "properties": {
+        "asset_id": {
+          "type": "keyword"
+        },
+        "date_recorded": {
+          "type": "date"
+        },
+        "description": {
+          "type": "text",
+          "analyzer": "english"
+        },
+        "thumbnail_url": {
+          "type": "keyword"
+        },
+        "title": {
+          "type": "text",
+          "analyzer": "english"
+        },
+        "transcription": {
+          "type": "text",
+          "analyzer": "english"
+        },
+        "tags": {
+          "type": "keyword"
+        },
+        "video_url": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}

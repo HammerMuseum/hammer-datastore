@@ -1,0 +1,1 @@
+from .ElasticsearchAdaptor import ElasticsearchAdaptor
