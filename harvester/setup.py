@@ -22,13 +22,6 @@ setup(
 
     description='Asset harvester',
 
-    # Author details
-    author='Cogapp',
-    author_email='cogapptech@cogapp.com',
-
-    # Choose your license
-    # license='MIT',
-
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     packages=['harvester'],
