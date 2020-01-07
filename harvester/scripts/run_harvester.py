@@ -10,13 +10,19 @@ from harvester.harvester.assetbank import AssetBankHarvester
 from harvester.components.adaptors import ElasticsearchAdaptor
 
 parser = argparse.ArgumentParser('Run the Asset Bank harvester')
-parser.add_argument('url', type=str, help='The URL of the Asset Bank resource.')
-parser.add_argument('type', type=str, help='The Asset Bank asset type identifier.')
-parser.add_argument('--submit', action='store_true', help='If set, will attempt to submit the harvested records to the search index.')
-parser.add_argument('--search-domain', type=str, help='The URL of the search index to populate. Required when using --submit.', dest='search_host')
+parser.add_argument(
+    'url', type=str, help='The URL of the Asset Bank resource.')
+parser.add_argument(
+    'type', type=str, help='The Asset Bank asset type identifier.')
+parser.add_argument('--submit', action='store_true',
+                    help='If set, will attempt to submit the harvested records to the search index.')
+parser.add_argument('--search-domain', type=str,
+                    help='The URL of the search index to populate. Required when using --submit.', dest='search_host')
 parser.add_argument('--debug', action='store_true')
-parser.add_argument('--short', action='store_true', help='Only harvest 10 records at most.')
-parser.add_argument('--since', help='Optional. A date relative to today, can be "2019-01-01" or "yesterday" or "2 days ago" etc', dest='since')
+parser.add_argument('--short', action='store_true',
+                    help='Only harvest 10 records at most.')
+parser.add_argument(
+    '--since', help='Optional. A date relative to today, can be "2019-01-01" or "yesterday" or "2 days ago" etc', dest='since')
 args = parser.parse_args()
 
 # Prepare arguments for passing into the harvester
@@ -60,7 +66,7 @@ if __name__ == '__main__':
             harvester.log_level = logging.DEBUG
 
         harvester.add_logger('../logs',
-                             'assetbank.log', 'AssetBankHarvester')
+                             'harvest.log', 'AssetBankHarvester')
 
         # If short is specified, only harvest the first 10 pages.
         if args.short:
@@ -70,17 +76,20 @@ if __name__ == '__main__':
         harvester.process()
 
         # If submit option is enabled also adapt and send
-        # the records to any registered outputs.
+        # the records to registered outputs, presently only Elasticsearch.
         if args.submit:
-            logger.info('Creating Elasticsearch adaptor process')
+            logger.info('Running submission processes')
+            logger.info('Starting Elasticsearch adaptor')
+
             adaptor = ElasticsearchAdaptor(
                 harvester.current_output_path,
                 options['search_host']
             )
-            # adaptor.add_logger('../logs',
-                                    # 'elasticsearch.log', 'ElasticsearchAdaptor')
+            adaptor.add_logger('../logs',
+                               'adaptor.log', 'ElasticsearchAdaptor')
             adaptor.process()
 
+            logger.info('Ending submissions processes')
 
     except Exception as e:
         exc_info = sys.exc_info()
