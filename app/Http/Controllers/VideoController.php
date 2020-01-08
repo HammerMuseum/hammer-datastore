@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Resources\Video as VideoResource;
 use App\Http\Resources\VideoCollection;
-use App\Video;
 use App\Search;
 
 /**
