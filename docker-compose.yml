@@ -147,22 +147,27 @@ services:
 #    labels:
 #      - "traefik.http.routers.${PROJECT_NAME}_solr.rule=Host(`solr.${PROJECT_BASE_URL}`)"
 
-#  elasticsearch:
-#    image: wodby/elasticsearch:$ELASTICSEARCH_TAG
-#    environment:
-#      ES_JAVA_OPTS: "-Xms500m -Xmx500m"
-#    ulimits:
-#      memlock:
-#        soft: -1
-#        hard: -1
+  elasticsearch:
+    image: wodby/elasticsearch:$ELASTICSEARCH_TAG
+    environment:
+      ES_JAVA_OPTS: "-Xms500m -Xmx500m"
+    ports:
+      - "127.0.0.1:9201:9200"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    # labels:
+    #  - "traefik.http.services.${PROJECT_NAME}_elasticsearch.loadbalancer.server.port=9200"
+    #  - "traefik.http.routers.${PROJECT_NAME}_elasticsearch.rule=Host(`elasticsearch.${PROJECT_BASE_URL}`)"
 
-#  kibana:
-#    image: wodby/kibana:$KIBANA_TAG
-#    depends_on:
-#      - elasticsearch
-#    labels:
-#      - "traefik.http.services.${PROJECT_NAME}_kibana.loadbalancer.server.port=5601"
-#      - "traefik.http.routers.${PROJECT_NAME}_kibana.rule=Host(`kibana.${PROJECT_BASE_URL}`)"
+  kibana:
+    image: wodby/kibana:$KIBANA_TAG
+    depends_on:
+      - elasticsearch
+    labels:
+      - "traefik.http.services.${PROJECT_NAME}_kibana.loadbalancer.server.port=5601"
+      - "traefik.http.routers.${PROJECT_NAME}_kibana.rule=Host(`kibana.${PROJECT_BASE_URL}`)"
 
 #  memcached:
 #    container_name: "${PROJECT_NAME}_memcached"
@@ -238,7 +243,7 @@ services:
     command: --api.insecure=true --providers.docker
     ports:
       - '8001:80'
-      # - '8080:8080' # Dashboard
+      - '8080:8080' # Dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
@@ -248,3 +253,5 @@ services:
 #    external: true
 ## For Xdebug profiler
 #  files:
+
+  
