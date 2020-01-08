@@ -67,10 +67,10 @@ Add a video.
         -H "Accept: application/json" \
         -H "Content-type: application/json" \
         -d '{"asset_id": "6", "title": "test", "description": "test desc", "date_recorded": "2019-01-01", "duration": "01:01:33"}'
-        
+
 **Responses**:
 * `201` if successful
-* `400` if failed (resource not found)
+* `400` if failed
 
 #### Arguments
 
@@ -103,6 +103,7 @@ See `App\Controllers\ApiController->update()`
 
 **Responses**:
 * `200` if successful
+* `400` if failed (unable to update)
 * `404` if failed (resource not found)
 
 ### DELETE /api/videos/:asset_id
@@ -123,5 +124,5 @@ See `App\Controllers\ApiController->delete()`
 
 **Responses**:
 * `200` if successful
-* `404` if failed (resource not found)
 * `400` if failed (unable to delete)
+* `404` if failed (resource not found)

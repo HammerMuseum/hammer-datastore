@@ -3,38 +3,46 @@
 namespace App;
 
 use Elasticsearch\ClientBuilder;
+use Elasticsearch\Client;
 
 /**
- * Class Search
+ * Class Search.
  * @package App
  */
 class Search
 {
     /**
-     * @return array
+     * @var Client
      */
-    public function initElasticSearch()
-    {
-        try {
-            $hosts = [
-                'host' => config('app.es_endpoint'),
-            ];
-            $client = ClientBuilder::create()
-                ->setHosts($hosts)
-                ->build();
+    protected $client;
 
-            return [
-                'success' => true,
-                'client' => $client,
-                'message' => null
-            ];
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'client' => null,
-                'message' => $e->getMessage()
-            ];
-        }
+    public function __construct()
+    {
+        $this->createClient();
+    }
+
+    /**
+     * Create a client instance.
+     */
+    public function createClient()
+    {
+        $params = [
+            'hosts' => [
+                config('app.es_endpoint'),
+            ]
+        ];
+        $client = ClientBuilder::fromConfig($params);
+        $this->setClient($client);
+    }
+
+    public function setClient(Client $client)
+    {
+        return $this->client = $client;
+    }
+
+    public function getClient()
+    {
+        return $this->client;
     }
 
     /**
@@ -43,27 +51,20 @@ class Search
      */
     public function search($params)
     {
-        $client = $this->initElasticSearch();
-        if (isset($client['success']) && $client['success']) {
-            $params['client']['verbose'] = true;
-            if (!is_null($client['client'])) {
-                $result = $client['client']->search($params);
-                $response = [];
-                if (isset($result['body']['hits']['total']) && $result['body']['hits']['total'] > 0) {
-                    foreach ($result['body']['hits']['hits'] as $hit) {
-                        if (isset($hit['_source'])) {
-                            $response[] = $hit['_source'];
-                        }
+        try {
+            $client = $this->client;
+            $result = $client->search($params);
+            $response = [];
+            if (isset($result['body']['hits']['total']) && $result['body']['hits']['total'] > 0) {
+                foreach ($result['body']['hits']['hits'] as $hit) {
+                    if (isset($hit['_source'])) {
+                        $response[] = $hit['_source'];
                     }
-                    return $response;
                 }
+                return $response;
             }
-        }
-        if (isset($client['message']) && !is_null($client['message'])) {
-            return [
-                'error' => true,
-                'message' => $client['message']
-            ];
+        } catch (\Throwable $th) {
+            abort(503);
         }
     }
 
