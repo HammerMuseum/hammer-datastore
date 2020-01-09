@@ -35,6 +35,15 @@ class AssetBankHarvester(HarvesterBase):
         self.url = url
         self.assetType = options['assetType']
         self.docs = []
+        
+        split_fields = [
+            'tags',
+        ]
+
+        self.processors = [
+            DelimiterProcessor(self, delimiter=',', fields=split_fields)
+        ]
+
 
     def harvest(self):
         # Add a log handler for the run
@@ -65,11 +74,13 @@ class AssetBankHarvester(HarvesterBase):
         run_handler.close()
         self.logger.removeHandler(run_handler)
 
+
     def postprocess(self):
         """
         Postprocessing callback.
         """
         self.write_summary()
+
 
     def do_harvest(self):
         """
@@ -90,8 +101,12 @@ class AssetBankHarvester(HarvesterBase):
 
             # process the record
             asset_url = asset.xpath('fullAssetUrl')[0].text
-            record = requests.get(asset_url)
-            record_success = self.do_record_harvest(record.content, identifier)
+            response = requests.get(asset_url)
+            record = response.content
+
+            json_record = self.get_record_fields(record, identifier)
+            self.preprocess_record(json_record)
+            record_success = self.do_record_harvest(json_record, identifier)
 
             self.records_processed += 1
 
@@ -100,15 +115,21 @@ class AssetBankHarvester(HarvesterBase):
             else:
                 self.records_failed += 1
 
+
     def do_record_harvest(self, record, identifier):
         file_name = '{!s}.json'.format(identifier)
-        output = self.format_record(record, identifier)
+        output = record
         if output:
             self.docs.append(output)
             return self.write_record(output, file_name)
 
-    def format_record(self, record, identifier):
-        # get fields we want
+    def preprocess_record(self, record):
+        """Run preprocessors on the current record."""
+        for processor in self.processors:
+            processor.process(record)
+
+    def get_record_fields(self, record, identifier):
+        """List of fields could be moved to configuration"""
         json_record = {}
         root = etree.fromstring(record)
 
@@ -122,6 +143,7 @@ class AssetBankHarvester(HarvesterBase):
             'description': 'Description',
             'date_recorded': 'Date Created',
             'duration': 'Duration',
+            'tags': 'Keywords',
         }
 
         try:
@@ -133,7 +155,8 @@ class AssetBankHarvester(HarvesterBase):
                     json_record[key] = attribute_value[0]
                 else:
                     json_record[key] = ""
-
+            
+            # @todo move to validate_record method
             date = json_record['date_recorded'] or '01/01/1970 00:00:00'
             json_record['date_recorded'] = datetime.datetime.strptime(
                 date, '%d/%m/%Y %H:%M:%S').strftime('%Y-%m-%d')
@@ -144,6 +167,7 @@ class AssetBankHarvester(HarvesterBase):
         except Exception as e:
             self.logger.info(
                 'Failed to process asset {}: {}'.format(identifier, e))
+
 
     def write_record(self, record, file_name):
         """
@@ -161,7 +185,6 @@ class AssetBankHarvester(HarvesterBase):
             os.makedirs(os.path.dirname(record_path), exist_ok=True)
             with open(record_path, 'w', encoding='utf-8') as f:
                 json.dump(record, f, ensure_ascii=False, indent=4)
-
             return True
         except (IOError, OSError) as e:
             self.logger.error(
@@ -169,8 +192,10 @@ class AssetBankHarvester(HarvesterBase):
             self.logger.error('The error was: {!s}'.format(e))
             return False
 
+
     def validate_record(self, record):
         return True
+
 
     def write_summary(self):
         summary = {

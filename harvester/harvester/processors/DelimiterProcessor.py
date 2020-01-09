@@ -6,6 +6,8 @@ class DelimiterProcessor():
     fields on configured delimiters, replacing the field values for the split fields with lists.
     
     This delimiter expects a scalar value for the input field value.
+
+    The processor will also remove any empty items from split list.
     """
 
     def __init__(self, harvester, fields=[], delimiter=';'):
@@ -20,6 +22,7 @@ class DelimiterProcessor():
             try:
                 if self.delimiter in row[field]:
                     row[field] = [v.strip() for v in row[field].split(self.delimiter)]
+                    row[field] = [v for v in row[field] if v]
             except KeyError:
                 self.harvester.logger.warning('Field {!s} not found in row'.format(field))
             except AttributeError:
