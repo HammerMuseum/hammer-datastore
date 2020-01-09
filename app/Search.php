@@ -55,16 +55,16 @@ class Search
             $client = $this->client;
             $result = $client->search($params);
             $response = [];
-            if (isset($result['body']['hits']['total']) && $result['body']['hits']['total'] > 0) {
-                foreach ($result['body']['hits']['hits'] as $hit) {
+            if (isset($result['hits']['total']) && $result['hits']['total'] > 0) {
+                foreach ($result['hits']['hits'] as $hit) {
                     if (isset($hit['_source'])) {
                         $response[] = $hit['_source'];
                     }
                 }
-                return $response;
             }
+            return $response;
         } catch (\Throwable $th) {
-            abort(503);
+            abort($th->getCode());
         }
     }
 
