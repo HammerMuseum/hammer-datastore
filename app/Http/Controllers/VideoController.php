@@ -67,7 +67,10 @@ class VideoController extends Controller
         );
         $count = $videoCollection->count();
         if ($count > 0) {
-            return response()->json($videoCollection, 200);
+            return response()->json([
+                'success' => true,
+                    'data' => $videoCollection,
+            ], 200);
         }
         return response()->json([
             'success' => false,

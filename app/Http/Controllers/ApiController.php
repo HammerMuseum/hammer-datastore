@@ -79,26 +79,24 @@ class ApiController extends Controller
         try {
             $client = $this->search->getClient();
             $response = $client->get($params);
-            if (!$response['found']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Resource' . $assetId .' not found.',
-                    'id' => null
-                ], 404);
-            }
-
             $params['body'] = $request->except('api_token');
             $response = $client->index($params);
             
             if ($response['result']) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Resource' . $response['result'],
+                    'message' => 'Resource ' . $response['result'],
                     'id' => $response['_id']
                 ], 200);
             }
         } catch (\Throwable $th) {
             $status = $th->getCode();
+            if ($status === 404) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Resource ' . $assetId . ' not found',
+                ], 404);
+            }
             return response()->json([
                 'success' => false,
                 'message' => $th->getMessage(),

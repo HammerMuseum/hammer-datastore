@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Video;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -14,15 +13,6 @@ use Tests\TestCase;
 class GetVideoTest extends TestCase
 {
 
-    protected $testVideo;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $video = factory(Video::class)->create();
-        $this->testVideo = $video;
-    }
-
     /**
      * Test getById() in App\Http\Controllers\VideoController
      *
@@ -30,7 +20,7 @@ class GetVideoTest extends TestCase
      */
     public function testGetById()
     {
-        $id = $this->testVideo->asset_id;
+        $id = 207;
         $response = $this->get('/api/videos/' . $id);
         $response->assertStatus(200);
         $response->assertJsonStructure([

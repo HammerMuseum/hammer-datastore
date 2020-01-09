@@ -40,7 +40,7 @@ class CreateVideoTest extends TestCase
         $apiToken = $user->api_token;
 
         $payload = [
-            'asset_id' => 12,
+            'asset_id' => 123,
             'title' => 'My video asset',
             'description' => 'A description of my video asset',
             'date_recorded' => '2019-01-01',
@@ -64,7 +64,7 @@ class CreateVideoTest extends TestCase
                 'message' => 'Resource updated',
             ]);
 
-        $payload['asset_id'] = '12';
+        $payload['asset_id'] = '123';
         $payload['date_recorded'] = '--010119--';
         $this->json('POST', '/api/videos', $payload, $headers)
             ->assertStatus(400);
@@ -76,7 +76,7 @@ class CreateVideoTest extends TestCase
     public function tearDown() : void
     {
         $uri = config('app.es_endpoint') . '/' . config('app.es_index');
-        $this->http->request('DELETE', $uri);
+        $this->http->request('DELETE', $uri . '/_doc/123');
         $this->testUser->delete();
         $this->http = null;
     }
