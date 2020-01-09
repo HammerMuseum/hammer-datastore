@@ -51,6 +51,24 @@ Check that the correct php image is selected in .env (choice depends on host ope
 make up
 ```
 
+Create and upload an Elasticsearch mapping template. Index templates are stored in `elasticsearch/templates`
+
+```sh
+cd elasticsearch/scripts
+./upload-index-template.sh --host http://localhost:9201 --name template_video --file ../templates/video_.json
+```
+
+To run a harvest and submit documents to Elasticsearch.
+
+```
+cd harvester/scripts
+PYTHONPATH=../. python run_harvester.py https://trial10-8.assetbank-server.com/assetbank-trial10/rest/asset-search 1 --submit --search-domain=http://localhost --port=9201 --scheme=http
+```
+
+Further Harvester setup docs are in the readme.md within the harvester directory.
+
+Notes:
+
 ```sh
 # When running php-based tools and Docker, prefix commands with:
 docker-compose exec php <command>
@@ -59,7 +77,7 @@ docker-compose exec php <command>
 docker-compose exec php composer install
 
 # and
-docker-compose exec php php artisan key:generate
+docker-compose exec php php artisan cache:clear
 ```
 
 Note the double `php` in the second command above. The first `php` refers to the name of the Docker service, the second refers to the command to invoke `php` on the command line.
