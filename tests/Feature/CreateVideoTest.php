@@ -2,11 +2,8 @@
 
 namespace Tests\Feature;
 
-use Facade\FlareClient\Http\Client;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use GuzzleHttp\Client;
 use Tests\TestCase;
-use App\Video;
 use App\User;
 
 /**
@@ -16,7 +13,15 @@ use App\User;
 class CreateVideoTest extends TestCase
 {
     /** @var User */
-    protected $testUser;
+    private $testUser;
+    
+    private $http;
+    
+    public function setUp() : void
+    {
+        parent::setUp();
+        $this->http = new Client();
+    }
 
     /**
      * Test create() in App\Http|Controllers\ApiController
@@ -34,7 +39,6 @@ class CreateVideoTest extends TestCase
         $this->testUser = $user;
         $apiToken = $user->api_token;
 
-        // First test creating a new video
         $payload = [
             'asset_id' => 12,
             'title' => 'My video asset',
@@ -45,31 +49,35 @@ class CreateVideoTest extends TestCase
             'video_url' => 'http://url.com',
             'api_token' => $apiToken
         ];
+        
         $this->json('POST', '/api/videos', $payload, $headers)
             ->assertStatus(201)
             ->assertJson([
                 'success' => true,
-                'message' => 'Video asset added to datastore.',
+                'message' => 'Resource created',
             ]);
 
-        // Second test creating a video with an existing asset ID
         $this->json('POST', '/api/videos', $payload, $headers)
-            ->assertStatus(400)
+            ->assertStatus(201)
             ->assertJson([
-                'success' => false,
-                'message' => 'Video asset with ID 12 already exists in datastore.',
-                'id' => null
+                'success' => true,
+                'message' => 'Resource updated',
             ]);
+
+        $payload['asset_id'] = '12';
+        $payload['date_recorded'] = '--010119--';
+        $this->json('POST', '/api/videos', $payload, $headers)
+            ->assertStatus(400);
     }
 
     /**
-     * Delete the just-created test asset
+     * Clear up test user.
      */
     public function tearDown() : void
     {
-        $video = Video::where('asset_id', 12)->first();
-        $video->forceDelete();
-
+        $uri = config('app.es_endpoint') . '/' . config('app.es_index');
+        $this->http->request('DELETE', $uri);
         $this->testUser->delete();
+        $this->http = null;
     }
 }
