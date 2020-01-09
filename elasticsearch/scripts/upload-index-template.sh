@@ -10,7 +10,7 @@ GREEN='\033[0;32m'
 
 function usage() {
   if [ -n "$1" ]; then
-    echo "${RED} $1${CLEAR}\n";
+    echo -e "${RED} $1${CLEAR}\n";
   fi
   echo "Usage: $0 [-h host] [-f file]"
   echo "  -h, --host   The Elasticsearch host"
@@ -36,7 +36,7 @@ if [ -z "$TEMPLATE_PATH" ]; then usage "Template file not provided."; fi;
 
 echo "Uploading Elasticsearch index template..."
 if curl --fail -X PUT "$HOST/_template/$TEMPLATE_NAME?pretty" -H 'Content-Type: application/json' --data-binary "@$TEMPLATE_PATH"; then
-    echo "${GREEN}\nUploaded Elasticsearch index template successfully.${CLEAR}"
+    echo -e "${GREEN}\nUploaded Elasticsearch index template successfully.${CLEAR}"
 else
-    echo "${RED}\nFailed to upload \"$TEMPLATE_PATH\" as \"$TEMPLATE_NAME\" Elasticsearch index template.${CLEAR}"
+    echo -e "${RED}\nFailed to upload \"$TEMPLATE_PATH\" as \"$TEMPLATE_NAME\" Elasticsearch index template.${CLEAR}"
 fi;
