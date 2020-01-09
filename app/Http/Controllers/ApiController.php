@@ -46,7 +46,7 @@ class ApiController extends Controller
             if ($response) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Video resource ' . $response['result'],
+                    'message' => 'Resource ' . $response['result'],
                     'id' => $response['_id']
                 ], 201);
             }
