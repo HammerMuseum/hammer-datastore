@@ -10,9 +10,9 @@ services:
       MYSQL_DATABASE: $DB_NAME
       MYSQL_USER: $DB_USER
       MYSQL_PASSWORD: $DB_PASSWORD
-#    volumes:
-#      - ./mariadb-init:/docker-entrypoint-initdb.d # Place init .sql file(s) here.
-#      - /path/to/mariadb/data/on/host:/var/lib/mysql # I want to manage volumes manually.
+  #  volumes:
+    #  - ./mariadb-init:/docker-entrypoint-initdb.d # Place init .sql file(s) here.
+    #  - /path/to/mariadb/data/on/host:/var/lib/mysql # I want to manage volumes manually.
 
 #  postgres:
 #    image: wodby/postgres:$POSTGRES_TAG
@@ -38,13 +38,14 @@ services:
       PHP_FPM_USER: wodby
       PHP_FPM_GROUP: wodby
 ## Read instructions at https://wodby.com/docs/stacks/php/local/#xdebug
-#      PHP_XDEBUG: 1
-#      PHP_XDEBUG_DEFAULT_ENABLE: 1
-#      PHP_XDEBUG_REMOTE_CONNECT_BACK: 0
-#      PHP_IDE_CONFIG: serverName=my-ide
-#      PHP_XDEBUG_IDEKEY: "my-ide"
+      PHP_XDEBUG: 1
+      PHP_XDEBUG_DEFAULT_ENABLE: 1
+      PHP_XDEBUG_REMOTE_AUTOSTART: 1
+      PHP_XDEBUG_REMOTE_CONNECT_BACK: 0
+      # PHP_IDE_CONFIG: serverName=vscode
+      # PHP_XDEBUG_IDEKEY: "vscode"
 #      PHP_XDEBUG_REMOTE_HOST: 172.17.0.1 # Linux
-#      PHP_XDEBUG_REMOTE_HOST: 10.254.254.254 # macOS
+      PHP_XDEBUG_REMOTE_HOST: 10.254.254.254 # macOS
 #      PHP_XDEBUG_REMOTE_HOST: 10.0.75.1 # Windows
     volumes:
       - ./:/var/www/html:cached
@@ -147,22 +148,27 @@ services:
 #    labels:
 #      - "traefik.http.routers.${PROJECT_NAME}_solr.rule=Host(`solr.${PROJECT_BASE_URL}`)"
 
-#  elasticsearch:
-#    image: wodby/elasticsearch:$ELASTICSEARCH_TAG
-#    environment:
-#      ES_JAVA_OPTS: "-Xms500m -Xmx500m"
-#    ulimits:
-#      memlock:
-#        soft: -1
-#        hard: -1
+  elasticsearch:
+    image: wodby/elasticsearch:$ELASTICSEARCH_TAG
+    environment:
+      ES_JAVA_OPTS: "-Xms500m -Xmx500m"
+    ports:
+      - "127.0.0.1:9201:9200"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    # labels:
+    #  - "traefik.http.services.${PROJECT_NAME}_elasticsearch.loadbalancer.server.port=9200"
+    #  - "traefik.http.routers.${PROJECT_NAME}_elasticsearch.rule=Host(`elasticsearch.${PROJECT_BASE_URL}`)"
 
-#  kibana:
-#    image: wodby/kibana:$KIBANA_TAG
-#    depends_on:
-#      - elasticsearch
-#    labels:
-#      - "traefik.http.services.${PROJECT_NAME}_kibana.loadbalancer.server.port=5601"
-#      - "traefik.http.routers.${PROJECT_NAME}_kibana.rule=Host(`kibana.${PROJECT_BASE_URL}`)"
+  kibana:
+    image: wodby/kibana:$KIBANA_TAG
+    depends_on:
+      - elasticsearch
+    labels:
+      - "traefik.http.services.${PROJECT_NAME}_kibana.loadbalancer.server.port=5601"
+      - "traefik.http.routers.${PROJECT_NAME}_kibana.rule=Host(`kibana.${PROJECT_BASE_URL}`)"
 
 #  memcached:
 #    container_name: "${PROJECT_NAME}_memcached"
@@ -238,7 +244,7 @@ services:
     command: --api.insecure=true --providers.docker
     ports:
       - '8001:80'
-      # - '8080:8080' # Dashboard
+      - '8080:8080' # Dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 

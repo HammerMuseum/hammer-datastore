@@ -18,6 +18,8 @@ parser.add_argument('--submit', action='store_true',
                     help='If set, will attempt to submit the harvested records to the search index.')
 parser.add_argument('--search-domain', type=str,
                     help='The URL of the search index to populate. Required when using --submit.', dest='search_host')
+parser.add_argument('--port', type=str, dest='port')
+parser.add_argument('--scheme', type=str, dest='scheme')
 parser.add_argument('--debug', action='store_true')
 parser.add_argument('--short', action='store_true',
                     help='Only harvest 10 records at most.')
@@ -38,8 +40,6 @@ if args.submit:
     if not args.search_host:
         print('\nError: The "--search-domain" option is required when using "--submit"\n')
         exit(1)
-    else:
-        options['search_host'] = args.search_host
 
 if __name__ == '__main__':
     logger = logging.getLogger('run_assetbank')
@@ -83,11 +83,15 @@ if __name__ == '__main__':
 
             adaptor = ElasticsearchAdaptor(
                 harvester.current_output_path,
-                options['search_host']
+                args.search_host,
+                args.port,
+                args.scheme,
             )
             adaptor.add_logger('../logs',
                                'adaptor.log', 'ElasticsearchAdaptor')
+            adaptor.pre_process()
             adaptor.process()
+            adaptor.post_process()
 
             logger.info('Ending submissions processes')
 

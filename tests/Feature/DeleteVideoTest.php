@@ -27,15 +27,6 @@ class DeleteVideoTest extends TestCase
      */
     public function testDelete()
     {
-        $video = factory(Video::class)->create([
-            'asset_id' => 1234,
-            'title' => 'Sample video',
-            'description' => 'Description of the sample video.',
-            'date_recorded' => '2019-01-01',
-            'duration' => '01:01:01'
-        ]);
-
-        $this->testVideo = $video;
         $user = factory(User::class)->create();
         $this->testUser = $user;
         $apiToken = $user->api_token;
@@ -44,18 +35,16 @@ class DeleteVideoTest extends TestCase
             'accept' => 'application/json',
             'content-type' => 'application/json'
         ];
-        $this->json('DELETE', '/api/videos/1234?api_token=' . $apiToken, [], $headers)
+        $this->json('DELETE', '/api/videos/206?api_token=' . $apiToken, [], $headers)
             ->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => 'Video asset successfully deleted.',
+                'message' => 'Resource deleted',
             ]);
     }
 
     public function tearDown() : void
     {
         $this->testUser->delete();
-
-        $this->testVideo->forceDelete();
     }
 }

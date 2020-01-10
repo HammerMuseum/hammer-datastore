@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Video;
+use App\Search;
 
 /**
  * Class ApiController
@@ -11,6 +12,19 @@ use App\Video;
  */
 class ApiController extends Controller
 {
+    /** @var Search */
+    protected $search;
+
+    /**
+     * SearchController constructor.
+     * @param Search $search
+     */
+    public function __construct(
+        Search $search
+    ) {
+        $this->search = $search;
+    }
+
     /**
      * Create a new video resource
      *
@@ -20,24 +34,32 @@ class ApiController extends Controller
     public function create(Request $request)
     {
         // Check if there is already a video with this asset ID
-        $assetId = $request->asset_id;
-        $videoExists = Video::where('asset_id', $assetId)->get();
-        if (!count($videoExists)) {
-            $video = Video::create($request->all());
-            $video->save();
-            return response()->json([
-                'success' => true,
-                'message' => 'Video asset added to datastore.',
-                'id' => $video->id
-            ], 201);
-        } else {
+        $params = [
+            'index' => config('app.es_index'),
+            'id'    => $request->asset_id,
+            'body'  => $request->except('api_token'),
+        ];
+
+        try {
+            $client = $this->search->getClient();
+            $response = $client->index($params);
+            if ($response) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Resource ' . $response['result'],
+                    'id' => $response['_id']
+                ], 201);
+            }
+        } catch (\Throwable $th) {
+            $status = $th->getCode();
             return response()->json([
                 'success' => false,
-                'message' => 'Video asset with ID ' . $assetId . ' already exists in datastore.',
-                'id' => null
-            ], 400);
+                'message' => $th->getMessage(),
+                'status' => $status,
+            ], $status);
         }
     }
+    
 
     /**
      * Update an existing video resource
@@ -48,22 +70,39 @@ class ApiController extends Controller
      */
     public function update(Request $request, $assetId)
     {
-        // Check that the asset to be updated actually exists
-        $video = Video::where('asset_id', $assetId)->first();
-        if (!is_null($video) && isset($video->id)) {
-                $videoId = $video->id;
-                $video->update($request->all());
+        // Check if there is already a video with this asset ID
+        $params = [
+            'index' => config('app.es_index'),
+            'id'    => $assetId,
+        ];
+
+        try {
+            $client = $this->search->getClient();
+            $response = $client->get($params);
+            $params['body'] = $request->except('api_token');
+            $response = $client->index($params);
+            
+            if ($response['result']) {
                 return response()->json([
-                    'success'  => true,
-                    'message' => 'Video asset successfully updated',
-                    'id' => $videoId
+                    'success' => true,
+                    'message' => 'Resource ' . $response['result'],
+                    'id' => $response['_id']
                 ], 200);
+            }
+        } catch (\Throwable $th) {
+            $status = $th->getCode();
+            if ($status === 404) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Resource ' . $assetId . ' not found',
+                ], 404);
+            }
+            return response()->json([
+                'success' => false,
+                'message' => $th->getMessage(),
+                'status' => $status,
+            ], $status);
         }
-        return response()->json([
-            'success' => false,
-            'message' => 'Unable to find video asset in the datastore to update.',
-            'id' => null
-        ], 404);
     }
 
     /**
@@ -75,25 +114,29 @@ class ApiController extends Controller
      */
     public function delete(Request $request, $assetId)
     {
-        // Check that the asset to be updated actually exists
-        $video = Video::where('asset_id', $assetId)->first();
-        if (!is_null($video) && isset($video->id)) {
-            try {
-                $video->delete();
+        // Check if there is already a video with this asset ID
+        $params = [
+            'index' => config('app.es_index'),
+            'id'    => $assetId
+        ];
+
+        try {
+            $client = $this->search->getClient();
+            $response = $client->delete($params);
+            if ($response) {
                 return response()->json([
-                   'success' => true,
-                    'message' => 'Video asset successfully deleted.',
+                    'success' => true,
+                    'message' => 'Resource ' . $response['result'],
+                    'id' => $response['_id']
                 ], 200);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unable to delete video asset: ' . $e->getMessage(),
-                ], 400);
             }
+        } catch (\Throwable $th) {
+            $status = $th->getCode();
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to delete resource',
+                'status' => $status,
+            ], $status);
         }
-        return response()->json([
-            'success' => false,
-            'message' => 'Unable to find video asset to delete.',
-        ], 404);
     }
 }

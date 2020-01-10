@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Http\Resources\Video as VideoResource;
 use App\Http\Resources\VideoCollection;
-use App\Video;
+use App\Search;
 
 /**
  * Class VideoController
@@ -14,6 +13,19 @@ use App\Video;
  */
 class VideoController extends Controller
 {
+    /** @var Search */
+    protected $search;
+
+    /**
+     * SearchController constructor.
+     * @param Search $search
+     */
+    public function __construct(
+        Search $search
+    ) {
+        $this->search = $search;
+    }
+
     /**
      * Get a video by its asset ID
      *
@@ -23,7 +35,7 @@ class VideoController extends Controller
     public function getById(Request $request, $id)
     {
         try {
-            $video = Video::where('asset_id', $id)->get()->take(1);
+            $video = $this->search->term('asset_id', $id);
             if (count($video) && count($video) > 0) {
                 return response()->json([
                     'success' => true,
@@ -34,7 +46,7 @@ class VideoController extends Controller
                 'success' => false,
                 'message' => 'Resource not found.'
             ], 404);
-        } catch (ModelNotFoundException $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Resource not found.'
@@ -49,12 +61,16 @@ class VideoController extends Controller
      */
     public function getAllVideos()
     {
-        $videoCollection = new VideoCollection(
-            Video::all()
+        $items = $this->search->matchAll();
+        $videoCollection = collect(
+            $items
         );
         $count = $videoCollection->count();
         if ($count > 0) {
-            return response()->json($videoCollection, 200);
+            return response()->json([
+                'success' => true,
+                    'data' => $videoCollection,
+            ], 200);
         }
         return response()->json([
             'success' => false,

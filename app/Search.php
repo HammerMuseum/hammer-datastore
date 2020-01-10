@@ -3,77 +3,123 @@
 namespace App;
 
 use Elasticsearch\ClientBuilder;
+use Elasticsearch\Client;
 
 /**
- * Class Search
+ * Class Search.
  * @package App
  */
 class Search
 {
     /**
+     * @var Client
+     */
+    protected $client;
+
+    public function __construct()
+    {
+        $this->createClient();
+    }
+
+    /**
+     * Create a client instance.
+     */
+    public function createClient()
+    {
+        $params = [
+            'hosts' => [
+                config('app.es_endpoint'),
+            ]
+        ];
+        $client = ClientBuilder::fromConfig($params);
+        $this->setClient($client);
+    }
+
+    public function setClient(Client $client)
+    {
+        return $this->client = $client;
+    }
+
+    public function getClient()
+    {
+        return $this->client;
+    }
+
+    /**
      * @param $term
      * @return array|bool
      */
-    public function search($term)
+    public function search($params)
     {
-        $client = $this->initElasticSearch();
-        if (isset($client['success']) && $client['success']) {
-            $params = [
-                'index' => config('app.es_index'),
-                'body'  => [
-                    'query' => [
-                        'match' => [
-                            'title' => $term
-                        ]
-                    ]
-                ]
-            ];
-            $params['client']['verbose'] = true;
-            if (!is_null($client['client'])) {
-                $result = $client['client']->search($params);
-                $response = [];
-                if (isset($result['body']['hits']['total']) && $result['body']['hits']['total'] > 0) {
-                    foreach ($result['body']['hits']['hits'] as $hit) {
-                        if (isset($hit['_source'])) {
-                            $response[] = $hit['_source'];
-                        }
+        try {
+            $client = $this->client;
+            $result = $client->search($params);
+            $response = [];
+            if (isset($result['hits']['total']) && $result['hits']['total'] > 0) {
+                foreach ($result['hits']['hits'] as $hit) {
+                    if (isset($hit['_source'])) {
+                        $response[] = $hit['_source'];
                     }
-                    return $response;
                 }
             }
-        }
-        if (isset($client['message']) && !is_null($client['message'])) {
-            return [
-                'error' => true,
-                'message' => $client['message']
-            ];
+            return $response;
+        } catch (\Throwable $th) {
+            abort($th->getCode());
         }
     }
 
     /**
-     * @return array
+     * @param $term
+     * @return array|bool
      */
-    public function initElasticSearch()
+    public function match($term)
     {
-        try {
-            $hosts = [
-                'host' => config('app.es_endpoint'),
-            ];
-            $client = ClientBuilder::create()
-                ->setHosts($hosts)
-                ->build();
+        $params = [
+            'index' => config('app.es_index'),
+            'body'  => [
+                'query' => [
+                    'match' => [
+                        'title' => $term
+                    ]
+                ]
+            ]
+        ];
+        return $this->search($params);
+    }
 
-            return [
-                'success' => true,
-                'client' => $client,
-                'message' => null
-            ];
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'client' => null,
-                'message' => $e->getMessage()
-            ];
-        }
+    /**
+     * @param $term
+     * @return array|bool
+     */
+    public function matchAll()
+    {
+        $params = [
+            'index' => config('app.es_index'),
+            'body'  => [
+                'query' => [
+                    'match_all' => (object) []
+                ]
+            ]
+        ];
+        return $this->search($params);
+    }
+
+    /**
+     * @param $term
+     * @return array|bool
+     */
+    public function term($field, $id)
+    {
+        $params = [
+            'index' => config('app.es_index'),
+            'body'  => [
+                'query' => [
+                    'term' => [
+                        $field => $id
+                    ]
+                ]
+            ]
+        ];
+        return $this->search($params);
     }
 }

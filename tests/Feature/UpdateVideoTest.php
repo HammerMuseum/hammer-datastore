@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
-use App\Video;
 use App\User;
 
 /**
@@ -17,9 +16,6 @@ class UpdateVideoTest extends TestCase
     /** @var User */
     protected $testUser;
 
-    /** @var Video */
-    protected $testVideo;
-
     /**
      * Test update() in App\Http|Controllers\ApiController
      *
@@ -27,17 +23,6 @@ class UpdateVideoTest extends TestCase
      */
     public function testUpdate()
     {
-        $video = factory(Video::class)->create([
-            'asset_id' => 123,
-            'title' => 'Sample video',
-            'description' => 'Description of the sample video.',
-            'date_recorded' => '2019-01-01',
-            'duration' => '01:01:01',
-            'thumbnail_url' => 'http://url.com',
-            'video_url' => 'http://url.com',
-        ]);
-
-        $this->testVideo = $video;
         $user = factory(User::class)->create();
         $this->testUser = $user;
         $apiToken = $user->api_token;
@@ -49,7 +34,7 @@ class UpdateVideoTest extends TestCase
 
         // First test updating a real video
         $payload = [
-            'asset_id' => 123,
+            'asset_id' => 207,
             'title' => 'Sample video',
             'description' => 'An updated description of the sample video.',
             'date_recorded' => '2019-01-01',
@@ -58,11 +43,11 @@ class UpdateVideoTest extends TestCase
             'video_url' => 'http://url.com',
             'api_token' => $apiToken
         ];
-        $this->json('PUT', '/api/videos/123', $payload, $headers)
+        $this->json('PUT', '/api/videos/207', $payload, $headers)
             ->assertStatus(200)
             ->assertJson([
                 'success'  => true,
-                'message' => 'Video asset successfully updated'
+                'message' => 'Resource updated'
             ]);
 
         // Second test updating a video that doesn't exist
@@ -70,15 +55,12 @@ class UpdateVideoTest extends TestCase
             ->assertStatus(404)
             ->assertJson([
                 'success' => false,
-                'message' => 'Unable to find video asset in the datastore to update.',
-                'id' => null
+                'message' => 'Resource 123456 not found',
             ]);
     }
 
     public function tearDown() : void
     {
-        // Remove the created users and videos
-        $this->testVideo->forceDelete();
         $this->testUser->delete();
     }
 }
