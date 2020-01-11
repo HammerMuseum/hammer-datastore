@@ -21,17 +21,21 @@ class ElasticsearchAdaptor  ():
     records_failed = 0
 
     def __init__(self, input_data, es_domain, port='443', scheme='https'):
-        self.timestamp = int(time.time())
-        self.index_name = self.create_index_name(self.timestamp)
+        self.input_data_path = input_data
+
         # @todo Move to a config file
+        self.timestamp = int(time.time())
         self.alias = 'videos'
+        self.index_prefix = 'video_'
+        
         self.es_type = '_doc'
         self.es = Elasticsearch(
             es_domain,
             scheme=scheme,
             port=port
         )
-        self.input_data_path = input_data
+        
+        self.index_name = self.create_index_name(self.index_prefix, self.timestamp)
 
     def add_logger(self, log_directory, log_file, log_name='adaptor'):
         """
@@ -121,13 +125,11 @@ class ElasticsearchAdaptor  ():
             self.logger.error("ERROR: {}".format(e))
 
 
-    def create_index_name(self, timestamp):
+    def create_index_name(self, prefix, timestamp):
         """
         Create a new index for each run.
         """
-        # @todo Move to a config file
-        index_prefix = 'video_'
-        return "{}{}".format(index_prefix, timestamp)
+        return "{}{}".format(prefix, timestamp)
     
 
     def create_index(self, index_name):
@@ -151,7 +153,7 @@ class ElasticsearchAdaptor  ():
         if not self.es.indices.exists_alias(name=alias):
             self.logger.info(
                 'Alias not found, adding new alias - {}'.format(alias))
-            self.es.indices.put_alias(name=alias, index="{}_*".format(alias))
+            self.es.indices.put_alias(name=alias, index="{}*".format(self.index_prefix))
 
 
     def update_alias(self, alias, new_index_name):
