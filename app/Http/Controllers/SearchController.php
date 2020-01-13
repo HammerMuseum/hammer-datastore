@@ -48,4 +48,30 @@ class SearchController extends Controller
             'message' => 'No results found.'
         ], 404);
     }
+
+    /**
+     * @param Request $request
+     * @param $field
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function term(Request $request, $field, $id)
+    {
+        if (!is_null($field)) {
+            $results = $this->search->term($field, $id);
+
+            if ($results) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $results,
+                    'message' => false
+                ], 200);
+            }
+        }
+        return response()->json([
+            'success' => false,
+            'data' => false,
+            'message' => 'No results found.'
+        ], 404);
+    }
 }
