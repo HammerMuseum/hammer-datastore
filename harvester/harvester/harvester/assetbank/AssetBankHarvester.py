@@ -13,8 +13,7 @@ from tqdm import tqdm
 from lxml import etree
 from collections import OrderedDict
 from harvester.harvester import HarvesterBase
-from harvester.processors import DelimiterProcessor
-
+from harvester.processors import DelimiterProcessor, TrintProcessor
 
 class AssetBankHarvester(HarvesterBase):
     version = 0.1
@@ -34,7 +33,7 @@ class AssetBankHarvester(HarvesterBase):
     def __init__(self, host, options):
         HarvesterBase.__init__(self)
         
-        env_path = Path(__file__).parent.parent.absolute() / '.env'
+        env_path = Path(__file__).parent.absolute() / '.env'
         load_dotenv(dotenv_path=env_path)
 
         self.host = host
@@ -49,8 +48,14 @@ class AssetBankHarvester(HarvesterBase):
             'tags',
         ]
 
+        trint_fields = [
+            'transcription',
+        ]
+
         self.processors = [
-            DelimiterProcessor(self, delimiter=',', fields=split_fields)
+            DelimiterProcessor(self, delimiter=',', fields=split_fields),
+            TrintProcessor(
+                self, os.getenv('TRINT_API_KEY'), fields=trint_fields)
         ]
 
 
@@ -183,30 +188,39 @@ class AssetBankHarvester(HarvesterBase):
             'date_recorded': 'Date Created',
             'duration': 'Duration',
             'tags': 'Keywords',
+            'transcription': 'Transcription ID'
         }
-
+      
+        output = {}
         try:
+            root = etree.fromstring(record)
             for key, value in attributes.items():
-                query = '//attributes/attribute[name[contains(text(), "{}")]]/value/text()'.format(
-                    value)
+                field = 'name'
+                query = '//attributes/attribute[{}[contains(text(), "{}")]]/value/text()'.format(
+                    field, value)
                 attribute_value = root.xpath(query)
                 if len(attribute_value):
-                    json_record[key] = attribute_value[0]
+                    output[key] = attribute_value[0]
                 else:
-                    json_record[key] = ""
+                    output[key] = ""
             
             # @todo move to validate_record method
-            date = json_record['date_recorded'] or '01/01/1970 00:00:00'
-            json_record['date_recorded'] = datetime.datetime.strptime(
+            date = output['date_recorded'] or '01/01/1970 00:00:00'
+            output['date_recorded'] = datetime.datetime.strptime(
                 date, '%d/%m/%Y %H:%M:%S').strftime('%Y-%m-%d')
 
-            json_record['asset_id'] = int(json_record['asset_id'])
-            return json_record
+            output['asset_id'] = int(output['asset_id'])
 
         except Exception as e:
             self.logger.info(
                 'Failed to process asset {}: {}'.format(identifier, e))
 
+        # Get some non-attribute
+        output['video_url'] = root.xpath('//asset/contentUrl/text()')[0]
+        output['thumbnail_url'] = root.xpath(
+            '//asset/thumbnailUrl/text()')[0]
+        
+        return output
 
     def write_record(self, record, file_name):
         """
