@@ -7,6 +7,8 @@ import logging
 import requests
 import datetime
 import sys
+from dotenv import load_dotenv
+from pathlib import Path  
 from tqdm import tqdm
 from lxml import etree
 from collections import OrderedDict
@@ -29,13 +31,20 @@ class AssetBankHarvester(HarvesterBase):
     """
     current_output_path = None
 
-    def __init__(self, url, options):
+    def __init__(self, host, options):
         HarvesterBase.__init__(self)
+        
+        env_path = Path(__file__).parent.parent.absolute() / '.env'
+        load_dotenv(dotenv_path=env_path)
+
+        self.host = host
+        self.access_token = None
+
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
-        self.url = url
+        self.harvest_uri = "{}/{}".format(self.host, 'rest/asset-search')
         self.assetType = options['assetType']
         self.docs = []
-        
+
         split_fields = [
             'tags',
         ]
@@ -44,6 +53,30 @@ class AssetBankHarvester(HarvesterBase):
             DelimiterProcessor(self, delimiter=',', fields=split_fields)
         ]
 
+
+    def init_auth(self):
+        """
+        Setup authentication necessary to communicate with the Asset Bank API.
+        """
+        try:
+            token_url = "{}{}".format(self.host, '/oauth/token')
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+            data = {
+                'grant_type': 'password',
+                'client_id': os.getenv('AB_CLIENT_ID'),
+                'client_secret': os.getenv('AB_CLIENT_SECRET'),
+                'username': os.getenv('AB_USERNAME'),
+                'password': os.getenv('AB_PASSWORD'),
+            }
+            response = requests.post(token_url, headers=headers, data=data)
+            response.raise_for_status()
+            content = response.json()
+            self.access_token = content['access_token']
+        except requests.HTTPError as e:
+            self.logger.error('Failed to authenticate with API. Check credentials. {}'.format(e))
+            exit()
 
     def harvest(self):
         # Add a log handler for the run
@@ -56,6 +89,7 @@ class AssetBankHarvester(HarvesterBase):
         # Begin the harvest run
         self.logger.info('Beginning Harvester run')
 
+        self.init_auth()
         self.do_harvest()
 
         self.logger.info('Ending Harvester run')
@@ -88,7 +122,8 @@ class AssetBankHarvester(HarvesterBase):
         """
 
         response = requests.get(
-            self.url,
+            self.harvest_uri,
+            headers={'Authorization': 'Bearer {}'.format(self.access_token)},
             params={'assetTypeId': self.assetType},
         )
         root = etree.fromstring(response.content)
@@ -123,20 +158,24 @@ class AssetBankHarvester(HarvesterBase):
             self.docs.append(output)
             return self.write_record(output, file_name)
 
+
     def preprocess_record(self, record):
         """Run preprocessors on the current record."""
         for processor in self.processors:
             processor.process(record)
 
+
     def get_record_fields(self, record, identifier):
-        """List of fields could be moved to configuration"""
-        json_record = {}
-        root = etree.fromstring(record)
+        """
+        List of fields could be moved to configuration
 
-        json_record['video_url'] = root.xpath('//asset/displayUrl/text()')[0]
-        json_record['thumbnail_url'] = root.xpath(
-            '//asset/thumbnailUrl/text()')[0]
-
+        Attributes make up the majority of the fields.
+        The dictionary below maps Asset Bank attributes to 
+        property names used in harvested data structure.
+        """
+       
+        # Map for all attributes from which we want the content
+        # of the "value" property in the Asset Bank API response.
         attributes = {
             'asset_id': 'assetId',
             'title': 'Title',
