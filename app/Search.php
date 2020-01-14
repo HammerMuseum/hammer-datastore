@@ -78,8 +78,14 @@ class Search
             'index' => config('app.es_index'),
             'body'  => [
                 'query' => [
-                    'match' => [
-                        'title' => $term
+                    'multi_match' => [
+                        'query' => $term,
+                        'fields' => [
+                            'title^2',
+                            'description',
+                            'transcription',
+                            'tags',
+                        ]
                     ]
                 ]
             ]
