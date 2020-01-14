@@ -10,14 +10,13 @@ from harvester.harvester.assetbank import AssetBankHarvester
 from harvester.components.adaptors import ElasticsearchAdaptor
 
 parser = argparse.ArgumentParser('Run the Asset Bank harvester')
-parser.add_argument(
-    'url', type=str, help='The URL of the Asset Bank resource.')
-parser.add_argument(
-    'type', type=str, help='The Asset Bank asset type identifier.')
+parser.add_argument('--host', dest='url', type=str, help='The URL of the Asset Bank resource.')
+parser.add_argument('--asset-type', dest='type', type=str, help='The Asset Bank asset type identifier.')
 parser.add_argument('--submit', action='store_true',
                     help='If set, will attempt to submit the harvested records to the search index.')
 parser.add_argument('--search-domain', type=str,
                     help='The URL of the search index to populate. Required when using --submit.', dest='search_host')
+parser.add_argument('--alias', type=str, dest='alias')
 parser.add_argument('--port', type=str, dest='port')
 parser.add_argument('--scheme', type=str, dest='scheme')
 parser.add_argument('--debug', action='store_true')
@@ -86,6 +85,7 @@ if __name__ == '__main__':
                 args.search_host,
                 args.port,
                 args.scheme,
+                args.alias,
             )
             adaptor.add_logger('../logs',
                                'adaptor.log', 'ElasticsearchAdaptor')

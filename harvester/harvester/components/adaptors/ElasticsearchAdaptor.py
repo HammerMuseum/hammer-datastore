@@ -20,12 +20,12 @@ class ElasticsearchAdaptor  ():
 
     records_failed = 0
 
-    def __init__(self, input_data, es_domain, port='443', scheme='https'):
+    def __init__(self, input_data, es_domain, port='443', scheme='https', alias='videos'):
         self.input_data_path = input_data
 
         # @todo Move to a config file
         self.timestamp = int(time.time())
-        self.alias = 'videos'
+        self.alias = alias
         self.index_prefix = 'video_'
         
         self.es_type = '_doc'
