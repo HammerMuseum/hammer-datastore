@@ -133,7 +133,7 @@ class AssetBankHarvester(HarvesterBase):
         json_record = {}
         root = etree.fromstring(record)
 
-        json_record['video_url'] = root.xpath('//asset/displayUrl/text()')[0]
+        json_record['video_url'] = root.xpath('//asset/contentUrl/text()')[0]
         json_record['thumbnail_url'] = root.xpath(
             '//asset/thumbnailUrl/text()')[0]
 
