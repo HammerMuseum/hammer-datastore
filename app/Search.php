@@ -72,7 +72,7 @@ class Search
      * @param $term
      * @return array|bool
      */
-    public function match($term)
+    public function match($term, $sortField = null, $direction = null)
     {
         $params = [
             'index' => config('app.es_index'),
@@ -84,6 +84,14 @@ class Search
                 ]
             ]
         ];
+
+        if (!is_null($sortField)) {
+            $params['body']['sort'] = [
+                $sortField => [
+                    'order' => is_null($direction) ? 'desc' : $direction
+                ]
+            ];
+        }
         return $this->search($params);
     }
 
@@ -98,6 +106,12 @@ class Search
             'body'  => [
                 'query' => [
                     'match_all' => (object) []
+                ],
+                'sort' => [
+                    'date_recorded' => [
+                        'order' => 'desc'
+
+                    ]
                 ]
             ]
         ];
