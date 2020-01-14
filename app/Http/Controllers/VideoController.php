@@ -55,6 +55,29 @@ class VideoController extends Controller
     }
 
     /**
+     * @param $field
+     * @param $id
+     * @return array|bool
+     */
+    public function getTranscript($id)
+    {
+        try {
+            $response = $this->search->field('transcription', $id);
+            if (count($response)) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $response
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Resource not found.'
+            ], 404);
+        }
+    }
+
+    /**
      * Get all videos
      *
      * @return VideoCollection
