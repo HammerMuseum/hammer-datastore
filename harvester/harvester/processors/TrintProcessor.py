@@ -47,6 +47,6 @@ class TrintProcessor():
                 url = self.get_url(row[field])
                 response = requests.get(url)
                 response.raise_for_status()
-                row[field] = response.text.replace('\n', ' ')
+                row[field] = response.text
             except HTTPError as e:
                 self.harvester.logger.warning('Error {} file not found'.format(e.response.status_code))
