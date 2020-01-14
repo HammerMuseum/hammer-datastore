@@ -75,6 +75,9 @@ class Search
     public function match($term)
     {
         $params = [
+            "_source" => [
+                "excludes" => [ "transcription" ]
+            ],
             'index' => config('app.es_index'),
             'body'  => [
                 'query' => [
@@ -100,6 +103,9 @@ class Search
     public function matchAll()
     {
         $params = [
+            "_source" => [
+                "excludes" => ["transcription"]
+            ],
             'index' => config('app.es_index'),
             'body'  => [
                 'query' => [
@@ -118,6 +124,9 @@ class Search
     public function term($field, $id)
     {
         $params = [
+            "_source" => [
+                "excludes" => ["transcription"]
+            ],
             'index' => config('app.es_index'),
             'body'  => [
                 'query' => [
