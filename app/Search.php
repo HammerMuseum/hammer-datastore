@@ -105,7 +105,8 @@ class Search
     }
 
     /**
-     * @param $term
+     * @param $field
+     * @param $id
      * @return array|bool
      */
     public function term($field, $id)
