@@ -46,7 +46,7 @@ class Search
     }
 
     /**
-     * @param $term
+     * @param $params
      * @return array|bool
      */
     public function search($params)
@@ -60,6 +60,11 @@ class Search
                     if (isset($hit['_source'])) {
                         $response[] = $hit['_source'];
                     }
+                }
+            }
+            if (isset($result['aggregations'])) {
+                foreach ($result['aggregations'] as $field => $aggregation) {
+                    $response['aggregations'][$field] = $aggregation;
                 }
             }
             return $response;
@@ -88,6 +93,15 @@ class Search
                             'tags',
                         ]
                     ]
+                ]
+            ]
+        ];
+
+        $params['body']['aggs'] = [
+            'date' => [
+                'date_histogram' => [
+                    'field' => 'date_recorded',
+                    'interval' => 'year'
                 ]
             ]
         ];

@@ -11,6 +11,10 @@ use Illuminate\Http\Request;
  */
 class SearchController extends Controller
 {
+    protected $availableFacets = [
+        'year'
+    ];
+
     /** @var Search */
     protected $search;
 
@@ -42,7 +46,8 @@ class SearchController extends Controller
     public function search(Request $request, $term, $sortField = null, $direction = null)
     {
         if (!is_null($term)) {
-            $results = $this->search->match($term, $sortField, $direction);
+            $params = $request->all($this->availableFacets);
+            $results = $this->search->match($term, $sortField, $direction, $params);
 
             if ($results) {
                 return response()->json([
