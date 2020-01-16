@@ -31,18 +31,13 @@ class SearchController extends Controller
      * @param $term
      *  The term to search
      *
-     * @param $sortField
-     *  The field to sort on
-     *
-     * @param $direction
-     *  The direction to order the results
-     *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function search(Request $request, $term, $sortField = null, $direction = null)
+    public function search(Request $request, $term)
     {
         if (!is_null($term)) {
-            $results = $this->search->match($term, $sortField, $direction);
+            $queryParams = $request->all();
+            $results = $this->search->match($term, $queryParams);
 
             if ($results) {
                 return response()->json([
