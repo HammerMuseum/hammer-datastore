@@ -35,7 +35,7 @@ class VideoController extends Controller
     public function getById(Request $request, $id)
     {
         try {
-            $video = $this->search->term('asset_id', $id);
+            $video = $this->search->term(['asset_id' => $id]);
             if (count($video) && count($video) > 0) {
                 return response()->json([
                     'success' => true,

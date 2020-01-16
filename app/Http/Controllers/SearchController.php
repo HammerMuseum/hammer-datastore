@@ -62,18 +62,21 @@ class SearchController extends Controller
      * @param Request $request
      *  The request from the URL
      *
-     * @param $field
-     *  The field to search
-     *
-     * @param $value
-     *  The value to match
+     * @param $params
+     *  Optional parameters, passed into the search query from within the backend application e.g
+     *  VideoController::getById()
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function term(Request $request, $field, $value)
+    public function term(Request $request, $params = [])
     {
-        if (!is_null($field)) {
-            $results = $this->search->term($field, $value);
+        if (!empty($params)) {
+            $queryParams = $params;
+        } else {
+            $queryParams = $request->all();
+        }
+        if (!empty($queryParams)) {
+            $results = $this->search->term($queryParams);
 
             if ($results) {
                 return response()->json([
@@ -87,6 +90,31 @@ class SearchController extends Controller
             'success' => false,
             'data' => false,
             'message' => 'No results found.'
+        ], 404);
+    }
+
+    public function filter(Request $request, $term)
+    {
+        $filters = $request->all();
+        if (!empty($filters)) {
+            $results = $this->search->filter($term, $filters);
+            if ($results) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $results,
+                    'message' => false
+                ], 200);
+            }
+            return response()->json([
+                'success' => false,
+                'data' => false,
+                'message' => 'No results found.'
+            ], 404);
+        }
+        return response()->json([
+            'success' => false,
+            'data' => false,
+            'message' => 'No filters specified.'
         ], 404);
     }
 }

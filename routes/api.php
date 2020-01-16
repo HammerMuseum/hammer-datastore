@@ -17,7 +17,8 @@ Route::get('videos/{id}', 'VideoController@getById');
 Route::get('videos/{id}/transcript', 'VideoController@getTranscript');
 Route::get('videos', 'VideoController@getAllVideos');
 Route::get('search/{term}', 'SearchController@search');
-Route::get('search/{field}/{term}', 'SearchController@term');
+Route::get('search', 'SearchController@term');
+Route::get('search/filter/{term}', 'SearchController@filter');
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::post('videos', 'ApiController@create');

@@ -69,7 +69,8 @@ class Search
             }
             return $response;
         } catch (\Throwable $th) {
-            abort($th->getCode());
+//            abort($th->getCode());
+            throw new \Exception($th->getMessage());
         }
     }
 
@@ -107,7 +108,6 @@ class Search
             ]
         ];
 
-
         if (!empty($queryParams)) {
             if (isset($queryParams['sort'])) {
                 $params['body']['sort'] = [
@@ -122,7 +122,6 @@ class Search
     }
 
     /**
-     * @param $term
      * @return array|bool
      */
     public function matchAll()
@@ -146,20 +145,82 @@ class Search
     }
 
     /**
-     * @param $field
-     * @param $id
+     * @param $terms
      * @return array|bool
      */
-    public function term($field, $id, $extraParams = [])
+    public function term($terms)
     {
         $params = [
             "_source_excludes" => ["transcription"],
             'index' => config('app.es_index'),
             'body'  => [
                 'query' => [
-                    'term' => [
-                        $field => $id
+                    'bool' => [
+                        'must' => []
                     ]
+                ]
+            ]
+        ];
+
+        foreach ($terms as $field => $term) {
+            $params['body']['query']['bool']['must'][] = [
+                'term' => [
+                    $field => [
+                        'value' => $term
+                    ]
+                ]
+            ];
+        }
+
+        return $this->search($params);
+    }
+
+    /**
+     * @param $term
+     * @param array $filters
+     * @return array|bool
+     */
+    public function filter($term, $filters = [])
+    {
+        $params = [
+            "_source_excludes" => ["transcription"],
+            'index' => config('app.es_index'),
+            'body'  => [
+                'query' => [
+                    'bool' => [
+                        'must' => [
+                            'multi_match' => [
+                                'query' => $term,
+                                'fields' => [
+                                    'title^2',
+                                    'description',
+                                    'transcription',
+                                    'tags',
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        if (!empty($filters)) {
+           if (isset($filters['date_recorded'])) {
+               $params['body']['query']['bool']['filter'] = [
+                   'range' => [
+                       'date_recorded' => [
+                           'gte' => $filters['date_recorded'] . '||/y',
+                           'lte' => $filters['date_recorded'] . '||/y'
+                       ]
+                   ]
+               ];
+           }
+        }
+
+        $params['body']['aggs'] = [
+            'date' => [
+                'date_histogram' => [
+                    'field' => 'date_recorded',
+                    'interval' => 'year'
                 ]
             ]
         ];

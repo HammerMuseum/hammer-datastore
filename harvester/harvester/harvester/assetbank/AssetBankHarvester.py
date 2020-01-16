@@ -190,7 +190,7 @@ class AssetBankHarvester(HarvesterBase):
             'tags': 'Keywords',
             'transcription': 'Transcription ID'
         }
-      
+
         output = {}
         try:
             root = etree.fromstring(record)
@@ -200,15 +200,13 @@ class AssetBankHarvester(HarvesterBase):
                     field, value)
                 attribute_value = root.xpath(query)
                 if len(attribute_value):
-                    output[key] = attribute_value[0]
+                    output[key] = str(attribute_value[0])
                 else:
                     output[key] = ""
-            
             # @todo move to validate_record method
-            date = output['date_recorded'] or '01/01/1970 00:00:00'
+            date = output['date_recorded'] or '01/01/2000 00:00:00'
             output['date_recorded'] = datetime.datetime.strptime(
-                date, '%d/%m/%Y %H:%M:%S').strftime('%Y-%m-%d')
-
+                date, '%d/%m/%Y %H:%M:%S').isoformat()
             output['asset_id'] = int(output['asset_id'])
 
         except Exception as e:
