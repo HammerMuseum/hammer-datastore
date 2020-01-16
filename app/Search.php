@@ -75,9 +75,10 @@ class Search
 
     /**
      * @param $term
+     * @param $queryParams array
      * @return array|bool
      */
-    public function match($term, $sortField = null, $direction = null)
+    public function match($term, $queryParams = [])
     {
         $params = [
             "_source_excludes" => ["transcription"],
@@ -106,13 +107,17 @@ class Search
             ]
         ];
 
-        if (!is_null($sortField)) {
-            $params['body']['sort'] = [
-                $sortField => [
-                    'order' => is_null($direction) ? 'desc' : $direction
-                ]
-            ];
+
+        if (!empty($queryParams)) {
+            if (isset($queryParams['sort'])) {
+                $params['body']['sort'] = [
+                    $queryParams['sort'] => [
+                        'order' => !isset($queryParams['direction']) ? 'desc' : $queryParams['direction']
+                    ]
+                ];
+            }
         }
+
         return $this->search($params);
     }
 

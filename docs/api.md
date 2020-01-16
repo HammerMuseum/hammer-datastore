@@ -47,7 +47,7 @@ See `App\Controllers\VideoController->getAllVideos()`
 * `200` if successful
 * `404` if failed (resource not found)
 
-### GET /api/search/:term/{sortField?}/{direction?}
+### GET /api/search/:term
 
 Search for a video in the ElasticSearch index.
 
@@ -60,6 +60,10 @@ The `sortField` and `direction` parameters are optional for if the search result
 #### Arguments
 
 **Headers**: `"Accept": "application/json"`
+
+Optional query string parameters can be passed in for sorting e.g:
+
+        ?sort=date_recorded&direction=desc
 
 See `App\Controllers\SearchController->search()`
 

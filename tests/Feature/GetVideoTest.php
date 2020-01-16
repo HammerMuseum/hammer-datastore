@@ -29,7 +29,9 @@ class GetVideoTest extends TestCase
                 'title',
                 'description',
                 'date_recorded',
-                'duration'
+                'duration',
+                'duration',
+                'tags'
             ]]
         ]);
     }

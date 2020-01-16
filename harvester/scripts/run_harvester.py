@@ -79,13 +79,12 @@ if __name__ == '__main__':
         if args.submit:
             logger.info('Running submission processes')
             logger.info('Starting Elasticsearch adaptor')
-
+            
+            kwargs = dict(port=args.port, scheme=args.scheme, alias=args.alias)
             adaptor = ElasticsearchAdaptor(
                 harvester.current_output_path,
                 args.search_host,
-                args.port,
-                args.scheme,
-                args.alias,
+                **{k: v for k, v in kwargs.items() if v is not None}
             )
             adaptor.add_logger('../logs',
                                'adaptor.log', 'ElasticsearchAdaptor')
