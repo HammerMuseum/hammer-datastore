@@ -31,15 +31,17 @@ class SearchController extends Controller
      */
     public function search(Request $request, $term)
     {
+        $params['from'] = $request->start ? $request->start : 0;
         if (!is_null($term)) {
-            $results = $this->search->match($term);
-
+            $results = $this->search->match($term, $params);
+            $response = [
+                'success' => true,
+                'data' => $results['data'],
+                'links' => $results['_links'],
+                'message' => false
+            ];
             if ($results) {
-                return response()->json([
-                    'success' => true,
-                    'data' => $results,
-                    'message' => false
-                ], 200);
+                return response()->json($response, 200);
             }
         }
         return response()->json([

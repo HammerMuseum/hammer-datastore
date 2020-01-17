@@ -82,17 +82,15 @@ class VideoController extends Controller
      *
      * @return VideoCollection
      */
-    public function getAllVideos()
+    public function getAllVideos(Request $request)
     {
-        $items = $this->search->matchAll();
-        $videoCollection = collect(
-            $items
-        );
-        $count = $videoCollection->count();
-        if ($count > 0) {
+        $params['from'] = $request->start ? $request->start : 0;
+        $result = $this->search->matchAll($params);
+        if (count($result)) {
             return response()->json([
                 'success' => true,
-                    'data' => $videoCollection,
+                'data' => $result['data'],
+                '_links' => $result['_links'],
             ], 200);
         }
         return response()->json([

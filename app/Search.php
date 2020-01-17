@@ -16,9 +16,15 @@ class Search
      */
     protected $client;
 
+    /**
+     * @var Int
+     */
+    protected $pageSize;
+
     public function __construct()
     {
         $this->createClient();
+        $this->pageSize = 12;
     }
 
     /**
@@ -54,13 +60,21 @@ class Search
         try {
             $client = $this->client;
             $result = $client->search($params);
-            $response = [];
+            $response = ['data'=> [], '_links' => []];
             if (isset($result['hits']['total']) && $result['hits']['total'] > 0) {
                 foreach ($result['hits']['hits'] as $hit) {
                     if (isset($hit['_source'])) {
-                        $response[] = $hit['_source'];
+                        $response['data'][] = $hit['_source'];
                     }
                 }
+
+                $links = [];
+                $start = isset($params['from']) ? $params['from'] : 0;
+                $start = $start + $this->pageSize;
+                if ($start < $result['hits']['total']) {
+                    $links['next'] = '?start=' . $start;
+                }
+                $response['_links'] = $links;
             }
             return $response;
         } catch (\Throwable $th) {
@@ -68,26 +82,37 @@ class Search
         }
     }
 
+    protected function getDefaultParams() {
+        return [
+            '_source_excludes' => ['transcription'],
+            'size' => $this->pageSize,
+            'index' => config('app.es_index'),
+        ];
+    }
+
+    protected function addPaginationParams() {
+        return [
+            
+        ];
+    }
+
     /**
      * @param $term
      * @return array|bool
      */
-    public function match($term)
+    public function match($term, $requestParams)
     {
-        $params = [
-            "_source_excludes" => ["transcription"],
-            'size' => '50',
-            'index' => config('app.es_index'),
-            'body'  => [
-                'query' => [
-                    'multi_match' => [
-                        'query' => $term,
-                        'fields' => [
-                            'title^2',
-                            'description',
-                            'transcription',
-                            'tags',
-                        ]
+        $params = $this->getDefaultParams();
+        $params += $requestParams;
+        $params['body'] = [
+            'query' => [
+                'multi_match' => [
+                    'query' => $term,
+                    'fields' => [
+                        'title^2',
+                        'description',
+                        'transcription',
+                        'tags',
                     ]
                 ]
             ]
@@ -99,16 +124,13 @@ class Search
      * @param $term
      * @return array|bool
      */
-    public function matchAll()
+    public function matchAll($requestParams)
     {
-        $params = [
-            "_source_excludes" => ["transcription"],
-            'size' => '50',
-            'index' => config('app.es_index'),
-            'body'  => [
-                'query' => [
-                    'match_all' => (object) []
-                ]
+        $params = $this->getDefaultParams();
+        $params += $requestParams;
+        $params['body'] = [
+            'query' => [
+                'match_all' => (object) []
             ]
         ];
         return $this->search($params);
@@ -121,14 +143,11 @@ class Search
      */
     public function term($field, $id, $extraParams = [])
     {
-        $params = [
-            "_source_excludes" => ["transcription"],
-            'index' => config('app.es_index'),
-            'body'  => [
-                'query' => [
-                    'term' => [
-                        $field => $id
-                    ]
+        $params = $this->getDefaultParams();
+        $params['body'] = [
+            'query' => [
+                'term' => [
+                    $field => $id
                 ]
             ]
         ];
@@ -142,14 +161,11 @@ class Search
      */
     public function field($field, $id)
     {
-        $params = [
-            "_source_includes" => [$field],
-            'index' => config('app.es_index'),
-            'body'  => [
-                'query' => [
-                    'term' => [
-                        '_id' => $id,
-                    ],
+        $params = $this->getDefaultParams();
+        $params['body'] = [
+            'query' => [
+                'term' => [
+                    '_id' => $id,
                 ],
             ],
         ];
