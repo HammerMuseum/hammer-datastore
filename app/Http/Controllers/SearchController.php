@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
  */
 class SearchController extends Controller
 {
+    /** @var array */
     protected $availableFacets = [
         'year'
     ];

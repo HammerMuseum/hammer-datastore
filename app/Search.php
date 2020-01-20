@@ -70,6 +70,7 @@ class Search
                     }
                 }
             }
+            // Sort aggregations for faceting
             if (isset($result['aggregations'])) {
                 foreach ($result['aggregations'] as $field => $aggregation) {
                     $response['aggregations'][$field] = $aggregation;
@@ -77,8 +78,7 @@ class Search
             }
             return $response;
         } catch (\Throwable $th) {
-//            abort($th->getCode());
-            throw new \Exception($th->getMessage());
+            abort($th->getCode());
         }
     }
 
@@ -109,6 +109,7 @@ class Search
             ]
         ];
 
+        // Add date_recorded aggregations
         $params['body']['aggs'] = [
             'date' => [
                 'date_histogram' => [
@@ -118,6 +119,7 @@ class Search
             ]
         ];
 
+        // Apply a user selected sort
         if (!empty($queryParams)) {
             if (isset($queryParams['sort'])) {
                 $params['body']['sort'] = [
@@ -217,6 +219,8 @@ class Search
                 ]
             ]
         ];
+
+        // Add any filters - use post_filter for persistent aggregations
         if (!empty($filters)) {
             if (isset($filters['date_recorded'])) {
                 $params['body']['post_filter'] = [
@@ -230,6 +234,7 @@ class Search
             }
         }
 
+        // Add date_recorded aggregations for faceting
         $params['body']['aggs'] = [
             'date' => [
                 'date_histogram' => [
