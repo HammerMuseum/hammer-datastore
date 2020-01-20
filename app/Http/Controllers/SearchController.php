@@ -26,13 +26,18 @@ class SearchController extends Controller
 
     /**
      * @param Request $request
+     *  The request from the URL
+     *
      * @param $term
+     *  The term to search
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function search(Request $request, $term)
     {
         if (!is_null($term)) {
-            $results = $this->search->match($term);
+            $queryParams = $request->all();
+            $results = $this->search->match($term, $queryParams);
 
             if ($results) {
                 return response()->json([
@@ -51,14 +56,20 @@ class SearchController extends Controller
 
     /**
      * @param Request $request
+     *  The request from the URL
+     *
      * @param $field
-     * @param $id
+     *  The field to search
+     *
+     * @param $value
+     *  The value to match
+     *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function term(Request $request, $field, $id)
+    public function term(Request $request, $field, $value)
     {
         if (!is_null($field)) {
-            $results = $this->search->term($field, $id);
+            $results = $this->search->term($field, $value);
 
             if ($results) {
                 return response()->json([

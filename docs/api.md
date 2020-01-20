@@ -51,11 +51,19 @@ See `App\Controllers\VideoController->getAllVideos()`
 
 Search for a video in the ElasticSearch index.
 
-        curl -X GET https://datastore.url/api/search/:term  
+        curl -X GET https://datastore.url/api/search/:term
+        
+The `sortField` and `direction` parameters are optional for if the search results should be ordered by a field such as date, where direction can be `asc` or `desc` e.g.
+
+        curl -X GET https://datastore.url/api/search:term/date_recorded/asc  
 
 #### Arguments
 
 **Headers**: `"Accept": "application/json"`
+
+Optional query string parameters can be passed in for sorting e.g:
+
+        ?sort=date_recorded&direction=desc
 
 See `App\Controllers\SearchController->search()`
 
