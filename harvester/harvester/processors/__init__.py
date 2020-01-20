@@ -1,2 +1,2 @@
 from .DelimiterProcessor import DelimiterProcessor
-from .TrintProcessor import TrintProcessor
+from .TranscriptionProcessor import TranscriptionProcessor
