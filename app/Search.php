@@ -113,7 +113,7 @@ class Search
     {
         $params = [
             "_source_excludes" => ["transcription"],
-            'size' => '50',
+            'size' => '12',
             'index' => config('app.es_index'),
             'body'  => [
                 'query' => [
