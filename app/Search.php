@@ -218,16 +218,16 @@ class Search
             ]
         ];
         if (!empty($filters)) {
-           if (isset($filters['date_recorded'])) {
-               $params['body']['post_filter'] = [
-                   'range' => [
-                       'date_recorded' => [
-                           'gte' => $filters['date_recorded'] . '||/y',
-                           'lte' => $filters['date_recorded'] . '||/y'
-                       ]
-                   ]
-               ];
-           }
+            if (isset($filters['date_recorded'])) {
+                $params['body']['post_filter'] = [
+                'range' => [
+                    'date_recorded' => [
+                        'gte' => $filters['date_recorded'] . '||/y',
+                        'lte' => $filters['date_recorded'] . '||/y'
+                        ]
+                    ]
+                ];
+            }
         }
 
         $params['body']['aggs'] = [
