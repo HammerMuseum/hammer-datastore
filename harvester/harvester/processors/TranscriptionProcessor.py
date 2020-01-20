@@ -1,9 +1,9 @@
 import requests
 from requests import HTTPError
 
-class TrintProcessor():
+class TranscriptionProcessor():
     """
-    A basic processor to export a transcription from Trint.
+    A basic processor to export a transcription from an external service.
     
     The core process() method accepts a remote url pointing to a file.
 
@@ -16,10 +16,13 @@ class TrintProcessor():
         self.api_key = api_key
 
 
-    def get_url(self, trint_id):
-        url = "https://api.trint.com/export/webvtt/{}".format(trint_id)
+    def get_url(self, location):
+        """
+        This should be genericised to allow download from anywhere or from disk.
+        """
+        url = "https://api.trint.com/export/webvtt/{}".format(location)
         querystring = {
-            "captions-by-paragraph":"false",
+            "captions-by-paragraph":"not",
             "max-subtitle-character-length":"37",
             "highlights-only":"false",
             "enable-speakers":"false",
