@@ -169,15 +169,11 @@ class ElasticsearchAdaptor  ():
         :param alias: The alias to be updated
         :param new_index_name: The name of the index to be added to the alias
         """
-        print(alias)
-        print(new_index_name)
-
         # Switch old index with the newly generated index.
         try:
             # Get indices attached to the alias
             alias_state = self.client.indices.get_alias(alias)
             current_indices = list(alias_state.keys())
-            print(current_indices)
             # Update alias swapping out old index for new
             self.client.indices.update_aliases({
                 "actions": [
