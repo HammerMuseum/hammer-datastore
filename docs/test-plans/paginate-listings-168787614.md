@@ -22,12 +22,12 @@ Access to the testing environment.
 
 ## Test Plan
 - Navigate to `/api/videos`
-    - Is the response limited to 10 records?
+    - Is the response limited to 12 records?
     - Is there a `_links` key?
     - Does it have a `next` value of a query string e.g `?start=11`
 - Navigate to `/api/videos[query]` where `[query]` is the value of the `_links/next` result.
     - Are you taken to a new page of results?
-    - Is the page limited to 10 records?
+    - Is the page limited to 12 records?
     - Is there a list of relevant numbers in the result, e.g:
             
             total
@@ -36,10 +36,10 @@ Access to the testing environment.
     - Is there a `_links` key?
     - Does it contain both a `next` and a `previous` value?
 - Navigate to the same URL but with the `previous` value in place of the current query string.
-    - Are you taken back to the original 10 results?
+    - Are you taken back to the original 12 results?
 - Continue to progress through the results in this way until you reach the end.
-    - Is each page of results a new set of 10?
+    - Is each page of results a new set of 12?
 - Navigate back to the beginning.
 
 
-- Repeat the above test steps with a search that yields more than 10 results.
+- Repeat the above test steps with a search that yields more than 12 results.
