@@ -153,7 +153,7 @@ class ElasticsearchAdaptor  ():
         """
         # Add the defined alias if it doesn't already exist on the cluster.
         try:
-            if self.client.indices.exists_alias(name=alias):
+            if not self.client.indices.exists_alias(name=alias):
                 self.logger.info(
                     'Alias not found, adding new alias %s', alias)
                 self.client.indices.put_alias(
