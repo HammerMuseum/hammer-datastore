@@ -35,11 +35,18 @@ class Search
         $this->setClient($client);
     }
 
+    /**
+     * @param Client $client
+     * @return Client
+     */
     public function setClient(Client $client)
     {
         return $this->client = $client;
     }
 
+    /**
+     * @return Client
+     */
     public function getClient()
     {
         return $this->client;
@@ -47,7 +54,8 @@ class Search
 
     /**
      * @param $params
-     * @return array|bool
+     * @return array
+     * @throws \Exception
      */
     public function search($params)
     {
@@ -76,8 +84,9 @@ class Search
 
     /**
      * @param $term
-     * @param $queryParams array
-     * @return array|bool
+     * @param array $queryParams
+     * @return array
+     * @throws \Exception
      */
     public function match($term, $queryParams = [])
     {
@@ -122,7 +131,8 @@ class Search
     }
 
     /**
-     * @return array|bool
+     * @return array
+     * @throws \Exception
      */
     public function matchAll()
     {
@@ -146,7 +156,8 @@ class Search
 
     /**
      * @param $terms
-     * @return array|bool
+     * @return array
+     * @throws \Exception
      */
     public function term($terms)
     {
@@ -179,6 +190,7 @@ class Search
      * @param $term
      * @param array $filters
      * @return array|bool
+     * @throws \Exception
      */
     public function filter($term, $filters = [])
     {
@@ -205,7 +217,7 @@ class Search
         ];
         if (!empty($filters)) {
            if (isset($filters['date_recorded'])) {
-               $params['body']['query']['bool']['filter'] = [
+               $params['body']['post_filter'] = [
                    'range' => [
                        'date_recorded' => [
                            'gte' => $filters['date_recorded'] . '||/y',
@@ -230,7 +242,8 @@ class Search
     /**
      * @param $field
      * @param $id
-     * @return array|bool
+     * @return array
+     * @throws \Exception
      */
     public function field($field, $id)
     {
