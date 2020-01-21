@@ -281,6 +281,7 @@ class Search
     public function field($field, $id)
     {
         $params = $this->getDefaultParams();
+        $params['search_params']['_source_excludes'] = [];
         $params['search_params']['body'] = [
             'query' => [
                 'term' => [
