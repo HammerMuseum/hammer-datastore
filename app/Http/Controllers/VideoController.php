@@ -73,7 +73,6 @@ class VideoController extends Controller
                 'success' => false,
                 'message' => 'Resource not found.'
             ], 404);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
