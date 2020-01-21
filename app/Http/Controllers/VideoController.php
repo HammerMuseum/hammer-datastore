@@ -69,6 +69,10 @@ class VideoController extends Controller
                     'data' => $response
                 ], 200);
             }
+            return response()->json([
+                'success' => false,
+                'message' => 'Resource not found.'
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -82,9 +86,10 @@ class VideoController extends Controller
      *
      * @return VideoCollection
      */
-    public function getAllVideos()
+    public function getAllVideos(Request $request)
     {
-        $items = $this->search->matchAll();
+        $requestParams = $request->all();
+        $items = $this->search->matchAll($requestParams);
         $videoCollection = collect(
             $items
         );

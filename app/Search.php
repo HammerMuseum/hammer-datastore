@@ -16,6 +16,12 @@ class Search
      */
     protected $client;
 
+    /** @var int */
+    protected $pageSize = 12;
+
+    /**
+     * Search constructor.
+     */
     public function __construct()
     {
         $this->createClient();
@@ -53,6 +59,20 @@ class Search
     }
 
     /**
+     * @return array
+     */
+    public function getDefaultParams()
+    {
+        return [
+            'search_params' => [
+                '_source_excludes' => ['transcription'],
+                'size' => $this->pageSize,
+                'index' => config('app.es_index')
+            ]
+        ];
+    }
+
+    /**
      * @param $params
      * @return array
      * @throws \Exception
@@ -61,14 +81,32 @@ class Search
     {
         try {
             $client = $this->client;
-            $result = $client->search($params);
+            $result = $client->search($params['search_params']);
             $response = [];
+            $links = [];
             if (isset($result['hits']['total']) && $result['hits']['total'] > 0) {
                 foreach ($result['hits']['hits'] as $hit) {
                     if (isset($hit['_source'])) {
                         $response[] = $hit['_source'];
                     }
                 }
+                // Unless we have set a start point, start from 0
+                $start = isset($params['start']) ? $params['start'] : 0;
+
+                // Add our offset to the page size
+                $start = $start + $this->pageSize;
+
+                // As long as we havent reached the end of the results, generate another 'next page' link
+                if ($start < $result['hits']['total']) {
+                    $links['next'] = '?start=' . $start;
+                }
+                if ($start > $this->pageSize) {
+                    $links['prev'] = '?start=' . ($start - ($this->pageSize * 2));
+                }
+                $links['total'] = $result['hits']['total'];
+                $links['totalPages'] = $result['hits']['total'] / $this->pageSize;
+                $links['currentPage'] = $start / $this->pageSize;
+                $response['_links'] = $links;
             }
             // Sort aggregations for faceting
             if (isset($result['aggregations'])) {
@@ -84,33 +122,30 @@ class Search
 
     /**
      * @param $term
-     * @param array $queryParams
+     * @param array $requestParams
      * @return array
      * @throws \Exception
      */
-    public function match($term, $queryParams = [])
+    public function match($term, $requestParams = [])
     {
-        $params = [
-            "_source_excludes" => ["transcription"],
-            'size' => '12',
-            'index' => config('app.es_index'),
-            'body'  => [
-                'query' => [
-                    'multi_match' => [
-                        'query' => $term,
-                        'fields' => [
-                            'title^2',
-                            'description',
-                            'transcription',
-                            'tags',
-                        ]
+        $params = $this->getDefaultParams();
+        $params += $requestParams;
+        $params['search_params']['body'] = [
+            'query' => [
+                'multi_match' => [
+                    'query' => $term,
+                    'fields' => [
+                        'title^2',
+                        'description',
+                        'transcription',
+                        'tags',
                     ]
                 ]
             ]
         ];
 
         // Add date_recorded aggregations
-        $params['body']['aggs'] = [
+        $params['search_params']['body']['aggs'] = [
             'date' => [
                 'date_histogram' => [
                     'field' => 'date_recorded',
@@ -120,11 +155,11 @@ class Search
         ];
 
         // Apply a user selected sort
-        if (!empty($queryParams)) {
-            if (isset($queryParams['sort'])) {
-                $params['body']['sort'] = [
-                    $queryParams['sort'] => [
-                        'order' => !isset($queryParams['direction']) ? 'desc' : $queryParams['direction']
+        if (!empty($requestParams)) {
+            if (isset($requestParams['sort'])) {
+                $params['search_params']['body']['sort'] = [
+                    $requestParams['sort'] => [
+                        'order' => !isset($requestParams['direction']) ? 'desc' : $requestParams['direction']
                     ]
                 ];
             }
@@ -137,21 +172,18 @@ class Search
      * @return array
      * @throws \Exception
      */
-    public function matchAll()
+    public function matchAll($requestParams = [])
     {
-        $params = [
-            "_source_excludes" => ["transcription"],
-            'size' => '12',
-            'index' => config('app.es_index'),
-            'body'  => [
-                'query' => [
-                    'match_all' => (object) []
-                ],
-                'sort' => [
-                    'date_recorded' => [
-                        'order' => 'desc'
+        $params = $this->getDefaultParams();
+        $params += $requestParams;
+        $params['search_params']['body'] = [
+            'query' => [
+                'match_all' => (object) []
+            ],
+            'sort' => [
+                'date_recorded' => [
+                    'order' => 'desc'
 
-                    ]
                 ]
             ]
         ];
@@ -165,20 +197,17 @@ class Search
      */
     public function term($terms)
     {
-        $params = [
-            "_source_excludes" => ["transcription"],
-            'index' => config('app.es_index'),
-            'body'  => [
-                'query' => [
-                    'bool' => [
-                        'must' => []
-                    ]
+        $params = $this->getDefaultParams();
+        $params['search_params']['body'] = [
+            'query' => [
+                'bool' => [
+                    'must' => []
                 ]
             ]
         ];
 
         foreach ($terms as $field => $term) {
-            $params['body']['query']['bool']['must'][] = [
+            $params['search_params']['body']['query']['bool']['must'][] = [
                 'term' => [
                     $field => [
                         'value' => $term
@@ -198,21 +227,18 @@ class Search
      */
     public function filter($term, $filters = [])
     {
-        $params = [
-            "_source_excludes" => ["transcription"],
-            'index' => config('app.es_index'),
-            'body'  => [
-                'query' => [
-                    'bool' => [
-                        'must' => [
-                            'multi_match' => [
-                                'query' => $term,
-                                'fields' => [
-                                    'title^2',
-                                    'description',
-                                    'transcription',
-                                    'tags',
-                                ]
+        $params = $this->getDefaultParams();
+        $params['search_params']['body']  = [
+            'query' => [
+                'bool' => [
+                    'must' => [
+                        'multi_match' => [
+                            'query' => $term,
+                            'fields' => [
+                                'title^2',
+                                'description',
+                                'transcription',
+                                'tags',
                             ]
                         ]
                     ]
@@ -223,7 +249,7 @@ class Search
         // Add any filters - use post_filter for persistent aggregations
         if (!empty($filters)) {
             if (isset($filters['date_recorded'])) {
-                $params['body']['post_filter'] = [
+                $params['search_params']['body']['post_filter'] = [
                 'range' => [
                     'date_recorded' => [
                         'gte' => $filters['date_recorded'] . '||/y',
@@ -235,7 +261,7 @@ class Search
         }
 
         // Add date_recorded aggregations for faceting
-        $params['body']['aggs'] = [
+        $params['search_params']['body']['aggs'] = [
             'date' => [
                 'date_histogram' => [
                     'field' => 'date_recorded',
@@ -254,14 +280,12 @@ class Search
      */
     public function field($field, $id)
     {
-        $params = [
-            "_source_includes" => [$field],
-            'index' => config('app.es_index'),
-            'body'  => [
-                'query' => [
-                    'term' => [
-                        '_id' => $id,
-                    ],
+        $params = $this->getDefaultParams();
+        $params['search_params']['_source_excludes'] = [];
+        $params['search_params']['body'] = [
+            'query' => [
+                'term' => [
+                    '_id' => $id,
                 ],
             ],
         ];
