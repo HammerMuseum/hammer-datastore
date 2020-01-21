@@ -87,6 +87,9 @@ class Search
             if (isset($result['hits']['total']) && $result['hits']['total'] > 0) {
                 foreach ($result['hits']['hits'] as $hit) {
                     if (isset($hit['_source'])) {
+                        if (empty($hit['_source']['tags'])) {
+                            $hit['_source']['tags'] = [];
+                        }
                         $response[] = $hit['_source'];
                     }
                 }
@@ -132,6 +135,9 @@ class Search
     {
         $params = $this->getDefaultParams();
         $params += $requestParams;
+        if (isset($requestParams['start'])) {
+            $params['search_params']['from'] = $requestParams['start'];
+        }
         $params['search_params']['body'] = [
             'query' => [
                 'multi_match' => [
@@ -178,6 +184,9 @@ class Search
     {
         $params = $this->getDefaultParams();
         $params += $requestParams;
+        if (isset($requestParams['start'])) {
+            $params['search_params']['from'] = $requestParams['start'];
+        }
         $params['search_params']['body'] = [
             'query' => [
                 'match_all' => (object) []
