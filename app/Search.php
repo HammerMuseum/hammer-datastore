@@ -83,7 +83,13 @@ class Search
             $client = $this->client;
             $result = $client->search($params['search_params']);
             $response = [];
-            $links = [];
+            $links = [
+                'next' => '',
+                'prev' => '',
+                'total' => '',
+                'totalPages' => '',
+                'currentPage' => '',
+            ];
             if (isset($result['hits']['total']) && $result['hits']['total'] > 0) {
                 foreach ($result['hits']['hits'] as $hit) {
                     if (isset($hit['_source'])) {
@@ -99,8 +105,6 @@ class Search
                 // Add our offset to the page size
                 $start = $start + $this->pageSize;
 
-                $links['next'] = '';
-                $links['prev'] = '';
                 // As long as we havent reached the end of the results, generate another 'next page' link
                 if ($start < $result['hits']['total']) {
                     $links['next'] = '?start=' . $start;
@@ -111,8 +115,9 @@ class Search
                 $links['total'] = $result['hits']['total'];
                 $links['totalPages'] = $result['hits']['total'] / $this->pageSize;
                 $links['currentPage'] = $start / $this->pageSize;
-                $response['_links'] = $links;
             }
+            $response['_links'] = $links;
+            
             // Sort aggregations for faceting
             if (isset($result['aggregations'])) {
                 foreach ($result['aggregations'] as $field => $aggregation) {
