@@ -96,6 +96,8 @@ class Search
                 // Add our offset to the page size
                 $start = $start + $this->pageSize;
 
+                $links['next'] = '';
+                $links['prev'] = '';
                 // As long as we havent reached the end of the results, generate another 'next page' link
                 if ($start < $result['hits']['total']) {
                     $links['next'] = '?start=' . $start;
