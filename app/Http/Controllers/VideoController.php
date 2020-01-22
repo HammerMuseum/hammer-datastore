@@ -29,8 +29,9 @@ class VideoController extends Controller
     /**
      * Get a video by its asset ID
      *
+     * @param Request $request
      * @param $id
-     * @return VideoResource
+     * @return \Illuminate\Http\JsonResponse
      */
     public function getById(Request $request, $id)
     {
@@ -55,7 +56,6 @@ class VideoController extends Controller
     }
 
     /**
-     * @param $field
      * @param $id
      * @return array|bool
      */
@@ -97,7 +97,8 @@ class VideoController extends Controller
         if ($count > 0) {
             return response()->json([
                 'success' => true,
-                    'data' => $videoCollection,
+                    'data' => $videoCollection['result'],
+                    'pages' => $videoCollection['pages']
             ], 200);
         }
         return response()->json([

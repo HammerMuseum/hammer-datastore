@@ -84,8 +84,10 @@ class Search
             $result = $client->search($params['search_params']);
             $response = [];
             $links = [
-                'next' => '',
-                'prev' => '',
+                'pager' => [
+                    'next' => '',
+                    'previous' => '',
+                ],
                 'total' => '',
                 'totalPages' => '',
                 'currentPage' => '',
@@ -107,16 +109,15 @@ class Search
 
                 // As long as we havent reached the end of the results, generate another 'next page' link
                 if ($start < $result['hits']['total']) {
-                    $links['next'] = '?start=' . $start;
+                    $links['pager']['next'] = '?start=' . $start;
                 }
                 if ($start > $this->pageSize) {
-                    $links['prev'] = '?start=' . ($start - ($this->pageSize * 2));
+                    $links['pager']['previous'] = '?start=' . ($start - ($this->pageSize * 2));
                 }
                 $links['total'] = $result['hits']['total'];
-                $links['totalPages'] = $result['hits']['total'] / $this->pageSize;
+                $links['totalPages'] = round($result['hits']['total'] / $this->pageSize, 0);
                 $links['currentPage'] = $start / $this->pageSize;
             }
-            $response['_links'] = $links;
             
             // Sort aggregations for faceting
             if (isset($result['aggregations'])) {
@@ -124,7 +125,10 @@ class Search
                     $response['aggregations'][$field] = $aggregation;
                 }
             }
-            return $response;
+            return [
+                'result' => $response,
+                'pages' => $links
+            ];
         } catch (\Throwable $th) {
             abort($th->getCode());
         }
@@ -182,6 +186,7 @@ class Search
     }
 
     /**
+     * @param $requestParams array
      * @return array
      * @throws \Exception
      */
