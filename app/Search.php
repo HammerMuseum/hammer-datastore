@@ -85,8 +85,8 @@ class Search
             $response = [];
             $links = [
                 'pager' => [
-                    'next' => '',
                     'previous' => '',
+                    'next' => '',
                 ],
                 'total' => '',
                 'totalPages' => '',
@@ -110,10 +110,10 @@ class Search
 
                 // As long as we havent reached the end of the results, generate another 'next page' link
                 if ($start < $result['hits']['total']) {
-                    $links['pager']['next'] = '?start=' . $start;
+                    $links['pager']['next'] = 'start=' . $start;
                 }
                 if ($start > $this->pageSize) {
-                    $links['pager']['previous'] = '?start=' . ($start - ($this->pageSize * 2));
+                    $links['pager']['previous'] = 'start=' . ($start - ($this->pageSize * 2));
                 }
                 $links['total'] = $result['hits']['total'];
                 $links['totalPages'] = round($result['hits']['total'] / $this->pageSize, 0);
