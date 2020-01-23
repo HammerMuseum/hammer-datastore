@@ -95,7 +95,7 @@ class SearchController extends Controller
         }
         return response()->json([
             'success' => false,
-            'data' => false,
+            'data' => [],
             'pages' => [],
             'aggregations' => [],
             'message' => 'No results found.'
