@@ -1,4 +1,8 @@
-version: "3"
+version: "3.5"
+
+networks:
+  db:
+  default:
 
 services:
   mariadb:
@@ -10,21 +14,11 @@ services:
       MYSQL_DATABASE: $DB_NAME
       MYSQL_USER: $DB_USER
       MYSQL_PASSWORD: $DB_PASSWORD
+    networks:
+      - db
   #  volumes:
     #  - ./mariadb-init:/docker-entrypoint-initdb.d # Place init .sql file(s) here.
     #  - /path/to/mariadb/data/on/host:/var/lib/mysql # I want to manage volumes manually.
-
-#  postgres:
-#    image: wodby/postgres:$POSTGRES_TAG
-#    container_name: "${PROJECT_NAME}_postgres"
-#    stop_grace_period: 30s
-#    environment:
-#      POSTGRES_PASSWORD: $DB_PASSWORD
-#      POSTGRES_DB: $DB_NAME
-#      POSTGRES_USER: $DB_USER
-#    volumes:
-#      - ./postgres-init:/docker-entrypoint-initdb.d # Place init file(s) here.
-#      - /path/to/postgres/data/on/host:/var/lib/postgresql/data # I want to manage volumes manually.
 
   php:
     image: wodby/php:$PHP_TAG
@@ -47,6 +41,8 @@ services:
 #      PHP_XDEBUG_REMOTE_HOST: 172.17.0.1 # Linux
       PHP_XDEBUG_REMOTE_HOST: 10.254.254.254 # macOS
 #      PHP_XDEBUG_REMOTE_HOST: 10.0.75.1 # Windows
+    networks:
+      - db
     volumes:
       - ./:/var/www/html:cached
 ## For macOS users (https://wodby.com/docs/stacks/php/local#docker-for-mac)
@@ -55,9 +51,9 @@ services:
 ## For XHProf and Xdebug profiler traces
 #      - files:/mnt/files
 
-  nginx:
+  api:
     image: wodby/nginx:$NGINX_TAG
-    container_name: "${PROJECT_NAME}_nginx"
+    container_name: "${PROJECT_NAME}_api"
     depends_on:
       - php
     environment:
@@ -68,29 +64,15 @@ services:
       NGINX_SERVER_ROOT: /var/www/html/public
     volumes:
       - ./:/var/www/html:cached
+    networks:
+      - default
+      - db
 # Options for macOS users (https://wodby.com/docs/stacks/php/local#docker-for-mac)
 #      - ./:/var/www/html:cached # User-guided caching
 #      - docker-sync:/var/www/html # Docker-sync
     labels:
-      - "traefik.http.routers.${PROJECT_NAME}_nginx.rule=Host(`${PROJECT_BASE_URL}`)"
-
-#  apache:
-#    image: wodby/apache:$APACHE_TAG
-#    container_name: "${PROJECT_NAME}_apache"
-#    depends_on:
-#      - php
-#    environment:
-#      APACHE_LOG_LEVEL: debug
-#      APACHE_BACKEND_HOST: php
-#      APACHE_VHOST_PRESET: php
-#      APACHE_DOCUMENT_ROOT: /var/www/html/public
-#    volumes:
-#      - ./:/var/www/html
-## For macOS users (https://wodby.com/docs/stacks/php/local#docker-for-mac)
-##      - ./:/var/www/html:cached # User-guided caching
-##      - docker-sync:/var/www/html # Docker-sync
-#    labels:
-#      - "traefik.http.routers.${PROJECT_NAME}_apache.rule=Host(`${PROJECT_BASE_URL}`)"
+      - "traefik.http.routers.${PROJECT_NAME}_api.rule=Host(`${PROJECT_BASE_URL}`)"
+      - "traefik.docker.network=hammer-datastore_default"
 
   mailhog:
     image: mailhog/mailhog
@@ -117,17 +99,6 @@ services:
 #    container_name: "${PROJECT_NAME}_redis"
 #    image: wodby/redis:$REDIS_TAG
 
-#  adminer:
-#    container_name: "${PROJECT_NAME}_adminer"
-#    image: wodby/adminer:$ADMINER_TAG
-#    environment:
-## For PostgreSQL:
-##      ADMINER_DEFAULT_DB_DRIVER: pgsql
-#      ADMINER_DEFAULT_DB_HOST: $DB_HOST
-#      ADMINER_DEFAULT_DB_NAME: $DB_NAME
-#    labels:
-#      - "traefik.http.routers.${PROJECT_NAME}_adminer.rule=Host(`adminer.${PROJECT_BASE_URL}`)"
-
 #  pma:
 #    image: phpmyadmin/phpmyadmin
 #    container_name: "${PROJECT_NAME}_pma"
@@ -140,14 +111,6 @@ services:
 #    labels:
 #      - "traefik.http.routers.${PROJECT_NAME}_pma.rule=Host(`pma.${PROJECT_BASE_URL}`)"
 
-#  solr:
-#    image: wodby/solr:$SOLR_TAG
-#    container_name: "${PROJECT_NAME}_solr"
-#    environment:
-#      SOLR_HEAP: 1024m
-#    labels:
-#      - "traefik.http.routers.${PROJECT_NAME}_solr.rule=Host(`solr.${PROJECT_BASE_URL}`)"
-
   elasticsearch:
     image: wodby/elasticsearch:$ELASTICSEARCH_TAG
     environment:
@@ -158,9 +121,12 @@ services:
       memlock:
         soft: -1
         hard: -1
-    # labels:
-    #  - "traefik.http.services.${PROJECT_NAME}_elasticsearch.loadbalancer.server.port=9200"
-    #  - "traefik.http.routers.${PROJECT_NAME}_elasticsearch.rule=Host(`elasticsearch.${PROJECT_BASE_URL}`)"
+    networks:
+      - default
+      - db
+    labels:
+     - "traefik.http.services.${PROJECT_NAME}_elasticsearch.loadbalancer.server.port=9200"
+     - "traefik.http.routers.${PROJECT_NAME}_elasticsearch.rule=Host(`elasticsearch.${PROJECT_BASE_URL}`)"
 
   kibana:
     image: wodby/kibana:$KIBANA_TAG
@@ -235,13 +201,16 @@ services:
     command: --no-auth -H unix:///var/run/docker.sock
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    # networks:
+      # - traefik-network
     labels:
      - "traefik.http.routers.${PROJECT_NAME}_portainer.rule=Host(`portainer.${PROJECT_BASE_URL}`)"
+    #  - "traefik.docker.network=traefik-network"
 
   traefik:
     image: traefik:v2.0
     container_name: "${PROJECT_NAME}_traefik"
-    command: --api.insecure=true --providers.docker
+    command: --api.insecure=true --providers.docker --log.level=debug
     ports:
       - '8001:80'
       - '8080:8080' # Dashboard
