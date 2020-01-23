@@ -92,6 +92,7 @@ class Search
                 'totalPages' => '',
                 'currentPage' => '',
             ];
+            $aggregations = [];
             if (isset($result['hits']['total']) && $result['hits']['total'] > 0) {
                 foreach ($result['hits']['hits'] as $hit) {
                     if (isset($hit['_source'])) {
@@ -118,15 +119,16 @@ class Search
                 $links['totalPages'] = round($result['hits']['total'] / $this->pageSize, 0);
                 $links['currentPage'] = $start / $this->pageSize;
             }
-            
+
             // Sort aggregations for faceting
             if (isset($result['aggregations'])) {
                 foreach ($result['aggregations'] as $field => $aggregation) {
-                    $response['aggregations'][$field] = $aggregation;
+                    $aggregations[$field] = $aggregation;
                 }
             }
             return [
                 'result' => $response,
+                'aggregations' => $aggregations,
                 'pages' => $links
             ];
         } catch (\Throwable $th) {

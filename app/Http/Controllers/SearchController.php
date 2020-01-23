@@ -49,6 +49,7 @@ class SearchController extends Controller
                     'success' => true,
                     'data' => $results['result'],
                     'pages' => $results['pages'],
+                    'aggregations' => $results['aggregations'],
                     'message' => false
                 ], 200);
             }
@@ -56,19 +57,21 @@ class SearchController extends Controller
         return response()->json([
             'success' => false,
             'data' => false,
+            'pages' => [],
+            'aggregations' => [],
             'message' => 'No results found.'
         ], 404);
     }
 
     /**
      * @param Request $request
-     *  The request from the URL
      *
-     * @param $params
-     *  Optional parameters, passed into the search query from within the backend application e.g
+     * Optional parameters, passed into the search query from within the backend application e.g
      *  VideoController::getById()
      *
+     * @param array $params
      * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
      */
     public function term(Request $request, $params = [])
     {
@@ -83,7 +86,9 @@ class SearchController extends Controller
             if ($results) {
                 return response()->json([
                     'success' => true,
-                    'data' => $results,
+                    'data' => $results['result'],
+                    'pages' => $results['pages'],
+                    'aggregations' => $results['aggregations'],
                     'message' => false
                 ], 200);
             }
@@ -91,10 +96,18 @@ class SearchController extends Controller
         return response()->json([
             'success' => false,
             'data' => false,
+            'pages' => [],
+            'aggregations' => [],
             'message' => 'No results found.'
         ], 404);
     }
 
+    /**
+     * @param Request $request
+     * @param $term
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
     public function filter(Request $request, $term)
     {
         $filters = $request->all();
@@ -103,19 +116,25 @@ class SearchController extends Controller
             if ($results) {
                 return response()->json([
                     'success' => true,
-                    'data' => $results,
+                    'data' => $results['result'],
+                    'pages' => $results['pages'],
+                    'aggregations' => $results['aggregations'],
                     'message' => false
                 ], 200);
             }
             return response()->json([
                 'success' => false,
                 'data' => false,
+                'pages' => [],
+                'aggregations' => [],
                 'message' => 'No results found.'
             ], 404);
         }
         return response()->json([
             'success' => false,
             'data' => false,
+            'pages' => [],
+            'aggregations' => [],
             'message' => 'No filters specified.'
         ], 404);
     }
