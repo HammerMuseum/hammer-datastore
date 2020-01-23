@@ -84,12 +84,15 @@ class Search
             $result = $client->search($params['search_params']);
             $response = [];
             $links = [
-                'next' => '',
-                'prev' => '',
+                'pager' => [
+                    'previous' => '',
+                    'next' => '',
+                ],
                 'total' => '',
                 'totalPages' => '',
                 'currentPage' => '',
             ];
+            $aggregations = [];
             if (isset($result['hits']['total']) && $result['hits']['total'] > 0) {
                 foreach ($result['hits']['hits'] as $hit) {
                     if (isset($hit['_source'])) {
@@ -107,24 +110,27 @@ class Search
 
                 // As long as we havent reached the end of the results, generate another 'next page' link
                 if ($start < $result['hits']['total']) {
-                    $links['next'] = '?start=' . $start;
+                    $links['pager']['next'] = 'start=' . $start;
                 }
                 if ($start > $this->pageSize) {
-                    $links['prev'] = '?start=' . ($start - ($this->pageSize * 2));
+                    $links['pager']['previous'] = 'start=' . ($start - ($this->pageSize * 2));
                 }
                 $links['total'] = $result['hits']['total'];
-                $links['totalPages'] = $result['hits']['total'] / $this->pageSize;
+                $links['totalPages'] = round($result['hits']['total'] / $this->pageSize, 0);
                 $links['currentPage'] = $start / $this->pageSize;
             }
-            $response['_links'] = $links;
-            
+
             // Sort aggregations for faceting
             if (isset($result['aggregations'])) {
                 foreach ($result['aggregations'] as $field => $aggregation) {
-                    $response['aggregations'][$field] = $aggregation;
+                    $aggregations[$field] = $aggregation;
                 }
             }
-            return $response;
+            return [
+                'result' => $response,
+                'aggregations' => $aggregations,
+                'pages' => $links
+            ];
         } catch (\Throwable $th) {
             abort($th->getCode());
         }
@@ -172,7 +178,7 @@ class Search
             if (isset($requestParams['sort'])) {
                 $params['search_params']['body']['sort'] = [
                     $requestParams['sort'] => [
-                        'order' => !isset($requestParams['direction']) ? 'desc' : $requestParams['direction']
+                        'order' => !isset($requestParams['order']) ? 'desc' : $requestParams['order']
                     ]
                 ];
             }
@@ -182,6 +188,7 @@ class Search
     }
 
     /**
+     * @param $requestParams array
      * @return array
      * @throws \Exception
      */
@@ -262,15 +269,44 @@ class Search
             ]
         ];
 
-        // Add any filters - use post_filter for persistent aggregations
+        // Turn the query string into an array of filters
         if (!empty($filters)) {
-            if (isset($filters['date_recorded'])) {
+            $filterArray = [];
+            if (isset($filters['facets'])) {
+                $facets = explode(';', $filters['facets']);
+                foreach ($facets as $facet) {
+                    if ($facet !== '') {
+                        $valuePair = explode(':', $facet);
+                        $filterArray[$valuePair[0]] = $valuePair[1];
+                    }
+                }
+            }
+            foreach ($filterArray as $field => $value) {
+                // Ignore the date_recorded field as we will construct a ranged post_filter with this later
+                if ($field !== 'date_recorded') {
+                    $params['search_params']['body']['query']['bool']['filter']['bool']['must'][] = [
+                        'term' => [
+                            $field => $value
+                        ]
+                    ];
+                }
+            }
+            if (isset($filterArray['date_recorded'])) {
                 $params['search_params']['body']['post_filter'] = [
                 'range' => [
                     'date_recorded' => [
-                        'gte' => $filters['date_recorded'] . '||/y',
-                        'lte' => $filters['date_recorded'] . '||/y'
+                        'gte' => $filterArray['date_recorded'] . '||/y',
+                        'lte' => $filterArray['date_recorded'] . '||/y'
                         ]
+                    ]
+                ];
+            }
+
+            // Apply a sort if there is one
+            if (isset($filters['sort'])) {
+                $params['search_params']['body']['sort'] = [
+                    $filters['sort'] => [
+                        'order' => !isset($filters['order']) ? 'desc' : $filters['order']
                     ]
                 ];
             }

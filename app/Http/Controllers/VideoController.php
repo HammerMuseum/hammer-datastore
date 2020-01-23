@@ -29,44 +29,54 @@ class VideoController extends Controller
     /**
      * Get a video by its asset ID
      *
+     * @param Request $request
      * @param $id
-     * @return VideoResource
+     * @return \Illuminate\Http\JsonResponse
      */
     public function getById(Request $request, $id)
     {
         try {
-            $video = $this->search->term(['asset_id' => $id]);
-            if (count($video) && count($video) > 0) {
+            $result = $this->search->term(['asset_id' => $id]);
+            if (count($result) && count($result) > 0) {
                 return response()->json([
                     'success' => true,
-                    'data' => $video
+                    'data' => $result['result'],
+                    'pages' => $result['pages'],
+                    'aggregations' => $result['aggregations'],
                 ], 200);
             }
             return response()->json([
                 'success' => false,
-                'message' => 'Resource not found.'
+                'data' => false,
+                'pages' => [],
+                'aggregations' => [],
+                'message' => 'Video not found.'
             ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Resource not found.'
+                'data' => [],
+                'pages' => [],
+                'aggregations' => [],
+                'message' => 'Video not found.'
             ], 404);
         }
     }
 
     /**
-     * @param $field
      * @param $id
      * @return array|bool
      */
     public function getTranscript($id)
     {
         try {
-            $response = $this->search->field('transcription', $id);
-            if (count($response)) {
+            $result = $this->search->field('transcription', $id);
+            if (count($result)) {
                 return response()->json([
                     'success' => true,
-                    'data' => $response
+                    'data' => $result['result'],
+                    'pages' => $result['pages'],
+                    'aggregations' => $result['aggregations'],
                 ], 200);
             }
             return response()->json([
@@ -90,19 +100,24 @@ class VideoController extends Controller
     {
         $requestParams = $request->all();
         $items = $this->search->matchAll($requestParams);
-        $videoCollection = collect(
+        $result = collect(
             $items
         );
-        $count = $videoCollection->count();
+        $count = $result->count();
         if ($count > 0) {
             return response()->json([
                 'success' => true,
-                    'data' => $videoCollection,
+                'data' => $result['result'],
+                'pages' => $result['pages'],
+                'aggregations' => $result['aggregations'],
             ], 200);
         }
         return response()->json([
             'success' => false,
-            'message' => 'No video resources found.'
+            'message' => 'No video resources found.',
+            'pages' => [],
+            'aggregations' => [],
+            'data' => []
         ], 404);
     }
 }
