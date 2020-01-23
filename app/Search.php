@@ -178,7 +178,7 @@ class Search
             if (isset($requestParams['sort'])) {
                 $params['search_params']['body']['sort'] = [
                     $requestParams['sort'] => [
-                        'order' => !isset($requestParams['direction']) ? 'desc' : $requestParams['direction']
+                        'order' => !isset($requestParams['order']) ? 'desc' : $requestParams['order']
                     ]
                 ];
             }
@@ -269,15 +269,44 @@ class Search
             ]
         ];
 
-        // Add any filters - use post_filter for persistent aggregations
+        // Turn the query string into an array of filters
         if (!empty($filters)) {
-            if (isset($filters['date_recorded'])) {
+            $filterArray = [];
+            if (isset($filters['facets'])) {
+                $facets = explode(';', $filters['facets']);
+                foreach ($facets as $facet) {
+                    if ($facet !== '') {
+                        $valuePair = explode(':', $facet);
+                        $filterArray[$valuePair[0]] = $valuePair[1];
+                    }
+                }
+            }
+            foreach ($filterArray as $field => $value) {
+                // Ignore the date_recorded field as we will construct a ranged post_filter with this later
+                if ($field !== 'date_recorded') {
+                    $params['search_params']['body']['query']['bool']['filter']['bool']['must'][] = [
+                        'term' => [
+                            $field => $value
+                        ]
+                    ];
+                }
+            }
+            if (isset($filterArray['date_recorded'])) {
                 $params['search_params']['body']['post_filter'] = [
                 'range' => [
                     'date_recorded' => [
-                        'gte' => $filters['date_recorded'] . '||/y',
-                        'lte' => $filters['date_recorded'] . '||/y'
+                        'gte' => $filterArray['date_recorded'] . '||/y',
+                        'lte' => $filterArray['date_recorded'] . '||/y'
                         ]
+                    ]
+                ];
+            }
+
+            // Apply a sort if there is one
+            if (isset($filters['sort'])) {
+                $params['search_params']['body']['sort'] = [
+                    $filters['sort'] => [
+                        'order' => !isset($filters['order']) ? 'desc' : $filters['order']
                     ]
                 ];
             }
