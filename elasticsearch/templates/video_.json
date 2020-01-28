@@ -22,6 +22,9 @@
           "type": "text",
           "analyzer": "english"
         },
+        "title_slug": {
+          "type": "keyword"
+        },
         "transcription": {
           "type": "text",
           "analyzer": "english"
