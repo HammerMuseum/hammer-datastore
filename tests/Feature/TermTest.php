@@ -49,6 +49,7 @@ class TermTest extends TestCase
             ]
         ]);
         $this->assertArrayHasKey('hits', $response);
-        $this->assertGreaterThan(0, $response['hits']['total']);
+        $this->assertArrayHasKey('speakers', $response['hits']['hits'][0]['_source']);
+        $this->assertEquals('Leonard Nimoy', $response['hits']['hits'][0]['_source']['speakers']);
     }
 }
