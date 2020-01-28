@@ -11,7 +11,7 @@ use Elasticsearch\ClientBuilder;
 class TermTest extends TestCase
 {
     /**
-     * A basic feature test example.
+     * Test Elasticsearch term() query.
      *
      * @return void
      */
