@@ -1,2 +1,3 @@
 from .DelimiterProcessor import DelimiterProcessor
 from .TranscriptionProcessor import TranscriptionProcessor
+from .FriendlyUrlProcessor import FriendlyUrlProcessor
