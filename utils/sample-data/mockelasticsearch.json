@@ -1,0 +1,33 @@
+{
+  "took": 20,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 35,
+    "max_score": 1,
+    "hits": [
+      {
+        "_index": "video_1580205810",
+        "_type": "_doc",
+        "_id": "240",
+        "_score": 1,
+        "_source": {
+          "asset_id": 240,
+          "title": "The 2016 Elections: Predicting the Unpredictable",
+          "description": "As we approach the 2016 presidential election, the Hammer Museum offers a variety of election-themed talks and screenings. Learn more about our Election Fever programming. As we approach the home stretch of the 2016 elections, two experts join us to assess the likely outcome of November’s vote: UCLA political science professor Lynn Vavreck—an expert on campaigns, elections, and political advertising—and American University political historian Allan Lichtman, who has correctly predicted every presidential winner since 1984. Moderated by Ian Masters, journalist, documentary filmmaker, and KPFK 90.7 FM radio host.",
+          "date_recorded": "2016-08-09T00:00:00",
+          "duration": "",
+          "tags": "",
+          "transcription": "some transcription",
+          "program_series": "JazzPOP 2019",
+          "speakers": "Leonard Nimoy"
+        }
+      }
+    ]
+  }
+}

@@ -158,6 +158,8 @@ class Search
                         'description',
                         'transcription',
                         'tags',
+                        'speakers',
+                        'program_series'
                     ]
                 ]
             ]
@@ -262,6 +264,8 @@ class Search
                                 'description',
                                 'transcription',
                                 'tags',
+                                'speakers',
+                                'program_series'
                             ]
                         ]
                     ]
