@@ -62,8 +62,10 @@ services:
       NGINX_BACKEND_HOST: php
       NGINX_VHOST_PRESET: php
       NGINX_SERVER_ROOT: /var/www/html/public
+      NGINX_SERVER_EXTRA_CONF_FILEPATH: /etc/nginx/extra.conf
     volumes:
       - ./:/var/www/html:cached
+      - ./docker-nginx.conf:/etc/nginx/extra.conf
     networks:
       - default
       - db

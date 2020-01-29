@@ -71,17 +71,15 @@ class VideoController extends Controller
     {
         try {
             $result = $this->search->field('transcription', $id);
-            if (count($result)) {
-                return response()->json([
-                    'success' => true,
-                    'data' => $result['result'],
-                    'pages' => $result['pages'],
-                    'aggregations' => $result['aggregations'],
-                ], 200);
+            if ($doc = $result['result'][0]) {
+                if (!empty($doc['transcription'])) {
+                    return response($doc['transcription'], 200)
+                        ->header('Content-Type', 'text/vtt');
+                }
             }
             return response()->json([
                 'success' => false,
-                'message' => 'Resource not found.'
+                'message' => 'No transcription available.'
             ], 404);
         } catch (\Exception $e) {
             return response()->json([
