@@ -105,14 +105,16 @@ class ElasticsearchAdaptor  ():
             if filename.endswith('.json'):
                 with open(os.path.join(directory, filename), 'r') as f:
                     data = json.load(f)
-                    data['_id'] = data['asset_id']
-                    yield data
+                    yield {
+                        "_index": self.index_name,
+                        "_type": self.es_type,
+                        "_source": data,
+                    }
 
 
     def submit(self, data_location):
         try:
-            success, errors = helpers.bulk(self.client, self.load_records(data_location),
-                                           index=self.index_name, doc_type=self.es_type)
+            success, errors = helpers.bulk(self.client, self.load_records(data_location))
             if errors:
                 for error in errors:
                     self.logger.log_error('Document failed %s', error)
