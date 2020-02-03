@@ -174,6 +174,16 @@ class Search
                 ]
             ]
         ];
+        $params['search_params']['body']['aggs']['series'] = [
+            'terms' => [
+                'field' => 'program_series'
+            ]
+        ];
+        $params['search_params']['body']['aggs']['speakers'] = [
+            'terms' => [
+                'field' => 'speakers'
+            ]
+        ];
 
         // Apply a user selected sort
         if (!empty($requestParams)) {
@@ -231,14 +241,23 @@ class Search
             ]
         ];
 
-        foreach ($terms as $field => $term) {
-            $params['search_params']['body']['query']['bool']['must'][] = [
-                'term' => [
-                    $field => [
-                        'value' => $term
-                    ]
+        if (isset($terms['sort'])) {
+            $params['search_params']['body']['sort'] = [
+                $terms['sort'] => [
+                    'order' => !isset($terms['order']) ? 'desc' : $terms['order']
                 ]
             ];
+        }
+        foreach ($terms as $field => $term) {
+            if ($field !== 'sort' && $field !== 'order') {
+                $params['search_params']['body']['query']['bool']['must'][] = [
+                    'term' => [
+                        $field => [
+                            'value' => $term
+                        ]
+                    ]
+                ];
+            }
         }
 
         return $this->search($params);
@@ -302,6 +321,13 @@ class Search
                         'gte' => $filterArray['date_recorded'] . '||/y',
                         'lte' => $filterArray['date_recorded'] . '||/y'
                         ]
+                    ],
+                ];
+            }
+            if (isset($filterArray['program_series'])) {
+                $params['search_params']['body']['post_filter'] = [
+                    'term' => [
+                        'program_series' => $filterArray['program_series']
                     ]
                 ];
             }
@@ -323,6 +349,16 @@ class Search
                     'field' => 'date_recorded',
                     'interval' => 'year'
                 ]
+            ]
+        ];
+        $params['search_params']['body']['aggs']['series'] = [
+            'terms' => [
+                'field' => 'program_series'
+            ]
+        ];
+        $params['search_params']['body']['aggs']['speakers'] = [
+            'terms' => [
+                'field' => 'speakers'
             ]
         ];
         return $this->search($params);
