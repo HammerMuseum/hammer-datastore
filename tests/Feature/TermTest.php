@@ -50,6 +50,6 @@ class TermTest extends TestCase
         ]);
         $this->assertArrayHasKey('hits', $response);
         $this->assertArrayHasKey('speakers', $response['hits']['hits'][0]['_source']);
-        $this->assertEquals('Leonard Nimoy', $response['hits']['hits'][0]['_source']['speakers']);
+        $this->assertEquals(['Leonard Nimoy'], $response['hits']['hits'][0]['_source']['speakers']);
     }
 }

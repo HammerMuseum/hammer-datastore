@@ -37,7 +37,7 @@ class VideoController extends Controller
     {
         try {
             $result = $this->search->term(['title_slug' => $id]);
-            if (count($result) && count($result) > 0) {
+            if ($result && count($result['result']) > 0) {
                 return response()->json([
                     'success' => true,
                     'data' => $result['result'],

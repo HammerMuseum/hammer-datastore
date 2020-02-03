@@ -2,8 +2,6 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 /**
@@ -20,19 +18,10 @@ class GetVideoTest extends TestCase
      */
     public function testGetById()
     {
-        $id = 207;
-        $response = $this->get('/api/videos/' . $id);
+        $response = $this->get('/api/videos/' . 'example-slug');
         $response->assertStatus(200);
-        $response->assertJsonStructure([
-            'data' => [[
-                'asset_id',
-                'title',
-                'description',
-                'date_recorded',
-                'duration',
-                'duration',
-                'tags'
-            ]]
-        ]);
+
+        $response = $this->get('/api/videos/' . 'non-existent-slug');
+        $response->assertStatus(404);
     }
 }
