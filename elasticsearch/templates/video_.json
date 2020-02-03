@@ -34,6 +34,12 @@
         },
         "video_url": {
           "type": "keyword"
+        },
+        "program_series": {
+          "type": "keyword"
+        },
+        "speakers": {
+          "type": "keyword"
         }
       }
     }

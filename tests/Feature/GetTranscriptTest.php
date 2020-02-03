@@ -21,10 +21,6 @@ class GetTranscript extends TestCase
         $id = 207;
         $response = $this->get('/api/videos/' . $id . '/transcript');
         $response->assertStatus(200);
-        $response->assertJsonStructure([
-            'data' => [[
-                'transcription'
-            ]]
-        ]);
+        $response->assertHeader('content-type', 'text/vtt; charset=UTF-8');
     }
 }

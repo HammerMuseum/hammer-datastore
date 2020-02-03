@@ -47,6 +47,7 @@ class AssetBankHarvester(HarvesterBase):
 
         split_fields = [
             'tags',
+            'speakers'
         ]
 
         trint_fields = [
@@ -201,7 +202,9 @@ class AssetBankHarvester(HarvesterBase):
             'date_recorded': 'Date Created',
             'duration': 'Duration',
             'tags': 'Keywords',
-            'transcription': 'Transcription ID'
+            'transcription': 'Transcription ID',
+            'program_series': 'Program Series',
+            'speakers': 'Speakers'
         }
       
         output = {}
