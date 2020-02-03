@@ -10,7 +10,7 @@ class TranscriptionProcessor():
     Returns the content of the file.
     """
 
-    def __init__(self, harvester, api_key, fields):
+    def __init__(self, harvester, api_key, fields=[]):
         self.harvester = harvester
         self.fields = fields
         self.api_key = api_key

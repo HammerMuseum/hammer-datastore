@@ -13,7 +13,7 @@ from tqdm import tqdm
 from lxml import etree
 from collections import OrderedDict
 from harvester.harvester import HarvesterBase
-from harvester.processors import DelimiterProcessor, TranscriptionProcessor
+from harvester.processors import DelimiterProcessor, TranscriptionProcessor, FriendlyUrlProcessor
 
 class AssetBankHarvester(HarvesterBase):
     version = 0.1
@@ -43,6 +43,7 @@ class AssetBankHarvester(HarvesterBase):
         self.harvest_uri = "{}/{}".format(self.host, 'rest/asset-search')
         self.assetType = options['assetType']
         self.docs = []
+        self.slugs = []
 
         split_fields = [
             'tags',
@@ -53,10 +54,15 @@ class AssetBankHarvester(HarvesterBase):
             'transcription',
         ]
 
+        slug_field = [
+            'title'
+        ]
+
         self.processors = [
             DelimiterProcessor(self, delimiter=',', fields=split_fields),
             TranscriptionProcessor(
-                self, os.getenv('TRINT_API_KEY'), fields=trint_fields)
+                self, os.getenv('TRINT_API_KEY'), fields=trint_fields),
+            FriendlyUrlProcessor(self, fields=slug_field),
         ]
 
 
@@ -65,6 +71,7 @@ class AssetBankHarvester(HarvesterBase):
         Setup authentication necessary to communicate with the Asset Bank API.
         """
         try:
+            self.logger.info('Attempting to Authenticate with Asset Bank')
             token_url = "{}{}".format(self.host, '/oauth/token')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -80,9 +87,11 @@ class AssetBankHarvester(HarvesterBase):
             response.raise_for_status()
             content = response.json()
             self.access_token = content['access_token']
+            self.logger.info('Authentication successful')
         except requests.HTTPError as e:
             self.logger.error('Failed to authenticate with API. Check credentials. {}'.format(e))
             exit()
+
 
     def harvest(self):
         # Add a log handler for the run
@@ -135,6 +144,9 @@ class AssetBankHarvester(HarvesterBase):
         root = etree.fromstring(response.content)
         assets = root.xpath('//assetSummary')
 
+        # This will need updating to handle pagination.
+        self.logger.info('Found %i records' % len(assets))
+
         # Iterate over all resources
         for asset in assets:
             identifier = asset.xpath('id')[0].text
@@ -147,14 +159,15 @@ class AssetBankHarvester(HarvesterBase):
 
             json_record = self.get_record_fields(record, identifier)
             self.preprocess_record(json_record)
-            record_success = self.do_record_harvest(json_record, identifier)
-
-            self.records_processed += 1
-
-            if record_success:
-                self.records_succeeded += 1
+            if self.validate_record(json_record):
+                record_success = self.do_record_harvest(json_record, identifier)
+                self.records_processed += 1
+                if record_success:
+                    self.records_succeeded += 1
+                else:
+                    self.records_failed += 1
             else:
-                self.records_failed += 1
+                    self.records_failed += 1
 
 
     def do_record_harvest(self, record, identifier):
@@ -216,7 +229,7 @@ class AssetBankHarvester(HarvesterBase):
 
         except Exception as e:
             self.logger.info(
-                'Failed to process asset {}: {}'.format(identifier, e))
+                'Failed to retrieve asset {}: {}'.format(identifier, e))
 
         # Get some non-attribute
         output['video_url'] = root.xpath('//asset/contentUrl/text()')[0]
@@ -250,6 +263,14 @@ class AssetBankHarvester(HarvesterBase):
 
 
     def validate_record(self, record):
+        """
+        Custom validation checks for this implementation.
+        """
+        if record['title_slug'] in self.slugs:
+            self.logger.error(
+                'Record {} failed validation: duplicate URL.'.format(record['asset_id']))
+            return False
+        self.slugs.append(record['title_slug'])
         return True
 
 
