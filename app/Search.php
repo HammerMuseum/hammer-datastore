@@ -245,6 +245,11 @@ class Search
         ];
     }
 
+    /**
+     * Return all aggregations for blank search query
+     *
+     * @return array
+     */
     public function getGlobalAggregationOptions()
     {
         return [
@@ -277,6 +282,8 @@ class Search
     }
 
     /**
+     * Add filters to search params if they were passed in
+     *
      * @param $requestParams
      * @param $params
      * @return mixed
@@ -377,7 +384,6 @@ class Search
                 ];
             }
         }
-
         return $this->search($params);
     }
 }
