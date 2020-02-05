@@ -342,4 +342,42 @@ class Search
         $params['search_params']['body'] += $this->getGlobalAggregationOptions();
         return $this->search($params);
     }
+
+    /**
+     * @param $terms
+     * @return array
+     * @throws \Exception
+     */
+    public function term($terms)
+    {
+        $params = $this->getDefaultParams();
+        $params['search_params']['body'] = [
+            'query' => [
+                'bool' => [
+                    'must' => []
+                ]
+            ]
+        ];
+
+        if (isset($terms['sort'])) {
+            $params['search_params']['body']['sort'] = [
+                $terms['sort'] => [
+                    'order' => !isset($terms['order']) ? 'desc' : $terms['order']
+                ]
+            ];
+        }
+        foreach ($terms as $field => $term) {
+            if ($field !== 'sort' && $field !== 'order') {
+                $params['search_params']['body']['query']['bool']['must'][] = [
+                    'term' => [
+                        $field => [
+                            'value' => $term
+                        ]
+                    ]
+                ];
+            }
+        }
+
+        return $this->search($params);
+    }
 }
