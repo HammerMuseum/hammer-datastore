@@ -132,8 +132,7 @@ class Search
                 'pages' => $links
             ];
         } catch (\Throwable $th) {
-//            abort($th->getCode());
-            echo $th->getMessage();
+            abort($th->getCode());
         }
     }
 
@@ -148,13 +147,12 @@ class Search
             return $this->matchAll($requestParams);
         }
 
-        //facets=speakers:Roxanne%20Gay&
         $params = $this->getDefaultParams();
         $params += $requestParams;
         if (isset($requestParams['start'])) {
             $params['search_params']['from'] = $requestParams['start'];
         }
-        $params['search_params']['body']  = [
+        $params['search_params']['body'] = [
             'query' => [
                 'bool' => [
                     'must' => [
