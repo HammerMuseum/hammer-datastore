@@ -309,7 +309,6 @@ class Search
                     $params['search_params']['body']['query']['bool']['filter']['bool']['must'][]['terms']
                     [$field][] = $term;
                 }
-
             }
         }
 
