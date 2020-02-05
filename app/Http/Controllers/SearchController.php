@@ -33,109 +33,29 @@ class SearchController extends Controller
      * @param Request $request
      *  The request from the URL
      *
-     * @param $term
-     *  The term to search
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function search(Request $request, $term)
-    {
-        if (!is_null($term)) {
-            $queryParams = $request->all();
-            $results = $this->search->match($term, $queryParams);
-
-            if ($results) {
-                return response()->json([
-                    'success' => true,
-                    'data' => $results['result'],
-                    'pages' => $results['pages'],
-                    'aggregations' => $results['aggregations'],
-                    'message' => false
-                ], 200);
-            }
-        }
-        return response()->json([
-            'success' => false,
-            'data' => [],
-            'pages' => [],
-            'aggregations' => [],
-            'message' => 'No results found.'
-        ], 404);
-    }
-
-    /**
-     * @param Request $request
-     *
-     * Optional parameters, passed into the search query from within the backend application e.g
-     *  VideoController::getById()
-     *
-     * @param array $params
      * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
      */
-    public function term(Request $request, $params = [])
+    public function search(Request $request)
     {
-        if (!empty($params)) {
-            $queryParams = $params;
-        } else {
-            $queryParams = $request->all();
-        }
-        if (!empty($queryParams)) {
-            $results = $this->search->term($queryParams);
+        $queryParams = $request->all();
+        $results = $this->search->match($queryParams);
 
-            if ($results) {
-                return response()->json([
-                    'success' => true,
-                    'data' => $results['result'],
-                    'pages' => $results['pages'],
-                    'aggregations' => $results['aggregations'],
-                    'message' => false
-                ], 200);
-            }
-        }
-        return response()->json([
-            'success' => false,
-            'data' => [],
-            'pages' => [],
-            'aggregations' => [],
-            'message' => 'No results found.'
-        ], 404);
-    }
-
-    /**
-     * @param Request $request
-     * @param $term
-     * @return \Illuminate\Http\JsonResponse
-     * @throws \Exception
-     */
-    public function filter(Request $request, $term)
-    {
-        $filters = $request->all();
-        if (!empty($filters)) {
-            $results = $this->search->filter($term, $filters);
-            if ($results) {
-                return response()->json([
-                    'success' => true,
-                    'data' => $results['result'],
-                    'pages' => $results['pages'],
-                    'aggregations' => $results['aggregations'],
-                    'message' => false
-                ], 200);
-            }
+        if ($results) {
             return response()->json([
-                'success' => false,
-                'data' => [],
-                'pages' => [],
-                'aggregations' => [],
-                'message' => 'No results found.'
-            ], 404);
+                'success' => true,
+                'data' => $results['result'],
+                'pages' => $results['pages'],
+                'aggregations' => $results['aggregations'],
+                'message' => false
+            ], 200);
         }
         return response()->json([
             'success' => false,
-            'data' => false,
+            'data' => [],
             'pages' => [],
             'aggregations' => [],
-            'message' => 'No filters specified.'
+            'message' => 'No results found.'
         ], 404);
     }
 }

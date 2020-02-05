@@ -16,9 +16,7 @@ use Illuminate\Http\Request;
 Route::get('videos/{id}', 'VideoController@getById');
 Route::get('videos/{id}/transcript', 'VideoController@getTranscript');
 Route::get('videos', 'VideoController@getAllVideos');
-Route::get('search/{term}', 'SearchController@search');
-Route::get('search', 'SearchController@term');
-Route::get('search/filter/{term}', 'SearchController@filter');
+Route::get('search', 'SearchController@search');
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::post('videos', 'ApiController@create');
