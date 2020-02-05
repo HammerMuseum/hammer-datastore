@@ -132,7 +132,8 @@ class Search
                 'pages' => $links
             ];
         } catch (\Throwable $th) {
-            abort($th->getCode());
+//            abort($th->getCode());
+            echo $th->getMessage();
         }
     }
 
@@ -233,12 +234,14 @@ class Search
                 ],
                 'series' => [
                     'terms' => [
-                        'field' => 'program_series'
+                        'field' => 'program_series',
+                        'size' => 1000
                     ]
                 ],
                 'speakers' => [
                     'terms' => [
-                        'field' => 'speakers'
+                        'field' => 'speakers',
+                        'size' => 10000
                     ]
                 ]
             ]
@@ -266,7 +269,7 @@ class Search
                         'series' => [
                             'terms' => [
                                 'field' => 'program_series',
-                                'size' => 100
+                                'size' => 1000
                             ]
                         ],
                         'speakers' => [
@@ -472,7 +475,7 @@ class Search
             'date' => [
                 'date_histogram' => [
                     'field' => 'date_recorded',
-                    'interval' => 'year'
+                    'interval' => 'year',
                 ]
             ]
         ];
