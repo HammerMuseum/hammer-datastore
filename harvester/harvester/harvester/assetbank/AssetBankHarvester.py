@@ -8,12 +8,13 @@ import requests
 import datetime
 import sys
 from dotenv import load_dotenv
-from pathlib import Path  
+from pathlib import Path
 from tqdm import tqdm
 from lxml import etree
 from collections import OrderedDict
 from harvester.harvester import HarvesterBase
 from harvester.processors import DelimiterProcessor, TranscriptionProcessor, FriendlyUrlProcessor
+
 
 class AssetBankHarvester(HarvesterBase):
     version = 0.1
@@ -32,7 +33,7 @@ class AssetBankHarvester(HarvesterBase):
 
     def __init__(self, host, options):
         HarvesterBase.__init__(self)
-        
+
         env_path = Path(__file__).parent.absolute() / '.env'
         load_dotenv(dotenv_path=env_path)
 
@@ -65,7 +66,6 @@ class AssetBankHarvester(HarvesterBase):
             FriendlyUrlProcessor(self, fields=slug_field),
         ]
 
-
     def init_auth(self):
         """
         Setup authentication necessary to communicate with the Asset Bank API.
@@ -89,9 +89,9 @@ class AssetBankHarvester(HarvesterBase):
             self.access_token = content['access_token']
             self.logger.info('Authentication successful')
         except requests.HTTPError as e:
-            self.logger.error('Failed to authenticate with API. Check credentials. {}'.format(e))
+            self.logger.error(
+                'Failed to authenticate with API. Check credentials. {}'.format(e))
             exit()
-
 
     def harvest(self):
         # Add a log handler for the run
@@ -123,13 +123,11 @@ class AssetBankHarvester(HarvesterBase):
         run_handler.close()
         self.logger.removeHandler(run_handler)
 
-
     def postprocess(self):
         """
         Postprocessing callback.
         """
         self.write_summary()
-
 
     def do_harvest(self):
         """
@@ -160,7 +158,8 @@ class AssetBankHarvester(HarvesterBase):
             json_record = self.get_record_fields(record, identifier)
             self.preprocess_record(json_record)
             if self.validate_record(json_record):
-                record_success = self.do_record_harvest(json_record, identifier)
+                record_success = self.do_record_harvest(
+                    json_record, identifier)
                 self.records_processed += 1
                 if record_success:
                     self.records_succeeded += 1
@@ -169,7 +168,6 @@ class AssetBankHarvester(HarvesterBase):
             else:
                     self.records_failed += 1
 
-
     def do_record_harvest(self, record, identifier):
         file_name = '{!s}.json'.format(identifier)
         output = record
@@ -177,12 +175,10 @@ class AssetBankHarvester(HarvesterBase):
             self.docs.append(output)
             return self.write_record(output, file_name)
 
-
     def preprocess_record(self, record):
         """Run preprocessors on the current record."""
         for processor in self.processors:
             processor.process(record)
-
 
     def get_record_fields(self, record, identifier):
         """
@@ -192,7 +188,7 @@ class AssetBankHarvester(HarvesterBase):
         The dictionary below maps Asset Bank attributes to 
         property names used in harvested data structure.
         """
-       
+
         # Map for all attributes from which we want the content
         # of the "value" property in the Asset Bank API response.
         attributes = {
@@ -201,12 +197,13 @@ class AssetBankHarvester(HarvesterBase):
             'description': 'Description',
             'date_recorded': 'Date Created',
             'duration': 'Duration',
-            'tags': 'Keywords',
+            'tags': 'Tags',
             'transcription': 'Transcription ID',
             'program_series': 'Program Series',
-            'speakers': 'Speakers'
+            'speakers': 'People',
+            'topics': 'Topics'
         }
-      
+
         output = {}
         try:
             root = etree.fromstring(record)
@@ -219,7 +216,7 @@ class AssetBankHarvester(HarvesterBase):
                     output[key] = str(attribute_value[0])
                 else:
                     output[key] = ""
-            
+
             # @todo move to validate_record method
             date = output['date_recorded'] or '01/01/2000 00:00:00'
             output['date_recorded'] = datetime.datetime.strptime(
@@ -235,7 +232,7 @@ class AssetBankHarvester(HarvesterBase):
         output['video_url'] = root.xpath('//asset/contentUrl/text()')[0]
         output['thumbnail_url'] = root.xpath(
             '//asset/thumbnailUrl/text()')[0]
-        
+
         return output
 
     def write_record(self, record, file_name):
@@ -261,7 +258,6 @@ class AssetBankHarvester(HarvesterBase):
             self.logger.error('The error was: {!s}'.format(e))
             return False
 
-
     def validate_record(self, record):
         """
         Custom validation checks for this implementation.
@@ -272,7 +268,6 @@ class AssetBankHarvester(HarvesterBase):
             return False
         self.slugs.append(record['title_slug'])
         return True
-
 
     def write_summary(self):
         summary = {
