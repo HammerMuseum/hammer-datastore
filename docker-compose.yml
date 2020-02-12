@@ -16,9 +16,9 @@ services:
       MYSQL_PASSWORD: $DB_PASSWORD
     networks:
       - db
-  #  volumes:
-    #  - ./mariadb-init:/docker-entrypoint-initdb.d # Place init .sql file(s) here.
-    #  - /path/to/mariadb/data/on/host:/var/lib/mysql # I want to manage volumes manually.
+    # volumes:
+    #   - ./mariadb-init:/docker-entrypoint-initdb.d # Place init .sql file(s) here.
+    #   - /path/to/mariadb/data/on/host:/var/lib/mysql # I want to manage volumes manually.
 
   php:
     image: wodby/php:$PHP_TAG
@@ -31,25 +31,24 @@ services:
       DB_NAME: $DB_NAME
       PHP_FPM_USER: wodby
       PHP_FPM_GROUP: wodby
-## Read instructions at https://wodby.com/docs/stacks/php/local/#xdebug
+      # Read instructions at https://wodby.com/docs/stacks/php/local/#xdebug
       PHP_XDEBUG: 1
       PHP_XDEBUG_DEFAULT_ENABLE: 1
       PHP_XDEBUG_REMOTE_AUTOSTART: 1
       PHP_XDEBUG_REMOTE_CONNECT_BACK: 0
-      # PHP_IDE_CONFIG: serverName=vscode
-      # PHP_XDEBUG_IDEKEY: "vscode"
-#      PHP_XDEBUG_REMOTE_HOST: 172.17.0.1 # Linux
+      # PHP_IDE_CONFIG: serverName=
+      # PHP_XDEBUG_IDEKEY: ""
+      # PHP_XDEBUG_REMOTE_HOST: 172.17.0.1 # Linux
       PHP_XDEBUG_REMOTE_HOST: 10.254.254.254 # macOS
-#      PHP_XDEBUG_REMOTE_HOST: 10.0.75.1 # Windows
+      # PHP_XDEBUG_REMOTE_HOST: 10.0.75.1 # Windows
     networks:
       - db
     volumes:
+      # For macOS users (https://wodby.com/docs/stacks/php/local#docker-for-mac)
       - ./:/var/www/html:cached
-## For macOS users (https://wodby.com/docs/stacks/php/local#docker-for-mac)
-#      - ./:/var/www/html:cached # User-guided caching
-#      - docker-sync:/var/www/html # Docker-sync
-## For XHProf and Xdebug profiler traces
-#      - files:/mnt/files
+      # - docker-sync:/var/www/html # Docker-sync
+      # For XHProf and Xdebug profiler traces
+      # - files:/mnt/files
 
   api:
     image: wodby/nginx:$NGINX_TAG
@@ -64,16 +63,17 @@ services:
       NGINX_SERVER_ROOT: /var/www/html/public
       NGINX_SERVER_EXTRA_CONF_FILEPATH: /etc/nginx/extra.conf
     volumes:
-      - ./:/var/www/html:cached
       - ./docker-nginx.conf:/etc/nginx/extra.conf
+      # Options for macOS users (https://wodby.com/docs/stacks/php/local#docker-for-mac)
+      - ./:/var/www/html:cached
+      # - docker-sync:/var/www/html # Docker-sync
     networks:
       - default
       - db
-# Options for macOS users (https://wodby.com/docs/stacks/php/local#docker-for-mac)
-#      - ./:/var/www/html:cached # User-guided caching
-#      - docker-sync:/var/www/html # Docker-sync
     labels:
       - "traefik.http.routers.${PROJECT_NAME}_api.rule=Host(`${PROJECT_BASE_URL}`)"
+      # Use line below when testing stack with Varnish.
+      # - "traefik.http.routers.${PROJECT_NAME}_api.rule=Host(`api.${PROJECT_BASE_URL}`)"
       - "traefik.docker.network=hammer-datastore_default"
 
   mailhog:
@@ -83,19 +83,21 @@ services:
       - "traefik.http.services.${PROJECT_NAME}_mailhog.loadbalancer.server.port=8025"
       - "traefik.http.routers.${PROJECT_NAME}_mailhog.rule=Host(`mailhog.${PROJECT_BASE_URL}`)"
 
-#  varnish:
-#    image: wodby/varnish:$VARNISH_TAG
-#    container_name: "${PROJECT_NAME}_varnish"
-#    depends_on:
-#      - nginx
-#    environment:
-#      VARNISH_SECRET: secret
-#      VARNISH_BACKEND_HOST: nginx
-#      VARNISH_BACKEND_PORT: 80
-#      VARNISH_ALLOW_UNRESTRICTED_PURGE: 1
-#    labels:
-#      - "traefik.http.services.${PROJECT_NAME}_varnish.loadbalancer.server.port=6081"
-#      - "traefik.http.routers.${PROJECT_NAME}_varnish.rule=Host(`varnish.${PROJECT_BASE_URL}`)"
+  # varnish:
+  #   image: wodby/varnish:$VARNISH_TAG
+  #   container_name: "${PROJECT_NAME}_varnish"
+  #   depends_on:
+  #     - api
+  #   environment:
+  #     VARNISH_SECRET: secret
+  #     VARNISH_BACKEND_HOST: api
+  #     VARNISH_BACKEND_PORT: 80
+  #     VARNISH_ALLOW_UNRESTRICTED_PURGE: 1
+  #   networks:
+  #     - default
+  #   labels:
+  #     - "traefik.http.services.${PROJECT_NAME}_varnish.loadbalancer.server.port=6081"
+  #     - "traefik.http.routers.${PROJECT_NAME}_varnish.rule=Host(`${PROJECT_BASE_URL}`)"
 
 #  redis:
 #    container_name: "${PROJECT_NAME}_redis"
@@ -203,11 +205,8 @@ services:
     command: --no-auth -H unix:///var/run/docker.sock
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    # networks:
-      # - traefik-network
     labels:
      - "traefik.http.routers.${PROJECT_NAME}_portainer.rule=Host(`portainer.${PROJECT_BASE_URL}`)"
-    #  - "traefik.docker.network=traefik-network"
 
   traefik:
     image: traefik:v2.0
