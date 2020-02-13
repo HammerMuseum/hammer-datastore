@@ -25,11 +25,13 @@ class AssetBankHarvester(HarvesterBase):
 
     errors = 0
 
+    max_items = 10000
+
     """
     The current location of the output.
     This may change during the run as directories are renamed.
     """
-    current_output_path = None
+    current_output_path = 'None'
 
     def __init__(self, host, options):
         HarvesterBase.__init__(self)
@@ -42,16 +44,17 @@ class AssetBankHarvester(HarvesterBase):
 
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
         self.harvest_uri = "{}/{}".format(self.host, 'rest/asset-search')
-        self.assetType = options['assetType']
+        self.asset_type = options['assetType']
         self.docs = []
         self.slugs = []
 
         split_fields = [
             'tags',
-            'speakers'
+            'speakers',
+            'topics',
         ]
 
-        trint_fields = [
+        transcription_fields = [
             'transcription',
         ]
 
@@ -62,7 +65,7 @@ class AssetBankHarvester(HarvesterBase):
         self.processors = [
             DelimiterProcessor(self, delimiter=',', fields=split_fields),
             TranscriptionProcessor(
-                self, os.getenv('TRINT_API_KEY'), fields=trint_fields),
+                self, os.getenv('TRINT_API_KEY'), fields=transcription_fields),
             FriendlyUrlProcessor(self, fields=slug_field),
         ]
 
@@ -134,19 +137,21 @@ class AssetBankHarvester(HarvesterBase):
         Main harvesting function.
         """
 
+        # This will need updating to handle pagination.
         response = requests.get(
             self.harvest_uri,
             headers={'Authorization': 'Bearer {}'.format(self.access_token)},
-            params={'assetTypeId': self.assetType},
+            params={'assetTypeId': self.asset_type},
         )
         root = etree.fromstring(response.content)
         assets = root.xpath('//assetSummary')
 
-        # This will need updating to handle pagination.
         self.logger.info('Found %i records' % len(assets))
 
-        # Iterate over all resources
         for asset in assets:
+            if self.records_processed > self.max_items:
+                break
+
             identifier = asset.xpath('id')[0].text
             self.logger.debug('Processing data record {!s}'.format(identifier))
 
@@ -166,9 +171,12 @@ class AssetBankHarvester(HarvesterBase):
                 else:
                     self.records_failed += 1
             else:
-                    self.records_failed += 1
+                self.records_failed += 1
 
     def do_record_harvest(self, record, identifier):
+        """
+        Controls the harvest operation.
+        """
         file_name = '{!s}.json'.format(identifier)
         output = record
         if output:
@@ -185,7 +193,7 @@ class AssetBankHarvester(HarvesterBase):
         List of fields could be moved to configuration
 
         Attributes make up the majority of the fields.
-        The dictionary below maps Asset Bank attributes to 
+        The dictionary below maps Asset Bank attributes to
         property names used in harvested data structure.
         """
 
@@ -237,7 +245,7 @@ class AssetBankHarvester(HarvesterBase):
 
     def write_record(self, record, file_name):
         """
-        Overridden implementation of write_record 
+        Overridden implementation of write_record
         for writing JSON output to disk.
         """
         record_path = os.path.join(self.current_output_path, file_name)

@@ -5,10 +5,10 @@ namespace Tests\Feature;
 use Tests\TestCase;
 
 /**
- * Class GetTranscript
+ * Class GetVideoTranscript
  * @package Tests\Feature
  */
-class GetTranscript extends TestCase
+class GetVideoTranscript extends TestCase
 {
 
     /**
@@ -16,11 +16,14 @@ class GetTranscript extends TestCase
      *
      * @return void
      */
-    public function testGetTranscript()
+    public function testGetVideoTranscript()
     {
         $id = 207;
-        $response = $this->get('/api/videos/' . $id . '/transcript');
+        $response = $this->get('/api/videos/' . $id . '/transcript?format=vtt');
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'text/vtt; charset=UTF-8');
+        $response = $this->get('/api/videos/' . $id . '/transcript?format=json');
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'application/json; charset=UTF-8');
     }
 }

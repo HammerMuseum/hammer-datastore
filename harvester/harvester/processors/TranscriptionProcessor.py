@@ -1,55 +1,76 @@
+import json
 import requests
 from requests import HTTPError
+
 
 class TranscriptionProcessor():
     """
     A basic processor to export a transcription from an external service.
-    
-    The core process() method accepts a remote url pointing to a file.
+
+    The core process() method accepts an identifier that can be used to fetch
+    a remote resource.
 
     Returns the content of the file.
     """
 
-    def __init__(self, harvester, api_key, fields=[]):
+    def __init__(self, harvester, api_key, fields):
         self.harvester = harvester
         self.fields = fields
-        self.api_key = api_key
+        self.headers = {'api-key': api_key}
 
-
-    def get_url(self, location):
+    def get_transcript_vtt(self, location):
         """
-        This should be genericised to allow download from anywhere or from disk.
+        Fetches a VTT transcription.
         """
         url = "https://api.trint.com/export/webvtt/{}".format(location)
         querystring = {
-            "captions-by-paragraph":"not",
-            "max-subtitle-character-length":"37",
-            "highlights-only":"false",
-            "enable-speakers":"false",
-            "speaker-on-new-line":"false",
-            "speaker-uppercase":"false",
-            "skip-strikethroughs":"false"
-        }        
-        headers = {'api-key': self.api_key}
-        try:
-            response = requests.get(url, headers=headers, params=querystring)
-            response.raise_for_status()
-            json = response.json()
-            return json['url']
-        except HTTPError as e:
-            self.harvester.logger.warning(
-                'Error {} while fetching transcription'.format(e.response.status_code))
+            "captions-by-paragraph": "not",
+            "max-subtitle-character-length": "37",
+            "highlights-only": "false",
+            "enable-speakers": "false",
+            "speaker-on-new-line": "false",
+            "speaker-uppercase": "false",
+            "skip-strikethroughs": "false",
+        }
 
+        try:
+            response = requests.get(
+                url, headers=self.headers, params=querystring)
+            response.raise_for_status()
+            response_json = response.json()
+            url = response_json['url']
+            response = requests.get(url)
+            response.raise_for_status()
+            return response.text
+        except HTTPError as error:
+            self.harvester.logger.warning(
+                'Error {} while fetching VTT transcription'.format(error.response.status_code))
+
+    def get_transcript_json(self, location):
+        """
+        Fetches a JSON transcription.
+        """
+        url = "https://api.trint.com/export/json/{}".format(location)
+        try:
+            response = requests.get(url, headers=self.headers)
+            response.raise_for_status()
+            return json.dumps(response.json())
+        except HTTPError as error:
+            self.harvester.logger.warning(
+                'Error {} while fetching JSON transcription'.format(error.response.status_code))
 
     def process(self, row):
+        """
+        Processes each row of the input.
+        """
         for field in self.fields:
+            value = row[field]
             if not row[field]:
                 continue
             try:
                 self.harvester.logger.debug('Processing a {!s}'.format(field))
-                url = self.get_url(row[field])
-                response = requests.get(url)
-                response.raise_for_status()
-                row[field] = response.text
-            except HTTPError as e:
-                self.harvester.logger.warning('Error {} file not found'.format(e.response.status_code))
+                row[field] = self.get_transcript_vtt(value)
+                row["{}_json".format(field)] = self.get_transcript_json(value)
+            except HTTPError as error:
+                self.harvester.logger.warning(
+                    'Error {} file not found'.format(error.response.status_code))

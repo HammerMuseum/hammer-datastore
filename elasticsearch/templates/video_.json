@@ -29,7 +29,14 @@
           "type": "text",
           "analyzer": "english"
         },
+        "transcription_json": {
+          "type": "object",
+          "enabled": false
+        },
         "tags": {
+          "type": "keyword"
+        },
+        "topics": {
           "type": "keyword"
         },
         "video_url": {

@@ -13,10 +13,14 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::get('videos/{id}', 'VideoController@getById');
-Route::get('videos/{id}/transcript', 'VideoController@getTranscript');
-Route::get('videos', 'VideoController@getAllVideos');
-Route::get('search', 'SearchController@search');
+// We will want to uncomment these headers in order to
+// make the routes cachable through Varnish.
+// Route::group(['middleware' => 'cache.headers:public;max_age=3600'], function () {
+    Route::get('videos/{id}', 'VideoController@getVideo');
+    Route::get('videos/{id}/transcript', 'VideoController@getVideoTranscript');
+    Route::get('videos', 'VideoController@getAllVideos');
+    Route::get('search', 'SearchController@search');
+// });
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::post('videos', 'ApiController@create');
