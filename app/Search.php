@@ -419,7 +419,7 @@ class Search
             'aggs' => [
                 'topics' => [
                     'terms' => [
-                        'field' => 'topics.keyword',
+                        'field' => 'topics',
                         'size' => 12
                     ],
                     'aggs' => [
