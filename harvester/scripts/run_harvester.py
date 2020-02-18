@@ -10,8 +10,10 @@ from harvester.harvester.assetbank import AssetBankHarvester
 from harvester.components.adaptors import ElasticsearchAdaptor
 
 parser = argparse.ArgumentParser('Run the Asset Bank harvester')
-parser.add_argument('--host', dest='url', type=str, help='The URL of the Asset Bank resource.')
-parser.add_argument('--asset-type', dest='type', type=str, help='The Asset Bank asset type identifier.')
+parser.add_argument('--host', dest='url', type=str,
+                    help='The URL of the Asset Bank resource.')
+parser.add_argument('--asset-type', dest='type', type=str,
+                    help='The Asset Bank asset type identifier.')
 parser.add_argument('--submit', action='store_true',
                     help='If set, will attempt to submit the harvested records to the search index.')
 parser.add_argument('--search-domain', type=str,
@@ -22,8 +24,9 @@ parser.add_argument('--scheme', type=str, dest='scheme')
 parser.add_argument('--debug', action='store_true')
 parser.add_argument('--short', action='store_true',
                     help='Only harvest 10 records at most.')
-parser.add_argument(
-    '--since', help='Optional. A date relative to today, can be "2019-01-01" or "yesterday" or "2 days ago" etc', dest='since')
+parser.add_argument('--since',
+                    help='Optional. A date relative to today, can be "2019-01-01" or "yesterday" or "2 days ago" etc',
+                    dest='since')
 args = parser.parse_args()
 
 # Prepare arguments for passing into the harvester
@@ -69,7 +72,8 @@ if __name__ == '__main__':
 
         # If short is specified, only harvest the first 10 pages.
         if args.short:
-            harvester.max_requests = 10
+            harvester.max_items = 4
+            logger.info('Limiting harvest to 4 records')
 
         logger.info('Invoking Asset Bank harvester')
         harvester.process()
@@ -79,7 +83,7 @@ if __name__ == '__main__':
         if args.submit:
             logger.info('Running submission processes')
             logger.info('Starting Elasticsearch adaptor')
-            
+
             kwargs = dict(port=args.port, scheme=args.scheme, alias=args.alias)
             adaptor = ElasticsearchAdaptor(
                 harvester.current_output_path,

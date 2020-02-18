@@ -406,7 +406,7 @@ class Search
         $params['search_params']['body'] = [
             'query' => [
                 'term' => [
-                    '_id' => $id,
+                    'asset_id' => $id,
                 ],
             ],
         ];

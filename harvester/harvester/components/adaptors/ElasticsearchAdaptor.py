@@ -114,7 +114,8 @@ class ElasticsearchAdaptor  ():
 
     def submit(self, data_location):
         try:
-            success, errors = helpers.bulk(self.client, self.load_records(data_location))
+            success, errors = helpers.bulk(self.client, self.load_records(
+                data_location), chunk_size=10, max_chunk_bytes=1028576)
             if errors:
                 for error in errors:
                     self.logger.log_error('Document failed %s', error)

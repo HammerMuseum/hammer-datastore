@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Resources\Video as VideoResource;
 use App\Http\Resources\VideoCollection;
 use App\Search;
 
@@ -33,7 +32,7 @@ class VideoController extends Controller
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getById(Request $request, $id)
+    public function getVideo(Request $request, $id)
     {
         try {
             $result = $this->search->term(['title_slug' => $id]);
@@ -67,14 +66,39 @@ class VideoController extends Controller
      * @param $id
      * @return array|bool
      */
-    public function getTranscript($id)
+    public function getVideoTranscript(Request $request, $id)
     {
+        // Default is to return value of transcription field.
+        // Other formats can be requested via this parameter
+        // if available.
+        $format = $request->query('format');
+        $allowed_formats = ['json', 'vtt'];
+        if (!in_array($format, $allowed_formats)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Requested format is not a valid option.'
+            ], 400);
+        }
+        
+        $field = 'transcription';
+        if ($format === 'json') {
+            $field = 'transcription_json';
+        }
+
         try {
-            $result = $this->search->field('transcription', $id);
+            $result = $this->search->field($field, $id);
             if ($doc = $result['result'][0]) {
-                if (!empty($doc['transcription'])) {
-                    return response($doc['transcription'], 200)
-                        ->header('Content-Type', 'text/vtt');
+                if (!empty($doc[$field])) {
+                    if ($format === 'vtt') {
+                        $response = response($doc[$field], 200);
+                        $response->header('Content-Type', 'text/vtt');
+                    } else {
+                        return response()->json([
+                            'success' => true,
+                            'data' => json_decode($doc[$field]),
+                        ], 200);
+                    }
+                    return $response;
                 }
             }
             return response()->json([
@@ -84,15 +108,13 @@ class VideoController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Resource not found.'
-            ], 404);
+                'message' => 'There was an error.'
+            ], 503);
         }
     }
 
     /**
-     * Get all videos
-     *
-     * @return VideoCollection
+     * Get all videos.
      */
     public function getAllVideos(Request $request)
     {
