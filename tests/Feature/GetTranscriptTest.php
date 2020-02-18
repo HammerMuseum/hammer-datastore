@@ -24,6 +24,6 @@ class GetVideoTranscript extends TestCase
         $response->assertHeader('content-type', 'text/vtt; charset=UTF-8');
         $response = $this->get('/api/videos/' . $id . '/transcript?format=json');
         $response->assertStatus(200);
-        $response->assertHeader('content-type', 'application/json; charset=UTF-8');
+        $response->assertHeader('content-type', 'application/json');
     }
 }

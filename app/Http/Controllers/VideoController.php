@@ -116,9 +116,7 @@ class VideoController extends Controller
     }
 
     /**
-     * Get all videos
-     *
-     * @return VideoCollection
+     * Get all videos.
      */
     public function getAllVideos(Request $request)
     {
