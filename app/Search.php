@@ -65,7 +65,7 @@ class Search
     {
         return [
             'search_params' => [
-                '_source_excludes' => ['transcription'],
+                '_source_excludes' => ['transcription', 'transcription_json'],
                 'size' => $this->pageSize,
                 'index' => config('app.es_index')
             ]
@@ -366,6 +366,11 @@ class Search
             ]
         ];
 
+        if (in_array('all', $terms)) {
+            $params['search_params']['body'] += $this->getTopicAggregations();
+            return $this->search($params);
+        }
+
         if (isset($terms['sort'])) {
             $params['search_params']['body']['sort'] = [
                 $terms['sort'] => [
@@ -406,5 +411,34 @@ class Search
             ],
         ];
         return $this->search($params);
+    }
+
+    public function getTopicAggregations()
+    {
+        return [
+            'aggs' => [
+                'topics' => [
+                    'terms' => [
+                        'field' => 'topics',
+                        'size' => 12
+                    ],
+                    'aggs' => [
+                        'by_topic' => [
+                            'top_hits' => [
+                                'sort' => [
+                                    [
+                                        'date_recorded' => [
+                                            'order' => 'desc'
+                                        ]
+                                    ]
+                                ],
+                                'size' => 6,
+                                '_source' => ['title', 'thumbnail_url', 'title_slug']
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
     }
 }
