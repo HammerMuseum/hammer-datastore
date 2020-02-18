@@ -32,6 +32,9 @@
         "tags": {
           "type": "keyword"
         },
+        "topics": {
+          "type": "keyword"
+        },
         "video_url": {
           "type": "keyword"
         },
