@@ -48,7 +48,8 @@ class AssetBankHarvester(HarvesterBase):
 
         split_fields = [
             'tags',
-            'speakers'
+            'speakers',
+            'topics'
         ]
 
         trint_fields = [
