@@ -5,6 +5,9 @@
   "mappings": {
     "_doc": {
       "properties": {
+        "playlists": {
+          "type": "nested"
+        },
         "asset_id": {
           "type": "keyword"
         },

@@ -131,6 +131,11 @@ class AssetBankHarvester(HarvesterBase):
         Postprocessing callback.
         """
         self.write_summary()
+        self.process_playlists()
+
+    
+    def process_playlists():
+        # get
 
     def do_harvest(self):
         """
