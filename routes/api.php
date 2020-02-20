@@ -22,6 +22,8 @@ use Illuminate\Http\Request;
 Route::get('videos/{id}', 'VideoController@getVideo');
 Route::get('videos/{id}/transcript', 'VideoController@getVideoTranscript');
 Route::get('videos', 'VideoController@getAllVideos');
+Route::get('playlists', 'PlaylistController@index');
+Route::get('playlists/{id}', 'PlaylistController@show');
 Route::get('search', 'SearchController@search');
 Route::get('term', 'SearchController@term');
 

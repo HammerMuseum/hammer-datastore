@@ -95,13 +95,9 @@ class Search
             $aggregations = [];
             if (isset($result['hits']['total']) && $result['hits']['total'] > 0) {
                 foreach ($result['hits']['hits'] as $hit) {
-                    if (isset($hit['_source'])) {
-                        if (empty($hit['_source']['tags'])) {
-                            $hit['_source']['tags'] = [];
-                        }
-                        $response[] = $hit['_source'];
-                    }
+                    $response[] = $hit;
                 }
+
                 // Unless we have set a start point, start from 0
                 $start = isset($params['start']) ? $params['start'] : 0;
 
@@ -173,7 +169,9 @@ class Search
         ];
 
         $params = $this->getAdditionalParams($requestParams, $params);
-        return $this->search($params);
+        $result = $this->search($params);
+        $result['result'] = $this->getHitSource($result['result']);
+        return $result;
     }
 
     /**
@@ -347,7 +345,10 @@ class Search
             ]
         ];
         $params['search_params']['body'] += $this->getGlobalAggregationOptions();
-        return $this->search($params);
+        
+        $result = $this->search($params);
+        $result['result'] = $this->getHitSource($result['result']);
+        return $result;
     }
 
     /**
@@ -390,7 +391,9 @@ class Search
             }
         }
 
-        return $this->search($params);
+        $result = $this->search($params);
+        $result['result'] = $this->getHitSource($result['result']);
+        return $result;
     }
 
     /**
@@ -410,7 +413,20 @@ class Search
                 ],
             ],
         ];
-        return $this->search($params);
+
+        $result = $this->search($params);
+        $result['result'] = $this->getHitSource($result['result']);
+        return $result;
+    }
+
+    /**
+     * Helper that extracts document source data for responses.
+     */
+    protected function getHitSource($hits)
+    {
+        return array_map(function ($hit) {
+            return $hit['_source'];
+        }, $hits);
     }
 
     public function getTopicAggregations()
