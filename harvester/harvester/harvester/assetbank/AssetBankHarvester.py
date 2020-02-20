@@ -196,7 +196,7 @@ class AssetBankHarvester(HarvesterBase):
                 break
 
             identifier = asset.xpath('id')[0].text
-            self.logger.debug('Processing data record {!s}'.format(identifier))
+            self.logger.debug('Processing data record %s', identifier)
 
             # process the record
             asset_url = asset.xpath('fullAssetUrl')[0].text
@@ -204,7 +204,7 @@ class AssetBankHarvester(HarvesterBase):
             record = response.content
 
             json_record = self.get_record_fields(record, identifier)
-            
+
             self.add_playlist_metadata(json_record, identifier)
 
             self.preprocess_record(json_record)
@@ -293,9 +293,9 @@ class AssetBankHarvester(HarvesterBase):
 
             output['asset_id'] = int(output['asset_id'])
 
-        except Exception as e:
+        except Exception as error:
             self.logger.info(
-                'Failed to retrieve asset {}: {}'.format(identifier, e))
+                'Failed to retrieve asset %s: %s', identifier, error)
 
         # Get some non-attribute
         output['video_url'] = root.xpath('//asset/contentUrl/text()')[0]
@@ -313,7 +313,7 @@ class AssetBankHarvester(HarvesterBase):
 
         if os.path.exists(record_path):
             self.logger.error(
-                'Record already exists at {!s}. Skipping.'.format(record_path))
+                'Record already exists at %s. Skipping.', record_path)
             return False
 
         try:
@@ -321,10 +321,10 @@ class AssetBankHarvester(HarvesterBase):
             with open(record_path, 'w', encoding='utf-8') as f:
                 json.dump(record, f, ensure_ascii=False, indent=4)
             return True
-        except (IOError, OSError) as e:
+        except (IOError, OSError) as error:
             self.logger.error(
-                'Error writing record to {!s}. Skipping.'.format(record_path))
-            self.logger.error('The error was: {!s}'.format(e))
+                'Error writing record to %s. Skipping.', record_path)
+            self.logger.error('The error was: %s', error)
             return False
 
     def validate_record(self, record):
