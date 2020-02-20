@@ -1,17 +1,12 @@
 import os
-import re
-import csv
+import logging
+import datetime
+from pathlib import Path
 import json
 import yaml
-import logging
 import requests
-import datetime
-import sys
 from dotenv import load_dotenv
-from pathlib import Path
-from tqdm import tqdm
 from lxml import etree
-from collections import OrderedDict
 from harvester.harvester import HarvesterBase
 from harvester.processors import DelimiterProcessor, TranscriptionProcessor, FriendlyUrlProcessor
 
