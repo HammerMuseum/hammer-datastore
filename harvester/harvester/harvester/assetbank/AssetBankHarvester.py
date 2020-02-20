@@ -22,6 +22,10 @@ class AssetBankHarvester(HarvesterBase):
 
     max_items = 10000
 
+    playlists = {}
+
+    playlist_user = 7
+
     """
     The current location of the output.
     This may change during the run as directories are renamed.
@@ -36,6 +40,10 @@ class AssetBankHarvester(HarvesterBase):
 
         self.host = host
         self.access_token = None
+        self.init_auth()
+
+        self.playlists_user_uri = "{}/rest/users/{}/lightboxes".format(
+            self.host, self.playlist_user)
 
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
         self.harvest_uri = "{}/{}".format(self.host, 'rest/asset-search')
@@ -69,7 +77,7 @@ class AssetBankHarvester(HarvesterBase):
         Setup authentication necessary to communicate with the Asset Bank API.
         """
         try:
-            self.logger.info('Attempting to Authenticate with Asset Bank')
+            print('Attempting to Authenticate with Asset Bank')
             token_url = "{}{}".format(self.host, '/oauth/token')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -85,10 +93,9 @@ class AssetBankHarvester(HarvesterBase):
             response.raise_for_status()
             content = response.json()
             self.access_token = content['access_token']
-            self.logger.info('Authentication successful')
-        except requests.HTTPError as e:
-            self.logger.error(
-                'Failed to authenticate with API. Check credentials. {}'.format(e))
+            print('Authentication successful')
+        except requests.HTTPError as error:
+            print('Failed to authenticate with API. Check credentials. %s', error)
             exit()
 
     def harvest(self):
@@ -102,12 +109,11 @@ class AssetBankHarvester(HarvesterBase):
         # Begin the harvest run
         self.logger.info('Beginning Harvester run')
 
-        self.init_auth()
         self.do_harvest()
 
         self.logger.info('Ending Harvester run')
-        self.logger.info('%i records harvested' % self.records_processed)
-        self.logger.info('%i records failed' % self.records_failed)
+        self.logger.info('%i records harvested', self.records_processed)
+        self.logger.info('%i records failed', self.records_failed)
 
         if self.records_processed > 0:
             self.success = (self.records_succeeded /
@@ -121,16 +127,53 @@ class AssetBankHarvester(HarvesterBase):
         run_handler.close()
         self.logger.removeHandler(run_handler)
 
+    def get_playlist_data(self):
+        """
+        This particular implementation retrieves
+        playlist information from the DAMS and
+        then uses this information further down
+        the pipeline, augmenting the metadata
+        harvested for each asset.
+        """
+        playlists = {}
+        response = requests.get(
+            self.playlists_user_uri,
+            headers={
+                'Authorization': 'Bearer {}'.format(self.access_token),
+                'Accept': 'application/json'
+            },
+        )
+        for playlist in response.json():
+            playlist = {
+                'id': playlist['id'],
+                'name': playlist['name'],
+                'contents': self.get_playlist_contents(playlist['lightboxContentsUrl'])
+            }
+            playlists[playlist['id']] = playlist
+
+        return playlists
+
+    def get_playlist_contents(self, url):
+        response = requests.get(
+            url,
+            headers={
+                'Authorization': 'Bearer {}'.format(self.access_token),
+                'Accept': 'application/json'
+            },
+        )
+        return [att['value'] for a in response.json() for att in a['attributes'] if att['name'] == 'assetId']
+
+    def preprocess(self):
+        """
+        Preprocessing callback.
+        """
+        self.playlists = self.get_playlist_data()
+
     def postprocess(self):
         """
         Postprocessing callback.
         """
         self.write_summary()
-        self.process_playlists()
-
-    
-    def process_playlists():
-        # get
 
     def do_harvest(self):
         """
@@ -161,6 +204,9 @@ class AssetBankHarvester(HarvesterBase):
             record = response.content
 
             json_record = self.get_record_fields(record, identifier)
+            
+            self.add_playlist_metadata(json_record, identifier)
+
             self.preprocess_record(json_record)
             if self.validate_record(json_record):
                 record_success = self.do_record_harvest(
@@ -187,6 +233,21 @@ class AssetBankHarvester(HarvesterBase):
         """Run preprocessors on the current record."""
         for processor in self.processors:
             processor.process(record)
+
+    def add_playlist_metadata(self, record, identifier):
+        """
+        Adds a playlist data object for each record
+        """
+        playlists = []
+        for pid, data in self.playlists.items():
+            for index, asset_id in enumerate(data['contents']):
+                if asset_id == identifier:
+                    playlists.append({
+                        'name': data['name'],
+                        'position': index
+                    })
+        record['in_playlists'] = [p['name'] for p in playlists]
+        record['playlists'] = playlists
 
     def get_record_fields(self, record, identifier):
         """
