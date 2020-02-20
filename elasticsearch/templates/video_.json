@@ -18,6 +18,9 @@
         "playlists": {
           "type": "nested",
           "properties": {
+            "id": {
+              "type": "keyword"
+            },
             "name": {
               "type": "keyword"
             },

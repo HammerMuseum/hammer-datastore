@@ -243,6 +243,7 @@ class AssetBankHarvester(HarvesterBase):
             for index, asset_id in enumerate(data['contents']):
                 if asset_id == identifier:
                     playlists.append({
+                        'id': pid,
                         'name': data['name'],
                         'position': index
                     })
