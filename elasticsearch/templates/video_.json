@@ -5,9 +5,6 @@
   "mappings": {
     "_doc": {
       "properties": {
-        "playlists": {
-          "type": "nested"
-        },
         "asset_id": {
           "type": "keyword"
         },
@@ -17,6 +14,23 @@
         "description": {
           "type": "text",
           "analyzer": "english"
+        },
+        "playlists": {
+          "type": "nested",
+          "properties": {
+            "name": {
+              "type": "keyword"
+            },
+            "position": {
+              "type": "integer"
+            }
+          }
+        },
+        "program_series": {
+          "type": "keyword"
+        },
+        "speakers": {
+          "type": "keyword"
         },
         "thumbnail_url": {
           "type": "keyword"
@@ -43,12 +57,6 @@
           "type": "keyword"
         },
         "video_url": {
-          "type": "keyword"
-        },
-        "program_series": {
-          "type": "keyword"
-        },
-        "speakers": {
           "type": "keyword"
         }
       }
