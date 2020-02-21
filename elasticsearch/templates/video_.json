@@ -15,6 +15,9 @@
           "type": "text",
           "analyzer": "english"
         },
+        "in_playlists": {
+          "type": "keyword"
+        },
         "playlists": {
           "type": "nested",
           "properties": {
