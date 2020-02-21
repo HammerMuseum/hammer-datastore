@@ -259,28 +259,9 @@ class Search
     {
         return [
             'aggs' => [
-                'label' => [
+                'global_facets' => [
                     'global' => (object) [],
-                    'aggs' => [
-                        'date' => [
-                            'date_histogram' => [
-                                'field' => 'date_recorded',
-                                'interval' => 'year',
-                            ]
-                        ],
-                        'series' => [
-                            'terms' => [
-                                'field' => 'program_series',
-                                'size' => 1000
-                            ]
-                        ],
-                        'speakers' => [
-                            'terms' => [
-                                'field' => 'speakers',
-                                'size' => 10000
-                            ]
-                        ]
-                    ]
+                    $this->getAggregationOptions(),
                 ]
             ]
         ];
