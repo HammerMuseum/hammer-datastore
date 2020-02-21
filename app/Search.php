@@ -234,6 +234,12 @@ class Search
                         'size' => 1000
                     ]
                 ],
+                'playlists' => [
+                    'terms' => [
+                        'field' => 'in_playlists',
+                        'size' => 1000
+                    ]
+                ],
                 'speakers' => [
                     'terms' => [
                         'field' => 'speakers',
