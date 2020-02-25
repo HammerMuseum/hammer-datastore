@@ -121,6 +121,8 @@ deploy: &deploy
     - run: ssh-keyscan -H $(echo "$HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $HOST_URL
     - run: ssh deploy@$HOST_URL sudo systemctl reload php7.2-fpm.service
+    - run: ssh deploy@$HOST_URL cd /var/www/$HOST_URL/current/harvester/scripts; mkdir ../logs; mkdir ../data; python setup.py install
+    - run: ssh deploy@$HOST_URL mv /var/www/$HOST_URL/current/harvester/cron/run_harvester_cron /etc/cron/cron.d
     - aws-white-list-circleci-ip/remove:
         port: 22
         tag-key: group
