@@ -134,9 +134,9 @@ deploy: &deploy
         port: 22
         tag-key: group
         tag-value: bastion
-    - run: ssh-keyscan -H $(echo "$HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - create_harvester_env_file:
-      environment: $HOST_URL
+        environment: $HOST_URL
+    - run: ssh-keyscan -H $(echo "$HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $HOST_URL
     - run: ssh deploy@$HOST_URL sudo systemctl reload php7.2-fpm.service
     - run: ssh deploy@$HOST_URL cd /var/www/$HOST_URL/current/harvester; mkdir logs; mkdir data; python setup.py install
@@ -164,12 +164,12 @@ deploy_stage: &deploy_stage
         port: 22
         tag-key: group
         tag-value: bastion
+    - create_harvester_env_file:
+        environment: $STAGE_HOST_URL
     - run: ssh-keyscan -H $(echo "$STAGE_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $STAGE_HOST_URL
     - run: ssh deploy@$STAGE_HOST_URL sudo systemctl reload php7.2-fpm.service
-    - create_harvester_env_file:
-        environment: $STAGE_HOST_URL
-    - run: ssh deploy@$STAGE_HOST_URL cd /var/www/$STAGE_HOST_URL/current/harvester/scripts; mkdir ../logs; mkdir ../data; python setup.py install
+    - run: ssh deploy@$STAGE_HOST_URL cd /var/www/$STAGE_HOST_URL/current/harvester; mkdir logs; mkdir data; python setup.py install
     - run: ssh deploy@$STAGE_HOST_URL mv /var/www/$STAGE_HOST_URL/current/harvester/cron/run_harvester_cron_stage /etc/cron/cron.d
     - aws-white-list-circleci-ip/remove:
         port: 22
@@ -194,12 +194,12 @@ deploy_dev: &deploy_dev
         port: 22
         tag-key: group
         tag-value: bastion
+    - create_harvester_env_file:
+        environment: $DEV_HOST_URL
     - run: ssh-keyscan -H $(echo "$DEV_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $DEV_HOST_URL
     - run: ssh deploy@$DEV_HOST_URL sudo systemctl reload php7.2-fpm.service
-    - create_harvester_env_file:
-        environment: $DEV_HOST_URL
-    - run: ssh deploy@$DEV_HOST_URL cd /var/www/$DEV_HOST_URL/current/harvester/scripts; mkdir ../logs; mkdir ../data; python setup.py install
+    - run: ssh deploy@$DEV_HOST_URL cd /var/www/$DEV_HOST_URL/current/harvester; mkdir logs; mkdir data; python setup.py install
     - run: ssh deploy@$DEV_HOST_URL mv /var/www/$DEV_HOST_URL/current/harvester/cron/run_harvester_cron_dev /etc/cron/cron.d
     - aws-white-list-circleci-ip/remove:
         port: 22
