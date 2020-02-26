@@ -60,10 +60,10 @@ commands:
     steps:
       - run: rm -f harvester/harvester/harvester/assetbank/.env
       - run: touch harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_CLIENT_ID=$AB_CLIENT_ID\n" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_CLIENT_SECRET=$AB_CLIENT_SECRET\n" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_USERNAME=$AB_USERNAME\n" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_PASSWORD=$AB_PASSWORD\n" >> harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_CLIENT_ID=$AB_CLIENT_ID" >> harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_CLIENT_SECRET=$AB_CLIENT_SECRET" >> harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_USERNAME=$AB_USERNAME" >> harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_PASSWORD=$AB_PASSWORD" >> harvester/harvester/harvester/assetbank/.env
       - run: echo -e "TRINT_API_KEY=$TRINT_API_KEY\n" >> harvester/harvester/harvester/assetbank/.env
 
 
@@ -196,11 +196,11 @@ deploy_dev: &deploy_dev
         tag-value: bastion
     - create_harvester_env_file:
         environment: $DEV_HOST_URL
+    - run: cd harvester; mkdir logs; mkdir data; python setup.py install
     - run: ssh-keyscan -H $(echo "$DEV_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $DEV_HOST_URL
     - run: ssh deploy@$DEV_HOST_URL sudo systemctl reload php7.2-fpm.service
-    - run: ssh deploy@$DEV_HOST_URL cd /var/www/$DEV_HOST_URL/current/harvester; mkdir logs; mkdir data; python setup.py install
-    - run: ssh deploy@$DEV_HOST_URL mv /var/www/$DEV_HOST_URL/current/harvester/cron/run_harvester_cron_dev /etc/cron/cron.d
+    - run: ssh deploy@$DEV_HOST_URL mv harvester/cron/run_harvester_cron_dev /etc/cron/cron.d
     - aws-white-list-circleci-ip/remove:
         port: 22
         tag-key: group
