@@ -36,5 +36,8 @@ setup(
         'pytz',
         'pytest',
         'tqdm',
+        'dateparser',
+        'elasticsearch',
+        'python-dotenv'
     ]
 )
