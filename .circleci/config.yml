@@ -62,9 +62,9 @@ commands:
       - run: touch harvester/harvester/harvester/assetbank/.env
       - run: echo -e "AB_CLIENT_ID=$AB_CLIENT_ID\n" >> harvester/harvester/harvester/assetbank/.env
       - run: echo -e "AB_CLIENT_SECRET=$AB_CLIENT_SECRET\n" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_USERNAME=$AB_USERNAME\n" >> /var/www/<< harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_PASSWORD=$AB_PASSWORD\n" >> /var/www/<< harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "TRINT_API_KEY=$TRINT_API_KEY\n" >> /var/www/<< harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_USERNAME=$AB_USERNAME\n" >> harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_PASSWORD=$AB_PASSWORD\n" >> harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "TRINT_API_KEY=$TRINT_API_KEY\n" >> harvester/harvester/harvester/assetbank/.env
 
 
 # Jobs
