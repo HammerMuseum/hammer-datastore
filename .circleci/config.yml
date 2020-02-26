@@ -58,13 +58,13 @@ commands:
       environment:
         type: string
     steps:
-      - run: rm -f /var/www/<< parameters.environment >>/current/harvester/harvester/harvester/assetbank/.env
-      - run: touch /var/www/<< parameters.environment >>/current/harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_CLIENT_ID=$AB_CLIENT_ID\n" >> /var/www/<< parameters.environment >>/current/harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_CLIENT_SECRET=$AB_CLIENT_SECRET\n" >> /var/www/<< parameters.environment >>/current/harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_USERNAME=$AB_USERNAME\n" >> /var/www/<< parameters.environment >>/current/harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_PASSWORD=$AB_PASSWORD\n" >> /var/www/<< parameters.environment >>/current/harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "TRINT_API_KEY=$TRINT_API_KEY\n" >> /var/www/<< parameters.environment >>/current/harvester/harvester/harvester/assetbank/.env
+      - run: rm -f harvester/harvester/harvester/assetbank/.env
+      - run: touch harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_CLIENT_ID=$AB_CLIENT_ID\n" >> harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_CLIENT_SECRET=$AB_CLIENT_SECRET\n" >> harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_USERNAME=$AB_USERNAME\n" >> /var/www/<< harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_PASSWORD=$AB_PASSWORD\n" >> /var/www/<< harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "TRINT_API_KEY=$TRINT_API_KEY\n" >> /var/www/<< harvester/harvester/harvester/assetbank/.env
 
 
 # Jobs
