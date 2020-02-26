@@ -201,7 +201,7 @@ deploy_dev: &deploy_dev
     - run: ssh deploy@$DEV_HOST_URL sudo systemctl reload php7.2-fpm.service
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/dev.datastore.hammer.cogapp.com/current/harvester/logs
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/dev.datastore.hammer.cogapp.com/current/harvester/data
-    - run: ssh deploy@$DEV_HOST_URL python3 /var/www/dev.datastore.hammer.cogapp.com/current/harvester/setup.py install
+    - run: ssh deploy@$DEV_HOST_URL sudo python3 /var/www/dev.datastore.hammer.cogapp.com/current/harvester/setup.py install
     - run: ssh deploy@$DEV_HOST_URL mv /var/www/dev.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron_dev /etc/cron/cron.d
     - aws-white-list-circleci-ip/remove:
         port: 22
