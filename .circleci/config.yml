@@ -139,8 +139,10 @@ deploy: &deploy
     - run: ssh-keyscan -H $(echo "$HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $HOST_URL
     - run: ssh deploy@$HOST_URL sudo systemctl reload php7.2-fpm.service
-    - run: ssh deploy@$HOST_URL cd /var/www/$HOST_URL/current/harvester; mkdir logs; mkdir data; python setup.py install
-    - run: ssh deploy@$HOST_URL mv /var/www/$HOST_URL/current/harvester/cron/run_harvester_cron /etc/cron/cron.d
+    - run: ssh deploy@$HOST_URL mkdir /var/www/datastore.hammer.cogapp.com/current/harvester/logs
+    - run: ssh deploy@$HOST_URL mkdir /var/www/datastore.hammer.cogapp.com/current/harvester/data
+    - run: ssh deploy@$HOST_URL sh /var/www/datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies.sh
+    - run: ssh deploy@$HOST_URL sudo mv /var/www/datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron /etc/cron.d
     - aws-white-list-circleci-ip/remove:
         port: 22
         tag-key: group
@@ -169,9 +171,11 @@ deploy_stage: &deploy_stage
     - run: ssh-keyscan -H $(echo "$STAGE_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $STAGE_HOST_URL
     - run: ssh deploy@$STAGE_HOST_URL sudo systemctl reload php7.2-fpm.service
-    - run: ssh deploy@$STAGE_HOST_URL cd /var/www/$STAGE_HOST_URL/current/harvester; mkdir logs; mkdir data; python setup.py install
-    - run: ssh deploy@$STAGE_HOST_URL mv /var/www/$STAGE_HOST_URL/current/harvester/cron/run_harvester_cron_stage /etc/cron/cron.d
-    - aws-white-list-circleci-ip/remove:
+    - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/stage.datastore.hammer.cogapp.com/current/harvester/logs
+    - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/stage.datastore.hammer.cogapp.com/current/harvester/data
+    - run: ssh deploy@$STAGE_HOST_URL sh /var/www/stage.datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies_stage.sh
+    - run: ssh deploy@$STAGE_HOST_URL sudo mv /var/www/stage.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron_stage /etc/cron.d
+   - aws-white-list-circleci-ip/remove:
         port: 22
         tag-key: group
         tag-value: bastion
@@ -201,7 +205,7 @@ deploy_dev: &deploy_dev
     - run: ssh deploy@$DEV_HOST_URL sudo systemctl reload php7.2-fpm.service
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/dev.datastore.hammer.cogapp.com/current/harvester/logs
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/dev.datastore.hammer.cogapp.com/current/harvester/data
-    - run: ssh deploy@$DEV_HOST_URL sh /var/www/dev.datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies.sh
+    - run: ssh deploy@$DEV_HOST_URL sh /var/www/dev.datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies_dev.sh
     - run: ssh deploy@$DEV_HOST_URL sudo mv /var/www/dev.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron_dev /etc/cron.d
     - aws-white-list-circleci-ip/remove:
         port: 22
