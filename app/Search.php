@@ -116,15 +116,9 @@ class Search
                 $links['currentPage'] = $start / $this->pageSize;
             }
 
-            // Sort aggregations for faceting
-            if (isset($result['aggregations'])) {
-                foreach ($result['aggregations'] as $field => $aggregation) {
-                    $aggregations[$field] = $aggregation;
-                }
-            }
             return [
                 'result' => $response,
-                'aggregations' => $aggregations,
+                'aggregations' => isset($result['aggregations']) ? $result['aggregations'] : '',
                 'pages' => $links
             ];
         } catch (\Throwable $th) {
@@ -159,8 +153,7 @@ class Search
                                 'description',
                                 'transcription',
                                 'tags',
-                                'speakers',
-                                'program_series'
+                                'speakers'
                             ]
                         ]
                     ]
@@ -183,8 +176,8 @@ class Search
      */
     public function getAdditionalParams($requestParams, $params)
     {
-        $params['search_params']['body'] += $this->getAggregationOptions();
         $params['search_params']['body'] += $this->getSortOptions($requestParams);
+        $params['search_params']['body']['aggs'] = $this->getAggregationOptions();
         $params = $this->getFilterOptions($requestParams, $params);
         return $params;
     }
@@ -212,39 +205,27 @@ class Search
     }
 
     /**
-     * Current aggregations for:
-     *  - date
-     *  - program series
-     *  - speakers
-     * @return array
+     * Adds aggregations options.
      */
     public function getAggregationOptions()
     {
         return [
-            'aggs' => [
-                'date' => [
-                    'date_histogram' => [
-                        'field' => 'date_recorded',
-                        'interval' => 'year'
-                    ]
-                ],
-                'series' => [
-                    'terms' => [
-                        'field' => 'program_series',
-                        'size' => 1000
-                    ]
-                ],
-                'playlists' => [
-                    'terms' => [
-                        'field' => 'in_playlists',
-                        'size' => 1000
-                    ]
-                ],
-                'speakers' => [
-                    'terms' => [
-                        'field' => 'speakers',
-                        'size' => 10000
-                    ]
+            'date_recorded' => [
+                'date_histogram' => [
+                    'field' => 'date_recorded',
+                    'interval' => 'year'
+                ]
+            ],
+            'in_playlists' => [
+                'terms' => [
+                    'field' => 'in_playlists',
+                    'size' => 1000
+                ]
+            ],
+            'speakers' => [
+                'terms' => [
+                    'field' => 'speakers',
+                    'size' => 10000
                 ]
             ]
         ];
@@ -259,9 +240,9 @@ class Search
     {
         return [
             'aggs' => [
-                'global_facets' => [
+                'global' => [
                     'global' => (object) [],
-                    $this->getAggregationOptions(),
+                    'aggs' => $this->getAggregationOptions(),
                 ]
             ]
         ];
@@ -276,39 +257,29 @@ class Search
      */
     public function getFilterOptions($requestParams, $params)
     {
-        $filterArray = [];
-        if (isset($requestParams['facets'])) {
-            $facets = explode(';', $requestParams['facets']);
-            foreach ($facets as $facet) {
-                if ($facet !== '') {
-                    $valuePair = explode(':', $facet, 2);
-                    $filterArray[$valuePair[0]][] = $valuePair[1];
-                }
-            }
-        }
-
-        foreach ($filterArray as $field => $value) {
-            // Ignore the date_recorded field as we will construct a ranged post_filter with this later
-            if ($field !== 'date_recorded') {
-                foreach ($value as $term) {
+        foreach ($requestParams as $key => $values) {
+            $values = (array) $values;
+            if (array_key_exists($key, $this->facetMap)) {
+                $field = $key;
+                foreach ($values as $value) {
                     // Build the multiple terms filter query
-                    $params['search_params']['body']['query']['bool']['filter']['bool']['must'][]['terms']
-                    [$field][] = $term;
+                    if ($key === 'date_recorded') {
+                        $params['search_params']['body']['query']['bool']['filter']['bool']['should'][] = [
+                            'range' => [
+                                $field => [
+                                    'gte' => $value . '||/y',
+                                    'lte' => $value . '||/y'
+                                ]
+                            ],
+                        ];
+                    } else {
+                        $params['search_params']['body']['query']['bool']['filter']['bool']['must'][] = [
+                            'term' => [
+                                $field => $value
+                            ],
+                        ];
+                    }
                 }
-            }
-        }
-
-        // Build up our separate date range filter
-        if (isset($filterArray['date_recorded'])) {
-            foreach ($filterArray['date_recorded'] as $date) {
-                $params['search_params']['body']['query']['bool']['filter']['bool']['should'][] = [
-                    'range' => [
-                        'date_recorded' => [
-                            'gte' => $date . '||/y',
-                            'lte' => $date . '||/y'
-                        ]
-                    ],
-                ];
             }
         }
         return $params;
@@ -444,4 +415,10 @@ class Search
             ]
         ];
     }
+    
+    protected $facetMap = [
+        'date_recorded' => 'date',
+        'in_playlists' => 'playlist',
+        'speakers' => 'people',
+    ];
 }
