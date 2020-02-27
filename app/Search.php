@@ -133,19 +133,22 @@ class Search
      */
     public function match($requestParams = [])
     {
-        if (!isset($requestParams['term']) && !isset($requestParams['facets']) && !isset($requestParams['sort'])) {
+        if (empty($requestParams)) {
             return $this->matchAll($requestParams);
         }
 
         $params = $this->getDefaultParams();
         $params += $requestParams;
+
         if (isset($requestParams['start'])) {
             $params['search_params']['from'] = $requestParams['start'];
         }
+
+        $clause = isset($requestParams['term']) ? 'must' : 'should';
         $params['search_params']['body'] = [
             'query' => [
                 'bool' => [
-                    'must' => [
+                    $clause => [
                         'multi_match' => [
                             'query' => isset($requestParams['term']) ? $requestParams['term'] : '',
                             'fields' => [
@@ -303,7 +306,7 @@ class Search
             ]
         ];
         $params['search_params']['body'] += $this->getGlobalAggregationOptions();
-        
+
         $result = $this->search($params);
         $result['result'] = $this->getHitSource($result['result']);
         return $result;
