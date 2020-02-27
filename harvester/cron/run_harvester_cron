@@ -1,1 +1,1 @@
-0 0 * * * ubuntu /bin/sh /var/www/datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_for_environment.sh datastore.hammer.cogapp.com https://trial10-8.assetbank-server.com/assetbank-trial10/rest/asset-search videos
+0 0 * * * ubuntu /bin/sh /var/www/datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_for_environment.sh datastore.hammer.cogapp.com https://trial10-8.assetbank-server.com/assetbank-trial10 videos
