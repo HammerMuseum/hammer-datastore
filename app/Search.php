@@ -80,8 +80,9 @@ class Search
     public function search($params)
     {
         try {
+            $searchParameters = $params['search_params'];
             $client = $this->client;
-            $result = $client->search($params['search_params']);
+            $result = $client->search($searchParameters);
             $response = [];
             $links = [
                 'pager' => [
@@ -127,9 +128,11 @@ class Search
     }
 
     /**
+     * Makes a match type request.
+     *
      * @param array $requestParams
+     *
      * @return array
-     * @throws \Exception
      */
     public function match($requestParams = [])
     {
@@ -164,24 +167,29 @@ class Search
             ]
         ];
 
-        $params = $this->getAdditionalParams($requestParams, $params);
+        $params = $this->addAdditionalParams($requestParams, $params);
         $result = $this->search($params);
         $result['result'] = $this->getHitSource($result['result']);
         return $result;
     }
 
     /**
+     * Add requested query options.
+     *
+     * Parses the request and adds sorting and
+     * aggregation options as necessary.
+     *
      * @param $requestParams
      *
      * @param $params
      *
      * @return mixed
      */
-    public function getAdditionalParams($requestParams, $params)
+    public function addAdditionalParams($requestParams, $params)
     {
-        $params['search_params']['body'] += $this->getSortOptions($requestParams);
-        $params['search_params']['body']['aggs'] = $this->getAggregationOptions();
-        $params = $this->getFilterOptions($requestParams, $params);
+        $params['search_params']['body'] += $this->addSortOptions($requestParams);
+        $params['search_params']['body']['aggs'] = $this->addAggregationOptions();
+        $params = $this->addFilterOptions($requestParams, $params);
         return $params;
     }
 
@@ -191,7 +199,7 @@ class Search
      * @param $requestParams
      * @return array
      */
-    public function getSortOptions($requestParams)
+    public function addSortOptions($requestParams)
     {
         $sortOptions = [];
         // Apply a user selected sort
@@ -210,7 +218,7 @@ class Search
     /**
      * Adds aggregations options.
      */
-    public function getAggregationOptions()
+    public function addAggregationOptions()
     {
         return [
             'date_recorded' => [
@@ -245,7 +253,7 @@ class Search
             'aggs' => [
                 'global' => [
                     'global' => (object) [],
-                    'aggs' => $this->getAggregationOptions(),
+                    'aggs' => $this->addAggregationOptions(),
                 ]
             ]
         ];
@@ -258,11 +266,11 @@ class Search
      * @param $params
      * @return mixed
      */
-    public function getFilterOptions($requestParams, $params)
+    public function addFilterOptions($requestParams, $params)
     {
         foreach ($requestParams as $key => $values) {
             $values = (array) $values;
-            if (array_key_exists($key, $this->facetMap)) {
+            if (array_key_exists($key, $this->aggregationMap)) {
                 $field = $key;
                 foreach ($values as $value) {
                     // Build the multiple terms filter query
@@ -289,9 +297,12 @@ class Search
     }
 
     /**
-     * @param $requestParams array
+     * Returns all items from the search index.
+     *
+     * @param array $requestParams
+     *
      * @return array
-     * @throws \Exception
+     *  The hits.
      */
     public function matchAll($requestParams = [])
     {
@@ -324,7 +335,7 @@ class Search
      *
      * @return array
      *  The hits.
-     *
+     *a
      */
     public function term($terms)
     {
@@ -393,6 +404,9 @@ class Search
         }, $hits);
     }
 
+    /**
+     * Returns a topic aggregation.
+     */
     public function getTopicAggregations()
     {
         return [
@@ -405,13 +419,7 @@ class Search
                     'aggs' => [
                         'by_topic' => [
                             'top_hits' => [
-                                'sort' => [
-                                    [
-                                        'date_recorded' => [
-                                            'order' => 'desc'
-                                        ]
-                                    ]
-                                ],
+                                'sort' => [['date_recorded' => ['order' => 'desc']]],
                                 'size' => 6,
                                 '_source' => ['title', 'thumbnail_url', 'title_slug']
                             ]
@@ -422,7 +430,12 @@ class Search
         ];
     }
     
-    protected $facetMap = [
+    /**
+     * Array of allowed aggregation options.
+     *
+     * @var array
+     */
+    protected $aggregationMap = [
         'date_recorded' => 'date',
         'in_playlists' => 'playlist',
         'speakers' => 'people',
