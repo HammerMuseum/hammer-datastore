@@ -92,7 +92,7 @@ class Search
                 'totalPages' => '',
                 'currentPage' => '',
             ];
-            $aggregations = [];
+
             if (isset($result['hits']['total']) && $result['hits']['total'] > 0) {
                 foreach ($result['hits']['hits'] as $hit) {
                     $response[] = $hit;
@@ -302,7 +302,7 @@ class Search
         }
         $params['search_params']['body'] = [
             'query' => [
-                'match_all' => (object) []
+                'match_all' => (object) [],
             ]
         ];
         $params['search_params']['body'] += $this->getGlobalAggregationOptions();
@@ -313,20 +313,22 @@ class Search
     }
 
     /**
-     * @param $terms
+     * Helper function to return hits based on filters.
+     *
+     * Useful for boolean type queries, e.g. get all hits
+     * with "approved: true". Call the function with the
+     * argument: ["approved" => TRUE]
+     *
+     * @param array $terms
+     *  An array of terms to filter the index by.
+     *
      * @return array
-     * @throws \Exception
+     *  The hits.
+     *
      */
     public function term($terms)
     {
         $params = $this->getDefaultParams();
-        $params['search_params']['body'] = [
-            'query' => [
-                'bool' => [
-                    'must' => []
-                ]
-            ]
-        ];
 
         if (in_array('all', $terms)) {
             $params['search_params']['body'] += $this->getTopicAggregations();
@@ -340,10 +342,11 @@ class Search
                 ]
             ];
         }
+
         foreach ($terms as $field => $term) {
             if ($field !== 'sort' && $field !== 'order') {
                 $params['search_params']['body']['query']['bool']['must'][] = [
-                    'term' => [
+                    'filter' => [
                         $field => [
                             'value' => $term
                         ]
