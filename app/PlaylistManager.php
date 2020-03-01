@@ -8,15 +8,26 @@ use App\Search;
  * Class PlaylistManager.
  * @package App
  */
-class PlaylistManager extends Search
+class PlaylistManager
 {
+    /**
+     * Search manager implementation.
+     *
+     * @var Search
+     */
+    protected $searchManager;
+
+    public function __construct(Search $searchManager)
+    {
+        $this->searchManager = $searchManager;
+    }
 
     /**
      * Build response array for listing of all playlists.
      */
     public function getAll()
     {
-        $params = $this->getDefaultParams();
+        $params = $this->searchManager->getDefaultParams();
         $params['search_params']['body'] = [
             "size" => 0,
             "aggs" => [
@@ -35,12 +46,12 @@ class PlaylistManager extends Search
                 ]
             ]
         ];
-        $result = $this->search($params);
+        $result = $this->searchManager->search($params);
         $result['result'] = array_map(function ($playlist) {
             return [
                 'id' => $playlist['key']['playlist_id'],
                 'name' => $playlist['key']['playlist_name'],
-                '_links' => [
+                'links' => [
                     'self' => [
                         'href' => config('app.url') . '/api/playlists/' . $playlist['key']['playlist_id'],
                     ],
@@ -53,9 +64,9 @@ class PlaylistManager extends Search
     /**
      * Build response array for a single playlist.
      */
-    public function getPlaylist($id)
+    public function get($id)
     {
-        $params = $this->getDefaultParams();
+        $params = $this->searchManager->getDefaultParams();
         $params['search_params']['_source_includes'] = ['asset_id', 'title', 'title_slug', 'thumbnail_url'];
         $params['search_params']['body'] =  [
             "query" => [
@@ -85,7 +96,7 @@ class PlaylistManager extends Search
             ]
         ];
         
-        $result = $this->search($params);
+        $result = $this->searchManager->search($params);
         $response = [];
         $hits = $result['result'];
         if (!empty($hits)) {
@@ -99,7 +110,7 @@ class PlaylistManager extends Search
                     'thumbnail_url' => $source['thumbnail_url'],
                     'asset_id' => $source['asset_id'],
                     'position' => reset($playlists['fields']['playlists.position']),
-                    '_links' => [
+                    'links' => [
                         'self' => [
                             'href' => config('app.url') . '/api/videos/' . $source['title_slug'],
                         ]
@@ -112,7 +123,7 @@ class PlaylistManager extends Search
             });
 
             $response['videos'] = $playlists;
-            $response['_links'] = ['self' => ['href' => config('app.url') . '/api/playlists/' . $id]];
+            $response['links'] = ['self' => ['href' => config('app.url') . '/api/playlists/' . $id]];
         }
 
         $result['result'] = $response;

@@ -2,23 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Search;
 use App\PlaylistManager;
 
 class PlaylistController extends Controller
 {
-    /** @var Search */
-    protected $searchManager;
-
     /** @var Playlist */
     protected $playlistManager;
 
     /**
      * Playlist constructor.
      */
-    public function __construct(Search $searchManager, PlaylistManager $playlistManager)
+    public function __construct(PlaylistManager $playlistManager)
     {
-        $this->searchManager = $searchManager;
         $this->playlistManager = $playlistManager;
     }
 
@@ -44,7 +39,7 @@ class PlaylistController extends Controller
      */
     public function show($id)
     {
-        $result = $this->playlistManager->getPlaylist($id);
+        $result = $this->playlistManager->get($id);
         if ($result) {
             return response()->json([
                 'success' => true,
