@@ -15,6 +15,29 @@
           "type": "text",
           "analyzer": "english"
         },
+        "in_playlists": {
+          "type": "keyword"
+        },
+        "playlists": {
+          "type": "nested",
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "name": {
+              "type": "keyword"
+            },
+            "position": {
+              "type": "integer"
+            }
+          }
+        },
+        "program_series": {
+          "type": "keyword"
+        },
+        "speakers": {
+          "type": "keyword"
+        },
         "thumbnail_url": {
           "type": "keyword"
         },
@@ -40,12 +63,6 @@
           "type": "keyword"
         },
         "video_url": {
-          "type": "keyword"
-        },
-        "program_series": {
-          "type": "keyword"
-        },
-        "speakers": {
           "type": "keyword"
         }
       }
