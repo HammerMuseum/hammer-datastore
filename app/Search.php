@@ -80,8 +80,9 @@ class Search
     public function search($params)
     {
         try {
+            $searchParameters = $params['search_params'];
             $client = $this->client;
-            $result = $client->search($params['search_params']);
+            $result = $client->search($searchParameters);
             $response = [];
             $links = [
                 'pager' => [
@@ -92,16 +93,12 @@ class Search
                 'totalPages' => '',
                 'currentPage' => '',
             ];
-            $aggregations = [];
+
             if (isset($result['hits']['total']) && $result['hits']['total'] > 0) {
                 foreach ($result['hits']['hits'] as $hit) {
-                    if (isset($hit['_source'])) {
-                        if (empty($hit['_source']['tags'])) {
-                            $hit['_source']['tags'] = [];
-                        }
-                        $response[] = $hit['_source'];
-                    }
+                    $response[] = $hit;
                 }
+
                 // Unless we have set a start point, start from 0
                 $start = isset($params['start']) ? $params['start'] : 0;
 
@@ -120,15 +117,9 @@ class Search
                 $links['currentPage'] = $start / $this->pageSize;
             }
 
-            // Sort aggregations for faceting
-            if (isset($result['aggregations'])) {
-                foreach ($result['aggregations'] as $field => $aggregation) {
-                    $aggregations[$field] = $aggregation;
-                }
-            }
             return [
                 'result' => $response,
-                'aggregations' => $aggregations,
+                'aggregations' => isset($result['aggregations']) ? $result['aggregations'] : '',
                 'pages' => $links
             ];
         } catch (\Throwable $th) {
@@ -137,25 +128,30 @@ class Search
     }
 
     /**
+     * Makes a match type request.
+     *
      * @param array $requestParams
+     *
      * @return array
-     * @throws \Exception
      */
     public function match($requestParams = [])
     {
-        if (!isset($requestParams['term']) && !isset($requestParams['facets']) && !isset($requestParams['sort'])) {
+        if (empty($requestParams)) {
             return $this->matchAll($requestParams);
         }
 
         $params = $this->getDefaultParams();
         $params += $requestParams;
+
         if (isset($requestParams['start'])) {
             $params['search_params']['from'] = $requestParams['start'];
         }
+
+        $clause = isset($requestParams['term']) ? 'must' : 'should';
         $params['search_params']['body'] = [
             'query' => [
                 'bool' => [
-                    'must' => [
+                    $clause => [
                         'multi_match' => [
                             'query' => isset($requestParams['term']) ? $requestParams['term'] : '',
                             'fields' => [
@@ -163,8 +159,7 @@ class Search
                                 'description',
                                 'transcription',
                                 'tags',
-                                'speakers',
-                                'program_series'
+                                'speakers'
                             ]
                         ]
                     ]
@@ -172,22 +167,29 @@ class Search
             ]
         ];
 
-        $params = $this->getAdditionalParams($requestParams, $params);
-        return $this->search($params);
+        $params = $this->addAdditionalParams($requestParams, $params);
+        $result = $this->search($params);
+        $result['result'] = $this->getHitSource($result['result']);
+        return $result;
     }
 
     /**
+     * Add requested query options.
+     *
+     * Parses the request and adds sorting and
+     * aggregation options as necessary.
+     *
      * @param $requestParams
      *
      * @param $params
      *
      * @return mixed
      */
-    public function getAdditionalParams($requestParams, $params)
+    public function addAdditionalParams($requestParams, $params)
     {
-        $params['search_params']['body'] += $this->getAggregationOptions();
-        $params['search_params']['body'] += $this->getSortOptions($requestParams);
-        $params = $this->getFilterOptions($requestParams, $params);
+        $params['search_params']['body'] += $this->addSortOptions($requestParams);
+        $params['search_params']['body']['aggs'] = $this->addAggregationOptions();
+        $params = $this->addFilterOptions($requestParams, $params);
         return $params;
     }
 
@@ -197,7 +199,7 @@ class Search
      * @param $requestParams
      * @return array
      */
-    public function getSortOptions($requestParams)
+    public function addSortOptions($requestParams)
     {
         $sortOptions = [];
         // Apply a user selected sort
@@ -214,33 +216,27 @@ class Search
     }
 
     /**
-     * Current aggregations for:
-     *  - date
-     *  - program series
-     *  - speakers
-     * @return array
+     * Adds aggregations options.
      */
-    public function getAggregationOptions()
+    public function addAggregationOptions()
     {
         return [
-            'aggs' => [
-                'date' => [
-                    'date_histogram' => [
-                        'field' => 'date_recorded',
-                        'interval' => 'year'
-                    ]
-                ],
-                'series' => [
-                    'terms' => [
-                        'field' => 'program_series',
-                        'size' => 1000
-                    ]
-                ],
-                'speakers' => [
-                    'terms' => [
-                        'field' => 'speakers',
-                        'size' => 10000
-                    ]
+            'date_recorded' => [
+                'date_histogram' => [
+                    'field' => 'date_recorded',
+                    'interval' => 'year'
+                ]
+            ],
+            'in_playlists' => [
+                'terms' => [
+                    'field' => 'in_playlists',
+                    'size' => 1000
+                ]
+            ],
+            'speakers' => [
+                'terms' => [
+                    'field' => 'speakers',
+                    'size' => 10000
                 ]
             ]
         ];
@@ -255,28 +251,9 @@ class Search
     {
         return [
             'aggs' => [
-                'label' => [
+                'global' => [
                     'global' => (object) [],
-                    'aggs' => [
-                        'date' => [
-                            'date_histogram' => [
-                                'field' => 'date_recorded',
-                                'interval' => 'year',
-                            ]
-                        ],
-                        'series' => [
-                            'terms' => [
-                                'field' => 'program_series',
-                                'size' => 1000
-                            ]
-                        ],
-                        'speakers' => [
-                            'terms' => [
-                                'field' => 'speakers',
-                                'size' => 10000
-                            ]
-                        ]
-                    ]
+                    'aggs' => $this->addAggregationOptions(),
                 ]
             ]
         ];
@@ -289,50 +266,43 @@ class Search
      * @param $params
      * @return mixed
      */
-    public function getFilterOptions($requestParams, $params)
+    public function addFilterOptions($requestParams, $params)
     {
-        $filterArray = [];
-        if (isset($requestParams['facets'])) {
-            $facets = explode(';', $requestParams['facets']);
-            foreach ($facets as $facet) {
-                if ($facet !== '') {
-                    $valuePair = explode(':', $facet, 2);
-                    $filterArray[$valuePair[0]][] = $valuePair[1];
-                }
-            }
-        }
-
-        foreach ($filterArray as $field => $value) {
-            // Ignore the date_recorded field as we will construct a ranged post_filter with this later
-            if ($field !== 'date_recorded') {
-                foreach ($value as $term) {
+        foreach ($requestParams as $key => $values) {
+            $values = (array) $values;
+            if (array_key_exists($key, $this->aggregationMap)) {
+                $field = $key;
+                foreach ($values as $value) {
                     // Build the multiple terms filter query
-                    $params['search_params']['body']['query']['bool']['filter']['bool']['must'][]['terms']
-                    [$field][] = $term;
+                    if ($key === 'date_recorded') {
+                        $params['search_params']['body']['query']['bool']['filter']['bool']['should'][] = [
+                            'range' => [
+                                $field => [
+                                    'gte' => $value . '||/y',
+                                    'lte' => $value . '||/y'
+                                ]
+                            ],
+                        ];
+                    } else {
+                        $params['search_params']['body']['query']['bool']['filter']['bool']['must'][] = [
+                            'term' => [
+                                $field => $value
+                            ],
+                        ];
+                    }
                 }
-            }
-        }
-
-        // Build up our separate date range filter
-        if (isset($filterArray['date_recorded'])) {
-            foreach ($filterArray['date_recorded'] as $date) {
-                $params['search_params']['body']['query']['bool']['filter']['bool']['should'][] = [
-                    'range' => [
-                        'date_recorded' => [
-                            'gte' => $date . '||/y',
-                            'lte' => $date . '||/y'
-                        ]
-                    ],
-                ];
             }
         }
         return $params;
     }
 
     /**
-     * @param $requestParams array
+     * Returns all items from the search index.
+     *
+     * @param array $requestParams
+     *
      * @return array
-     * @throws \Exception
+     *  The hits.
      */
     public function matchAll($requestParams = [])
     {
@@ -343,31 +313,36 @@ class Search
         }
         $params['search_params']['body'] = [
             'query' => [
-                'match_all' => (object) []
+                'match_all' => (object) [],
             ]
         ];
         $params['search_params']['body'] += $this->getGlobalAggregationOptions();
-        return $this->search($params);
+
+        $result = $this->search($params);
+        $result['result'] = $this->getHitSource($result['result']);
+        return $result;
     }
 
     /**
-     * @param $terms
+     * Helper function to return hits based on filters.
+     *
+     * Useful for boolean type queries, e.g. get all hits
+     * with "approved: true". Call the function with the
+     * argument: ["approved" => TRUE]
+     *
+     * @param array $terms
+     *  An array of terms to filter the index by.
+     *
      * @return array
-     * @throws \Exception
+     *  The hits.
+     *a
      */
     public function term($terms)
     {
         $params = $this->getDefaultParams();
-        $params['search_params']['body'] = [
-            'query' => [
-                'bool' => [
-                    'must' => []
-                ]
-            ]
-        ];
 
         if (in_array('all', $terms)) {
-            $params['search_params']['body'] += $this->getTopicAggregations();
+            $params['search_params']['body']['aggs'] = $this->getTopicAggregations();
             return $this->search($params);
         }
 
@@ -378,13 +353,16 @@ class Search
                 ]
             ];
         }
+
         foreach ($terms as $field => $term) {
             if ($field !== 'sort' && $field !== 'order') {
                 $params['search_params']['body']['query']['bool']['filter']['term'] = [$field => $term];
             }
         }
 
-        return $this->search($params);
+        $result = $this->search($params);
+        $result['result'] = $this->getHitSource($result['result']);
+        return $result;
     }
 
     /**
@@ -404,35 +382,54 @@ class Search
                 ],
             ],
         ];
-        return $this->search($params);
+
+        $result = $this->search($params);
+        $result['result'] = $this->getHitSource($result['result']);
+        return $result;
     }
 
+    /**
+     * Helper that extracts document source data for responses.
+     */
+    protected function getHitSource($hits)
+    {
+        return array_map(function ($hit) {
+            return $hit['_source'];
+        }, $hits);
+    }
+
+    /**
+     * Returns a topic aggregation.
+     */
     public function getTopicAggregations()
     {
         return [
-            'aggs' => [
-                'topics' => [
-                    'terms' => [
-                        'field' => 'topics',
-                        'size' => 12
-                    ],
-                    'aggs' => [
-                        'by_topic' => [
-                            'top_hits' => [
-                                'sort' => [
-                                    [
-                                        'date_recorded' => [
-                                            'order' => 'desc'
-                                        ]
-                                    ]
-                                ],
-                                'size' => 6,
-                                '_source' => ['title', 'thumbnail_url', 'title_slug']
-                            ]
+            'topics' => [
+                'terms' => [
+                    'field' => 'topics',
+                    'size' => 12
+                ],
+                'aggs' => [
+                    'by_topic' => [
+                        'top_hits' => [
+                            'sort' => [['date_recorded' => ['order' => 'desc']]],
+                            'size' => 6,
+                            '_source' => ['title', 'thumbnail_url', 'title_slug']
                         ]
                     ]
                 ]
             ]
         ];
     }
+    
+    /**
+     * Array of allowed aggregation options.
+     *
+     * @var array
+     */
+    protected $aggregationMap = [
+        'date_recorded' => 'date',
+        'in_playlists' => 'playlist',
+        'speakers' => 'people',
+    ];
 }
