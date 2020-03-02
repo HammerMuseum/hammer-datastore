@@ -380,13 +380,7 @@ class Search
         }
         foreach ($terms as $field => $term) {
             if ($field !== 'sort' && $field !== 'order') {
-                $params['search_params']['body']['query']['bool']['must'][] = [
-                    'term' => [
-                        $field => [
-                            'value' => $term
-                        ]
-                    ]
-                ];
+                $params['search_params']['body']['query']['bool']['filter']['term'] = [$field => $term];
             }
         }
 
