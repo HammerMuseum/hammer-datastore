@@ -109,6 +109,7 @@ class PlaylistManager
                     'title' => $source['title'],
                     'thumbnail_url' => $source['thumbnail_url'],
                     'asset_id' => $source['asset_id'],
+                    'title_slug' => $source['title_slug'],
                     'position' => reset($playlists['fields']['playlists.position']),
                     'links' => [
                         'self' => [
