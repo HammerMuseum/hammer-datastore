@@ -342,7 +342,7 @@ class Search
         $params = $this->getDefaultParams();
 
         if (in_array('all', $terms)) {
-            $params['search_params']['body'] += $this->getTopicAggregations();
+            $params['search_params']['body']['aggs'] = $this->getTopicAggregations();
             return $this->search($params);
         }
 
@@ -404,19 +404,17 @@ class Search
     public function getTopicAggregations()
     {
         return [
-            'aggs' => [
-                'topics' => [
-                    'terms' => [
-                        'field' => 'topics',
-                        'size' => 12
-                    ],
-                    'aggs' => [
-                        'by_topic' => [
-                            'top_hits' => [
-                                'sort' => [['date_recorded' => ['order' => 'desc']]],
-                                'size' => 6,
-                                '_source' => ['title', 'thumbnail_url', 'title_slug']
-                            ]
+            'topics' => [
+                'terms' => [
+                    'field' => 'topics',
+                    'size' => 12
+                ],
+                'aggs' => [
+                    'by_topic' => [
+                        'top_hits' => [
+                            'sort' => [['date_recorded' => ['order' => 'desc']]],
+                            'size' => 6,
+                            '_source' => ['title', 'thumbnail_url', 'title_slug']
                         ]
                     ]
                 ]
