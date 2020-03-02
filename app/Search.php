@@ -159,7 +159,8 @@ class Search
                                 'description',
                                 'transcription',
                                 'tags',
-                                'speakers'
+                                'speakers',
+                                'topics',
                             ]
                         ]
                     ]
@@ -236,6 +237,12 @@ class Search
             'speakers' => [
                 'terms' => [
                     'field' => 'speakers',
+                    'size' => 10000
+                ]
+                ],
+            'topics' => [
+                'terms' => [
+                    'field' => 'topics',
                     'size' => 10000
                 ]
             ]
@@ -418,7 +425,7 @@ class Search
                         ]
                     ]
                 ]
-            ]
+            ],
         ];
     }
     
@@ -431,5 +438,6 @@ class Search
         'date_recorded' => 'date',
         'in_playlists' => 'playlist',
         'speakers' => 'people',
+        'topics' => 'topics',
     ];
 }
