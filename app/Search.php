@@ -133,10 +133,15 @@ class Search
      * @param array $requestParams
      *
      * @return array
+     *
+     * @throws \Exception
      */
     public function match($requestParams = [])
     {
-        if (empty($requestParams) || !isset($requestParams['term'])) {
+        // If there was no search/filter or if the only params are for sorting
+        if (empty($requestParams) || (
+            count($requestParams) == 2 && isset($requestParams['sort']) && isset($requestParams['order'])
+            )) {
             return $this->matchAll($requestParams);
         }
 
