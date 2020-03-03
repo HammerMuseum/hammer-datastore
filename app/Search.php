@@ -136,7 +136,7 @@ class Search
      */
     public function match($requestParams = [])
     {
-        if (empty($requestParams)) {
+        if (empty($requestParams) || !isset($requestParams['term'])) {
             return $this->matchAll($requestParams);
         }
 
@@ -324,6 +324,7 @@ class Search
             ]
         ];
         $params['search_params']['body'] += $this->getGlobalAggregationOptions();
+        $params['search_params']['body'] += $this->addSortOptions($requestParams);
 
         $result = $this->search($params);
         $result['result'] = $this->getHitSource($result['result']);
