@@ -1,5 +1,5 @@
 
-# PHP CircleCI 2.0 configuration file
+# PHP CircleCI 2.1 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-php/ for more details
 #
@@ -50,6 +50,22 @@ save_node_cache: &save_node_cache
   paths:
     - node_modules
     - /home/circleci/.npm
+
+commands:
+  create_harvester_env_file:
+    description: "Creates the harvester env file pushing creds in from CircleCI env vars"
+    parameters:
+      environment:
+        type: string
+    steps:
+      - run: rm -f harvester/harvester/harvester/assetbank/.env
+      - run: touch harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_CLIENT_ID=$AB_CLIENT_ID" >> harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_CLIENT_SECRET=$AB_CLIENT_SECRET" >> harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_USERNAME=$AB_USERNAME" >> harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "AB_PASSWORD=$AB_PASSWORD" >> harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "TRINT_API_KEY=$TRINT_API_KEY\n" >> harvester/harvester/harvester/assetbank/.env
+
 
 # Jobs
 build_and_test: &build_and_test
@@ -118,9 +134,15 @@ deploy: &deploy
         port: 22
         tag-key: group
         tag-value: bastion
+    - create_harvester_env_file:
+        environment: $HOST_URL
     - run: ssh-keyscan -H $(echo "$HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $HOST_URL
     - run: ssh deploy@$HOST_URL sudo systemctl reload php7.2-fpm.service
+    - run: ssh deploy@$HOST_URL mkdir /var/www/datastore.hammer.cogapp.com/current/harvester/logs
+    - run: ssh deploy@$HOST_URL mkdir /var/www/datastore.hammer.cogapp.com/current/harvester/data
+    - run: ssh deploy@$HOST_URL sh /var/www/datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies.sh
+    - run: ssh deploy@$HOST_URL sudo mv /var/www/datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron /etc/cron.d
     - aws-white-list-circleci-ip/remove:
         port: 22
         tag-key: group
@@ -144,9 +166,15 @@ deploy_stage: &deploy_stage
         port: 22
         tag-key: group
         tag-value: bastion
+    - create_harvester_env_file:
+        environment: $STAGE_HOST_URL
     - run: ssh-keyscan -H $(echo "$STAGE_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $STAGE_HOST_URL
     - run: ssh deploy@$STAGE_HOST_URL sudo systemctl reload php7.2-fpm.service
+    - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/stage.datastore.hammer.cogapp.com/current/harvester/logs
+    - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/stage.datastore.hammer.cogapp.com/current/harvester/data
+    - run: ssh deploy@$STAGE_HOST_URL sh /var/www/stage.datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies_stage.sh
+    - run: ssh deploy@$STAGE_HOST_URL sudo mv /var/www/stage.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron_stage /etc/cron.d
     - aws-white-list-circleci-ip/remove:
         port: 22
         tag-key: group
@@ -170,9 +198,15 @@ deploy_dev: &deploy_dev
         port: 22
         tag-key: group
         tag-value: bastion
+    - create_harvester_env_file:
+        environment: $DEV_HOST_URL
     - run: ssh-keyscan -H $(echo "$DEV_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $DEV_HOST_URL
     - run: ssh deploy@$DEV_HOST_URL sudo systemctl reload php7.2-fpm.service
+    - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/dev.datastore.hammer.cogapp.com/current/harvester/logs
+    - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/dev.datastore.hammer.cogapp.com/current/harvester/data
+    - run: ssh deploy@$DEV_HOST_URL sh /var/www/dev.datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies_dev.sh
+    - run: ssh deploy@$DEV_HOST_URL sudo mv /var/www/dev.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron_dev /etc/cron.d
     - aws-white-list-circleci-ip/remove:
         port: 22
         tag-key: group
