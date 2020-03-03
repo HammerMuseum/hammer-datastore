@@ -133,10 +133,15 @@ class Search
      * @param array $requestParams
      *
      * @return array
+     *
+     * @throws \Exception
      */
     public function match($requestParams = [])
     {
-        if (empty($requestParams)) {
+        // If there was no search/filter or if the only params are for sorting
+        if (empty($requestParams) || (
+            count($requestParams) == 2 && isset($requestParams['sort']) && isset($requestParams['order'])
+            )) {
             return $this->matchAll($requestParams);
         }
 
@@ -324,6 +329,7 @@ class Search
             ]
         ];
         $params['search_params']['body'] += $this->getGlobalAggregationOptions();
+        $params['search_params']['body'] += $this->addSortOptions($requestParams);
 
         $result = $this->search($params);
         $result['result'] = $this->getHitSource($result['result']);
