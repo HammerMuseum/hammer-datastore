@@ -138,10 +138,20 @@ class Search
      */
     public function match($requestParams = [])
     {
-        // If there was no search/filter or if the only params are for sorting
-        if (empty($requestParams) || (
-            count($requestParams) == 2 && isset($requestParams['sort']) && isset($requestParams['order'])
-            )) {
+        // Check if any of the searchable fields are present in the incoming request
+        $searchableFields = [
+          'topics',
+          'title',
+          'description',
+          'transcription',
+          'tags',
+          'speakers',
+          'term'
+        ];
+        $termSearched = array_intersect($searchableFields, array_keys($requestParams));
+
+        // If there was no searchable fields, search everything
+        if (empty($requestParams) || empty($termSearched)) {
             return $this->matchAll($requestParams);
         }
 
