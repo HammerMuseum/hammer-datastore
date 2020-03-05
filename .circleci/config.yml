@@ -180,7 +180,7 @@ deploy_stage: &deploy_stage
     - run: ssh deploy@$STAGE_HOST_URL sudo chmod 766 /var/www/stage.datastore.hammer.cogapp.com/current/harvester/data
     - run: ssh deploy@$STAGE_HOST_URL sh /var/www/stage.datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies_stage.sh
     - run: ssh deploy@$STAGE_HOST_URL sudo mv /var/www/stage.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron_stage /etc/cron.d
-    - run: ssh deploy@$HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_stage
+    - run: ssh deploy@$STAGE_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_stage
     - aws-white-list-circleci-ip/remove:
         port: 22
         tag-key: group
@@ -215,7 +215,7 @@ deploy_dev: &deploy_dev
     - run: ssh deploy@$DEV_HOST_URL sudo chmod 766 /var/www/dev.datastore.hammer.cogapp.com/current/harvester/data
     - run: ssh deploy@$DEV_HOST_URL sh /var/www/dev.datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies_dev.sh
     - run: ssh deploy@$DEV_HOST_URL sudo mv /var/www/dev.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron_dev /etc/cron.d
-    - run: ssh deploy@$HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_dev
+    - run: ssh deploy@$DEV_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_dev
     - aws-white-list-circleci-ip/remove:
         port: 22
         tag-key: group
