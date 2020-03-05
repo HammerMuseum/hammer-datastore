@@ -8,7 +8,7 @@ import requests
 from dotenv import load_dotenv
 from lxml import etree
 from harvester.harvester import HarvesterBase
-from harvester.processors import DelimiterProcessor, TranscriptionProcessor, FriendlyUrlProcessor
+from harvester.processors import DelimiterProcessor, TranscriptionProcessor, FriendlyUrlProcessor, DurationProcessor
 
 
 class AssetBankHarvester(HarvesterBase):
@@ -65,11 +65,17 @@ class AssetBankHarvester(HarvesterBase):
             'title'
         ]
 
+        duration_field = [
+            'video_url'
+        ]
+
         self.processors = [
             DelimiterProcessor(self, delimiter=',', fields=split_fields),
             TranscriptionProcessor(
                 self, os.getenv('TRINT_API_KEY'), fields=transcription_fields),
             FriendlyUrlProcessor(self, fields=slug_field),
+            DurationProcessor(self, fields=duration_field)
+
         ]
 
     def init_auth(self):
