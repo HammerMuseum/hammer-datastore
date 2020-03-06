@@ -1,1 +1,1 @@
-40 0 * * * ubuntu /bin/sh /var/www/stage.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_for_environment.sh stage.datastore.hammer.cogapp.com https://trial10-8.assetbank-server.com/assetbank-trial10 videos_stage
+40 * * * * root /bin/sh /var/www/stage.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_for_environment.sh stage.datastore.hammer.cogapp.com https://trial10-8.assetbank-server.com/assetbank-trial10 videos_stage
