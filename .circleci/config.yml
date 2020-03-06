@@ -140,9 +140,7 @@ deploy: &deploy
     - run: php artisan deploy $HOST_URL
     - run: ssh deploy@$HOST_URL sudo systemctl reload php7.2-fpm.service
     - run: ssh deploy@$HOST_URL mkdir /var/www/datastore.hammer.cogapp.com/current/harvester/logs
-    - run: ssh deploy@$HOST_URL sudo chmod 777 /var/www/datastore.hammer.cogapp.com/current/harvester/logs
     - run: ssh deploy@$HOST_URL mkdir /var/www/datastore.hammer.cogapp.com/current/harvester/data
-    - run: ssh deploy@$HOST_URL sudo chmod 777 /var/www/datastore.hammer.cogapp.com/current/harvester/data
     - run: ssh deploy@$HOST_URL sh /var/www/datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies.sh
     - run: ssh deploy@$HOST_URL sudo mv /var/www/datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron /etc/cron.d
     - run: ssh deploy@$HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron
@@ -175,9 +173,7 @@ deploy_stage: &deploy_stage
     - run: php artisan deploy $STAGE_HOST_URL
     - run: ssh deploy@$STAGE_HOST_URL sudo systemctl reload php7.2-fpm.service
     - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/stage.datastore.hammer.cogapp.com/current/harvester/logs
-    - run: ssh deploy@$STAGE_HOST_URL sudo chmod 777 /var/www/stage.datastore.hammer.cogapp.com/current/harvester/logs
     - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/stage.datastore.hammer.cogapp.com/current/harvester/data
-    - run: ssh deploy@$STAGE_HOST_URL sudo chmod 777 /var/www/stage.datastore.hammer.cogapp.com/current/harvester/data
     - run: ssh deploy@$STAGE_HOST_URL sh /var/www/stage.datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies_stage.sh
     - run: ssh deploy@$STAGE_HOST_URL sudo mv /var/www/stage.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron_stage /etc/cron.d
     - run: ssh deploy@$STAGE_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_stage
@@ -210,9 +206,7 @@ deploy_dev: &deploy_dev
     - run: php artisan deploy $DEV_HOST_URL
     - run: ssh deploy@$DEV_HOST_URL sudo systemctl reload php7.2-fpm.service
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/dev.datastore.hammer.cogapp.com/current/harvester/logs
-    - run: ssh deploy@$DEV_HOST_URL sudo chmod 777 /var/www/dev.datastore.hammer.cogapp.com/current/harvester/logs
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/dev.datastore.hammer.cogapp.com/current/harvester/data
-    - run: ssh deploy@$DEV_HOST_URL sudo chmod 777 /var/www/dev.datastore.hammer.cogapp.com/current/harvester/data
     - run: ssh deploy@$DEV_HOST_URL sh /var/www/dev.datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies_dev.sh
     - run: ssh deploy@$DEV_HOST_URL sudo mv /var/www/dev.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron_dev /etc/cron.d
     - run: ssh deploy@$DEV_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_dev
