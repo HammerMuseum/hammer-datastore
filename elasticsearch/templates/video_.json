@@ -35,6 +35,9 @@
         "program_series": {
           "type": "keyword"
         },
+        "quote": {
+          "type": "keyword"
+        },
         "speakers": {
           "type": "keyword"
         },

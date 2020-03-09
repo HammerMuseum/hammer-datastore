@@ -277,7 +277,8 @@ class AssetBankHarvester(HarvesterBase):
             'transcription': 'Transcription ID',
             'program_series': 'Program Series',
             'speakers': 'People',
-            'topics': 'Topics'
+            'topics': 'Topics',
+            'quote': 'Featured Quote'
         }
 
         output = {}
