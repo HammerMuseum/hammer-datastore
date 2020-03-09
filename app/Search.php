@@ -104,7 +104,7 @@ class Search
                 $resultOffset = $this->getPager($start);
 
                 // As long as we haven't reached the end of the results, generate another 'next page' link
-                if ($resultOffset < $result['hits']['total']) {
+                if (($resultOffset + $this->pageSize) < $result['hits']['total']) {
                     $links['pager']['next'] = 'page=' . ($start + 1);
                 }
                 if ($resultOffset >= $this->pageSize) {
