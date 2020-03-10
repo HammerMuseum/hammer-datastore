@@ -67,7 +67,14 @@ class PlaylistManager
     public function get($id)
     {
         $params = $this->searchManager->getDefaultParams();
-        $params['search_params']['_source_includes'] = ['asset_id', 'title', 'title_slug', 'thumbnail_url'];
+        $params['search_params']['_source_includes'] = [
+            'asset_id',
+            'title',
+            'title_slug',
+            'thumbnail_url',
+            'description',
+            'quote'
+        ];
         $params['search_params']['body'] =  [
             "query" => [
                 "nested" => [
@@ -110,6 +117,8 @@ class PlaylistManager
                     'thumbnail_url' => $source['thumbnail_url'],
                     'asset_id' => $source['asset_id'],
                     'title_slug' => $source['title_slug'],
+                    'description' => $source['description'],
+                    'quote' => $source['quote'],
                     'position' => reset($playlists['fields']['playlists.position']),
                     'links' => [
                         'self' => [
