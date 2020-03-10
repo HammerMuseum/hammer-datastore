@@ -117,7 +117,7 @@ class AssetBankHarvester(HarvesterBase):
         # Begin the harvest run
         self.logger.info('Beginning Harvester run')
 
-        self.do_harvest(0)
+        self.do_harvest()
 
         self.logger.info('Ending Harvester run')
         self.logger.info('%i records harvested', self.records_processed)
@@ -183,24 +183,25 @@ class AssetBankHarvester(HarvesterBase):
         """
         self.write_summary()
 
-    def do_harvest(self, page_number):
+    def do_harvest(self, page_number=0):
         """
         Main harvesting function.
         """
-        current_harvest_uri = '{}&page={}'.format(self.harvest_uri, page_number)
-        # This will need updating to handle pagination.
+        current_harvest_uri = '{}'.format(self.harvest_uri)
+        
         response = requests.get(
             current_harvest_uri,
             headers={'Authorization': 'Bearer {}'.format(self.access_token)},
-            params={'assetTypeId': self.asset_type},
+            params={'assetTypeId': self.asset_type, 'page': page_number},
         )
         root = etree.fromstring(response.content)
         assets = root.xpath('//assetSummary')
 
         self.logger.info('Found %i records' % len(assets))
 
-        if len(assets) < 1:
+        if not assets:
             return False
+
         for asset in assets:
             if self.records_processed > self.max_items:
                 break
@@ -231,7 +232,7 @@ class AssetBankHarvester(HarvesterBase):
 
         continue_harvest = self.do_harvest(page_number + 1)
 
-        if continue_harvest is False:
+        if not continue_harvest:
             return
 
     def do_record_harvest(self, record, identifier):
