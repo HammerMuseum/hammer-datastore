@@ -100,21 +100,19 @@ class Search
                 }
 
                 // Unless we have set a start point, start from 0
-                $start = isset($params['start']) ? $params['start'] : 0;
-
-                // Add our offset to the page size
-                $start = $start + $this->pageSize;
+                $start = isset($params['page']) ? (int) $params['page'] : 1;
+                $resultOffset = $this->getPager($start);
 
                 // As long as we haven't reached the end of the results, generate another 'next page' link
-                if ($start < $result['hits']['total']) {
-                    $links['pager']['next'] = 'start=' . $start;
+                if (($resultOffset + $this->pageSize) < $result['hits']['total']) {
+                    $links['pager']['next'] = 'page=' . ($start + 1);
                 }
-                if ($start > $this->pageSize) {
-                    $links['pager']['previous'] = 'start=' . ($start - ($this->pageSize * 2));
+                if ($resultOffset >= $this->pageSize) {
+                    $links['pager']['previous'] = 'page=' . ($start - 1);
                 }
                 $links['total'] = $result['hits']['total'];
                 $links['totalPages'] = round($result['hits']['total'] / $this->pageSize, 0);
-                $links['currentPage'] = $start / $this->pageSize;
+                $links['currentPage'] = $start;
             }
 
             return [
@@ -330,8 +328,8 @@ class Search
     {
         $params = $this->getDefaultParams();
         $params += $requestParams;
-        if (isset($requestParams['start'])) {
-            $params['search_params']['from'] = $requestParams['start'];
+        if (isset($requestParams['page'])) {
+            $params['search_params']['from'] = $this->getPager($requestParams['page']);
         }
         $params['search_params']['body'] = [
             'query' => [
@@ -443,6 +441,18 @@ class Search
                 ]
             ],
         ];
+    }
+
+    /**
+     * Determine the offset to apply to the query
+     *
+     * @param $pageParam
+     *
+     * @return float|int
+     */
+    public function getPager($pageParam)
+    {
+        return ((int)$pageParam - 1) * $this->pageSize;
     }
     
     /**
