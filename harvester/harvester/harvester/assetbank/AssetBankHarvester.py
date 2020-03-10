@@ -187,7 +187,6 @@ class AssetBankHarvester(HarvesterBase):
         """
         Main harvesting function.
         """
-        print(page_number)
         current_harvest_uri = '{}&page={}'.format(self.harvest_uri, page_number)
         # This will need updating to handle pagination.
         response = requests.get(
@@ -223,16 +222,17 @@ class AssetBankHarvester(HarvesterBase):
                 record_success = self.do_record_harvest(
                     json_record, identifier)
                 self.records_processed += 1
-                continue_harvest = self.do_harvest(page_number + 1)
-
-                if continue_harvest is False:
-                    return
                 if record_success:
                     self.records_succeeded += 1
                 else:
                     self.records_failed += 1
             else:
                 self.records_failed += 1
+
+        continue_harvest = self.do_harvest(page_number + 1)
+
+        if continue_harvest is False:
+            return
 
     def do_record_harvest(self, record, identifier):
         """
