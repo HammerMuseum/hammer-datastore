@@ -48,7 +48,7 @@ class AssetBankHarvester(HarvesterBase):
             self.host, self.playlist_user)
 
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
-        self.harvest_uri = "{}/{}?pageSize={}".format(self.host, 'rest/asset-search', self.page_size)
+        self.harvest_uri = "{}/{}".format(self.host, 'rest/asset-search')
         self.asset_type = options['assetType']
         self.docs = []
         self.slugs = []
@@ -192,7 +192,7 @@ class AssetBankHarvester(HarvesterBase):
         response = requests.get(
             current_harvest_uri,
             headers={'Authorization': 'Bearer {}'.format(self.access_token)},
-            params={'assetTypeId': self.asset_type, 'page': page_number},
+            params={'assetTypeId': self.asset_type, 'pageSize': self.page_size, 'page': page_number},
         )
         root = etree.fromstring(response.content)
         assets = root.xpath('//assetSummary')
