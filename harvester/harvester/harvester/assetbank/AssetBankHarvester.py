@@ -26,7 +26,7 @@ class AssetBankHarvester(HarvesterBase):
 
     playlist_user = 7
 
-    page_size = 10
+    page_size = 30
 
     """
     The current location of the output.
