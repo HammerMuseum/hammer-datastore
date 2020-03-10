@@ -26,6 +26,8 @@ class AssetBankHarvester(HarvesterBase):
 
     playlist_user = 7
 
+    page_size = 30
+
     """
     The current location of the output.
     This may change during the run as directories are renamed.
@@ -181,21 +183,24 @@ class AssetBankHarvester(HarvesterBase):
         """
         self.write_summary()
 
-    def do_harvest(self):
+    def do_harvest(self, page_number=0):
         """
         Main harvesting function.
         """
-
-        # This will need updating to handle pagination.
+        current_harvest_uri = '{}'.format(self.harvest_uri)
+        
         response = requests.get(
-            self.harvest_uri,
+            current_harvest_uri,
             headers={'Authorization': 'Bearer {}'.format(self.access_token)},
-            params={'assetTypeId': self.asset_type},
+            params={'assetTypeId': self.asset_type, 'pageSize': self.page_size, 'page': page_number},
         )
         root = etree.fromstring(response.content)
         assets = root.xpath('//assetSummary')
 
         self.logger.info('Found %i records' % len(assets))
+
+        if not assets:
+            return False
 
         for asset in assets:
             if self.records_processed > self.max_items:
@@ -224,6 +229,11 @@ class AssetBankHarvester(HarvesterBase):
                     self.records_failed += 1
             else:
                 self.records_failed += 1
+
+        continue_harvest = self.do_harvest(page_number + 1)
+
+        if not continue_harvest:
+            return
 
     def do_record_harvest(self, record, identifier):
         """
