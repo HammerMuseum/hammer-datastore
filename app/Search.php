@@ -144,7 +144,8 @@ class Search
           'transcription',
           'tags',
           'speakers',
-          'term'
+          'term',
+          'in_playlists'
         ];
         $termSearched = array_intersect($searchableFields, array_keys($requestParams));
 
