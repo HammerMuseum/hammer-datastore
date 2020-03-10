@@ -26,6 +26,8 @@ class AssetBankHarvester(HarvesterBase):
 
     playlist_user = 7
 
+    page_size = 10
+
     """
     The current location of the output.
     This may change during the run as directories are renamed.
@@ -46,7 +48,7 @@ class AssetBankHarvester(HarvesterBase):
             self.host, self.playlist_user)
 
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
-        self.harvest_uri = "{}/{}".format(self.host, 'rest/asset-search')
+        self.harvest_uri = "{}/{}?pageSize={}".format(self.host, 'rest/asset-search', self.page_size)
         self.asset_type = options['assetType']
         self.docs = []
         self.slugs = []
@@ -115,7 +117,7 @@ class AssetBankHarvester(HarvesterBase):
         # Begin the harvest run
         self.logger.info('Beginning Harvester run')
 
-        self.do_harvest()
+        self.do_harvest(0)
 
         self.logger.info('Ending Harvester run')
         self.logger.info('%i records harvested', self.records_processed)
@@ -181,14 +183,15 @@ class AssetBankHarvester(HarvesterBase):
         """
         self.write_summary()
 
-    def do_harvest(self):
+    def do_harvest(self, page_number):
         """
         Main harvesting function.
         """
-
+        print(page_number)
+        current_harvest_uri = '{}&page={}'.format(self.harvest_uri, page_number)
         # This will need updating to handle pagination.
         response = requests.get(
-            self.harvest_uri,
+            current_harvest_uri,
             headers={'Authorization': 'Bearer {}'.format(self.access_token)},
             params={'assetTypeId': self.asset_type},
         )
@@ -197,6 +200,8 @@ class AssetBankHarvester(HarvesterBase):
 
         self.logger.info('Found %i records' % len(assets))
 
+        if len(assets) < 1:
+            return False
         for asset in assets:
             if self.records_processed > self.max_items:
                 break
@@ -218,6 +223,10 @@ class AssetBankHarvester(HarvesterBase):
                 record_success = self.do_record_harvest(
                     json_record, identifier)
                 self.records_processed += 1
+                continue_harvest = self.do_harvest(page_number + 1)
+
+                if continue_harvest is False:
+                    return
                 if record_success:
                     self.records_succeeded += 1
                 else:
