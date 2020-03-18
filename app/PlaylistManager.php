@@ -64,7 +64,7 @@ class PlaylistManager
     /**
      * Build response array for a single playlist.
      */
-    public function get($id)
+    public function get($name)
     {
         $params = $this->searchManager->getDefaultParams();
         $params['search_params']['_source_includes'] = [
@@ -73,7 +73,10 @@ class PlaylistManager
             'title_slug',
             'thumbnail_url',
             'description',
-            'quote'
+            'quote',
+            'topics',
+            'tags',
+            'speakers',
         ];
         $params['search_params']['body'] =  [
             "query" => [
@@ -81,8 +84,8 @@ class PlaylistManager
                     "path" => "playlists",
                     "query" => [
                         "term" => [
-                            "playlists.id" => [
-                                "value" => $id
+                            "playlists.name" => [
+                                "value" => $name
                             ]
                         ]
                     ],
@@ -119,6 +122,9 @@ class PlaylistManager
                     'title_slug' => $source['title_slug'],
                     'description' => $source['description'],
                     'quote' => $source['quote'],
+                    'topics' => $source['topics'],
+                    'tags' => $source['tags'],
+                    'people' => $source['speakers'],
                     'position' => reset($playlists['fields']['playlists.position']),
                     'links' => [
                         'self' => [
@@ -133,7 +139,7 @@ class PlaylistManager
             });
 
             $response['videos'] = $playlists;
-            $response['links'] = ['self' => ['href' => config('app.url') . '/api/playlists/' . $id]];
+            $response['links'] = ['self' => ['href' => config('app.url') . '/api/playlists/' . $name]];
         }
 
         $result['result'] = $response;

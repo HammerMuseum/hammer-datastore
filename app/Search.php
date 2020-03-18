@@ -121,6 +121,8 @@ class Search
                 'pages' => $links
             ];
         } catch (\Throwable $th) {
+            echo $th->getMessage();
+            die;
             abort($th->getCode());
         }
     }
@@ -257,6 +259,12 @@ class Search
             'topics' => [
                 'terms' => [
                     'field' => 'topics',
+                    'size' => 10000
+                ]
+            ],
+            'tags' => [
+                'terms' => [
+                    'field' => 'tags',
                     'size' => 10000
                 ]
             ]
@@ -466,5 +474,6 @@ class Search
         'in_playlists' => 'playlist',
         'speakers' => 'people',
         'topics' => 'topics',
+        'tags' => 'tags',
     ];
 }
