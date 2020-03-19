@@ -121,8 +121,6 @@ class Search
                 'pages' => $links
             ];
         } catch (\Throwable $th) {
-            echo $th->getMessage();
-            die;
             abort($th->getCode());
         }
     }
