@@ -259,6 +259,12 @@ class Search
                     'field' => 'topics',
                     'size' => 10000
                 ]
+            ],
+            'tags' => [
+                'terms' => [
+                    'field' => 'tags',
+                    'size' => 10000
+                ]
             ]
         ];
     }
@@ -466,5 +472,6 @@ class Search
         'in_playlists' => 'playlist',
         'speakers' => 'people',
         'topics' => 'topics',
+        'tags' => 'tags',
     ];
 }
