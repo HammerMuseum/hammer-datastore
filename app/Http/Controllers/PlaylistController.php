@@ -34,12 +34,12 @@ class PlaylistController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  string  $name
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($name)
     {
-        $result = $this->playlistManager->get($id);
+        $result = $this->playlistManager->get($name);
         if ($result) {
             return response()->json([
                 'success' => true,
