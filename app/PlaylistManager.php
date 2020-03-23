@@ -73,6 +73,7 @@ class PlaylistManager
             'title_slug',
             'thumbnail_url',
             'description',
+            'duration',
             'quote',
             'topics',
             'tags',
@@ -125,6 +126,7 @@ class PlaylistManager
                     'topics' => $source['topics'],
                     'tags' => $source['tags'],
                     'people' => $source['speakers'],
+                    'duration' => $source['duration'],
                     'position' => reset($playlists['fields']['playlists.position']),
                     'links' => [
                         'self' => [
