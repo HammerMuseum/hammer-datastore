@@ -4,6 +4,7 @@ namespace App;
 
 use Elasticsearch\ClientBuilder;
 use Elasticsearch\Client;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class Search.
@@ -121,7 +122,8 @@ class Search
                 'pages' => $links
             ];
         } catch (\Throwable $th) {
-            abort($th->getCode());
+            Log::critical('Elasticsearch failed to respond.', ['message', $th->getMessage()]);
+            abort(503);
         }
     }
 
