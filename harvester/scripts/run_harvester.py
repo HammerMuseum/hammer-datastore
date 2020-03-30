@@ -23,7 +23,7 @@ parser.add_argument('--submit', action='store_true',
 parser.add_argument('--data-dir', dest='data_path', type=str,
                     help='If set, will not run a harvest, \
                         will use most recently harvested data at supplied path. \
-                        If no data found will exit.')
+                        If no data found, will exit.')
 
 parser.add_argument('--search-domain', type=str,
                     help='The URL of the search index to populate. Required when using --submit.', dest='search_host')
@@ -62,6 +62,8 @@ if args.data_path:
     else:
         print('\nError: No harvested data found."\n')
         exit(1)
+else:
+    data_path = None
 
 if args.submit:
     if not args.search_host:
@@ -85,7 +87,7 @@ if __name__ == '__main__':
     logger.addHandler(fh)
 
     try:
-        if not data_path:
+        if data_path is None:
             harvester = AssetBankHarvester(args.url, options)
             harvester.output_base = '../data'
             harvester.output_prefix = 'assetbank'
