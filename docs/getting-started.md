@@ -62,7 +62,7 @@ To run a harvest and submit documents to Elasticsearch.
 
 ```
 cd harvester/scripts
-PYTHONPATH=../. python run_harvester.py https://hammer.assetbank-server.com/assetbank-hammer10/rest/asset-search 1 --submit --search-domain=http://localhost --port=9201 --scheme=http
+PYTHONPATH=../. python run_harvester.py https://hammer.assetbank-server.com/assetbank-hammer/rest/asset-search 1 --submit --search-domain=http://localhost --port=9201 --scheme=http
 ```
 
 Further Harvester setup docs are in the readme.md within the harvester directory.
