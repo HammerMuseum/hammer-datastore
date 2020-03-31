@@ -6,7 +6,7 @@ use App\PlaylistManager;
 
 class PlaylistController extends Controller
 {
-    /** @var Playlist */
+    /** @var PlaylistManager */
     protected $playlistManager;
 
     /**
