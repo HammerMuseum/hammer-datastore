@@ -11,7 +11,7 @@ use App\Search;
 class PlaylistManager
 {
     /**
-     * Search manager implementation.
+     * Playlist manager implementation.
      *
      * @var Search
      */

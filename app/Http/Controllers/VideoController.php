@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Resources\VideoCollection;
 use App\Search;
+use App\VideoManager;
 
 /**
  * Class VideoController
@@ -15,14 +15,16 @@ class VideoController extends Controller
     /** @var Search */
     protected $search;
 
+    /** @var VideoManager */
+    protected $videoManager;
+
     /**
-     * SearchController constructor.
-     * @param Search $search
+     * Playlist constructor.
      */
-    public function __construct(
-        Search $search
-    ) {
+    public function __construct(Search $search, VideoManager $videoManager)
+    {
         $this->search = $search;
+        $this->videoManager = $videoManager;
     }
 
     /**
@@ -35,7 +37,7 @@ class VideoController extends Controller
     public function getVideo(Request $request, $id)
     {
         try {
-            $result = $this->search->term(['title_slug' => $id]);
+            $result = $this->videoManager->get($id);
             if ($result && count($result['result']) > 0) {
                 return response()->json([
                     'success' => true,
@@ -119,7 +121,7 @@ class VideoController extends Controller
     public function getAllVideos(Request $request)
     {
         $requestParams = $request->all();
-        $items = $this->search->matchAll($requestParams);
+        $items = $this->videoManager->getAll($requestParams);
         $result = collect(
             $items
         );
