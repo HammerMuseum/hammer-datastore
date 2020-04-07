@@ -318,7 +318,7 @@ class AssetBankHarvester(HarvesterBase):
         # Get some non-attribute
         output['video_url'] = root.xpath('//asset/contentUrl/text()')[0]
         output['thumbnail_url'] = root.xpath(
-            '//asset/thumbnailUrl/text()')[0]
+            '//asset/previewUrl/text()')[0]
 
         return output
 
