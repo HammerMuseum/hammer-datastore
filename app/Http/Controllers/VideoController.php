@@ -59,8 +59,8 @@ class VideoController extends Controller
                 'data' => [],
                 'pages' => [],
                 'aggregations' => [],
-                'message' => 'Video not found.'
-            ], 404);
+                'message' => 'An error has occured.'
+            ], 503);
         }
     }
 
@@ -81,7 +81,7 @@ class VideoController extends Controller
                 'message' => 'Requested format is not a valid option.'
             ], 400);
         }
-        
+
         $field = 'transcription';
         if ($format === 'json') {
             $field = 'transcription_json';

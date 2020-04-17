@@ -35,7 +35,7 @@ class VideoManager
         }, $response['result']);
         return $response;
     }
-    
+
     /**
      * Build response array for a single video.
      */
