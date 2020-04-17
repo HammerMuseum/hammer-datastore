@@ -38,6 +38,7 @@ setup(
         'tqdm',
         'dateparser',
         'elasticsearch',
-        'python-dotenv'
+        'python-dotenv',
+        'requests',
     ]
 )
