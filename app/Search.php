@@ -147,7 +147,8 @@ class Search
           'tags',
           'speakers',
           'term',
-          'in_playlists'
+          'in_playlists',
+          'date_recorded'
         ];
         $termSearched = array_intersect($searchableFields, array_keys($requestParams));
 
@@ -463,7 +464,7 @@ class Search
     {
         return ((int)$pageParam - 1) * $this->pageSize;
     }
-    
+
     /**
      * Array of allowed aggregation options.
      *
