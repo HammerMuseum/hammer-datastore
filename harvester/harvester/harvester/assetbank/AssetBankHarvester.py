@@ -188,11 +188,11 @@ class AssetBankHarvester(HarvesterBase):
         Main harvesting function.
         """
         current_harvest_uri = '{}'.format(self.harvest_uri)
-        
+
         response = requests.get(
             current_harvest_uri,
             headers={'Authorization': 'Bearer {}'.format(self.access_token)},
-            params={'assetTypeId': self.asset_type, 'pageSize': self.page_size, 'page': page_number},
+            params={'approvalStatuses': 'full', 'assetTypeId': self.asset_type, 'pageSize': self.page_size, 'page': page_number},
         )
         root = etree.fromstring(response.content)
         assets = root.xpath('//assetSummary')
