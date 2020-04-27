@@ -214,7 +214,7 @@ class AssetBankHarvester(HarvesterBase):
             response = requests.get(asset_url)
             record = response.content
 
-            try
+            try:
                 json_record = self.get_record_fields(record, identifier)
             except Exception as error:
                 self.logger.info('Failed to retrieve metadata %s: %s', identifier, error)
