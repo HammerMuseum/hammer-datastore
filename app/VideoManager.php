@@ -53,15 +53,21 @@ class VideoManager
     }
 
     /**
-     * Helper to fetch playback URL for an asset.
+     * Helper to fetch the S3 playback URL for an asset.
      *
      * @param string $contentUrl
      * @return \Psr\Http\Message\StreamInterface
      */
     public function getPlaybackUrl($contentUrl)
     {
-        $client = new Client();
-        $response = $client->request('GET', $contentUrl);
+        try {
+            $client = new Client();
+            $response = $client->request('GET', $contentUrl);
+        } catch (GuzzleHttp\Exception\ClientException $e) {
+            Log::error('Failed to get playback URL', ['message', $th->getMessage()]);
+            abort(503);
+        }
+
         return $response->getBody()->getContents();
     }
 }
