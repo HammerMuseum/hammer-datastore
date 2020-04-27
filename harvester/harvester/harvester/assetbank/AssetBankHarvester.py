@@ -214,7 +214,12 @@ class AssetBankHarvester(HarvesterBase):
             response = requests.get(asset_url)
             record = response.content
 
-            json_record = self.get_record_fields(record, identifier)
+            try
+                json_record = self.get_record_fields(record, identifier)
+            except Exception as error:
+                self.logger.info('Failed to retrieve metadata %s: %s', identifier, error)
+                self.records_failed += 1
+                continue
 
             self.add_playlist_metadata(json_record, identifier)
 
@@ -281,7 +286,7 @@ class AssetBankHarvester(HarvesterBase):
             'asset_id': 'assetId',
             'title': 'Title',
             'description': 'Description',
-            'date_recorded': 'Date Created',
+            'date_recorded': 'Date',
             'duration': 'Duration',
             'tags': 'Tags',
             'transcription': 'Transcription ID',
@@ -292,28 +297,22 @@ class AssetBankHarvester(HarvesterBase):
         }
 
         output = {}
-        try:
-            root = etree.fromstring(record)
-            for key, value in attributes.items():
-                field = 'name'
-                query = '//attributes/attribute[{}[contains(text(), "{}")]]/value/text()'.format(
-                    field, value)
-                attribute_value = root.xpath(query)
-                if len(attribute_value):
-                    output[key] = str(attribute_value[0])
-                else:
-                    output[key] = ""
+        root = etree.fromstring(record)
+        for key, value in attributes.items():
+            field = 'name'
+            query = '//attributes/attribute[{}[contains(text(), "{}")]]/value/text()'.format(
+                field, value)
+            attribute_value = root.xpath(query)
+            if len(attribute_value):
+                output[key] = str(attribute_value[0])
+            else:
+                output[key] = ""
 
-            # @todo move to validate_record method
-            date = output['date_recorded'] or '01/01/2000 00:00:00'
-            output['date_recorded'] = datetime.datetime.strptime(
-                date, '%d/%m/%Y %H:%M:%S').isoformat()
+        date = output['date_recorded']
+        output['date_recorded'] = datetime.datetime.strptime(
+            date, '%d/%m/%Y %H:%M:%S').isoformat()
 
-            output['asset_id'] = int(output['asset_id'])
-
-        except Exception as error:
-            self.logger.info(
-                'Failed to retrieve asset %s: %s', identifier, error)
+        output['asset_id'] = int(output['asset_id'])
 
         # Get some non-attribute
         output['video_url'] = root.xpath('//asset/contentUrl/text()')[0]
