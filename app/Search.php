@@ -66,7 +66,7 @@ class Search
     {
         return [
             'search_params' => [
-                '_source_excludes' => ['transcription', 'transcription_json'],
+                '_source_excludes' => ['transcription*'],
                 'size' => $this->pageSize,
                 'index' => config('app.es_index')
             ]
@@ -174,7 +174,7 @@ class Search
                             'fields' => [
                                 'title^2',
                                 'description',
-                                'transcription',
+                                'transcription_txt',
                                 'tags',
                                 'speakers',
                                 'topics',

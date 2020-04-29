@@ -59,6 +59,23 @@ class TranscriptionProcessor():
             self.harvester.logger.warning(
                 'Error {} while fetching JSON transcription'.format(error.response.status_code))
 
+    def get_transcript_text(self, location):
+        """
+        Fetches a plain text transcription.
+        """
+        url = "https://api.trint.com/export/text/{}".format(location)
+        try:
+            response = requests.get(url, headers=self.headers)
+            response.raise_for_status()
+            response_json = response.json()
+            url = response_json['url']
+            response = requests.get(url)
+            response.raise_for_status()
+            return response.text
+        except HTTPError as error:
+            self.harvester.logger.warning(
+                'Error {} while fetching plain text transcription'.format(error.response.status_code))
+
     def process(self, row):
         """
         Processes each row of the input.
@@ -69,8 +86,9 @@ class TranscriptionProcessor():
                 continue
             try:
                 self.harvester.logger.debug('Processing a {!s}'.format(field))
-                row[field] = self.get_transcript_vtt(value)
+                row["{}_vtt".format(field)] = self.get_transcript_vtt(value)
                 row["{}_json".format(field)] = self.get_transcript_json(value)
+                row["{}_txt".format(field)] = self.get_transcript_text(value)
             except HTTPError as error:
                 self.harvester.logger.warning(
                     'Error {} file not found'.format(error.response.status_code))

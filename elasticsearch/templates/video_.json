@@ -51,9 +51,13 @@
         "title_slug": {
           "type": "keyword"
         },
-        "transcription": {
+        "transcription_txt": {
           "type": "text",
           "analyzer": "english"
+        },
+        "transcription_vtt": {
+          "type": "text",
+          "index": false
         },
         "transcription_json": {
           "type": "object",

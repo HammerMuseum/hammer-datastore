@@ -74,17 +74,13 @@ class VideoController extends Controller
         // Other formats can be requested via this parameter
         // if available.
         $format = $request->query('format');
-        $allowed_formats = ['json', 'vtt'];
-        if (!in_array($format, $allowed_formats)) {
+        if (!in_array($format, ['json', 'vtt'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Requested format is not a valid option.'
             ], 400);
-        }
-
-        $field = 'transcription';
-        if ($format === 'json') {
-            $field = 'transcription_json';
+        } else {
+            $field = 'transcription_' . $format;
         }
 
         try {
