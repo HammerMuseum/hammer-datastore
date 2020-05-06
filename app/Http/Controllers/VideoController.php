@@ -76,7 +76,7 @@ class VideoController extends Controller
                     if ($format === 'vtt') {
                         $response = response($doc[$field], 200);
                         $response->header('Content-Type', 'text/vtt');
-                    } else if ($format === 'txt') {
+                    } elseif ($format === 'txt') {
                         $response = response($doc[$field], 200);
                         $response->header('Content-Type', 'text/plain');
                     } else {
