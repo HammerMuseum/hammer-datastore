@@ -106,7 +106,7 @@ class PlaylistManager
                 ]
             ]
         ];
-        
+
         $result = $this->searchManager->search($params);
         $response = [];
         $hits = $result['result'];
