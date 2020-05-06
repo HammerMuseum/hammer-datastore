@@ -53,7 +53,7 @@ class PlaylistManager
                 'name' => $playlist['key']['playlist_name'],
                 'links' => [
                     'self' => [
-                        'href' => config('app.url') . '/api/playlists/' . $playlist['key']['playlist_id'],
+                        'href' => config('app.url') . '/api/playlists/' . $playlist['key']['playlist_name'],
                     ],
                 ],
             ];
@@ -71,7 +71,7 @@ class PlaylistManager
             'asset_id',
             'title',
             'title_slug',
-            'thumbnail_url',
+            'thumbnailId',
             'description',
             'duration',
             'quote',
@@ -118,7 +118,6 @@ class PlaylistManager
                 $source = $el['_source'];
                 return [
                     'title' => $source['title'],
-                    'thumbnail_url' => $source['thumbnail_url'],
                     'thumbnailId' => $source['thumbnailId'],
                     'asset_id' => $source['asset_id'],
                     'title_slug' => $source['title_slug'],
@@ -131,7 +130,7 @@ class PlaylistManager
                     'position' => reset($playlists['fields']['playlists.position']),
                     'links' => [
                         'self' => [
-                            'href' => config('app.url') . '/api/videos/' . $source['title_slug'],
+                            'href' => config('app.url') . '/api/videos/' . $source['asset_id'],
                         ]
                     ],
                 ];
