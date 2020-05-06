@@ -29,24 +29,31 @@ class VideoManager
     public function getAll($params)
     {
         $response = $this->searchManager->matchAll($params);
-        $response['result'] = array_map(function ($item) {
-            $item['links'] = ['self' => ['href' => config('app.url') . '/api/videos/' . $item['title_slug']]];
+        $collection = collect($response['result'])->map(function ($item) {
+            unset($item['video_url']);
+            $item['links'] = ['self' => ['href' => config('app.url') . '/api/videos/' . $item['asset_id']]];
             return $item;
-        }, $response['result']);
+        });
+        $response['result'] = $collection;
         return $response;
     }
 
     /**
-     * Build response array for a single video.
+     * Returns the response array for a single video.
+     *
+     * If you need to perform any transformations on the
+     * output you can apply them here.
      */
     public function get($id)
     {
-        $response = $this->searchManager->term(['title_slug' => $id]);
+        $response = $this->searchManager->term(['asset_id' => $id]);
         if (!empty($response)) {
-            // Get video URL
-            $contentUrl = $response['result'][0]['video_url'] . '/url';
-            $playbackUrl = $this->getPlaybackUrl($contentUrl);
-            $response['result'][0]['src'] = $playbackUrl;
+            $collection = collect($response['result'])->map(function ($item) {
+                $item['src'] = $this->getVideoSrc($item['video_url'] . '/url');
+                unset($item['video_url']);
+                return $item;
+            });
+            $response['result'] = $collection;
             $response['links'] = ['self' => ['href' => config('app.url') . '/api/videos/' . $id]];
         }
         return $response;
@@ -58,7 +65,7 @@ class VideoManager
      * @param string $contentUrl
      * @return \Psr\Http\Message\StreamInterface
      */
-    public function getPlaybackUrl($contentUrl)
+    public function getVideoSrc($contentUrl)
     {
         try {
             $client = new Client();

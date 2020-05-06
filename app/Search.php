@@ -445,7 +445,15 @@ class Search
                         'top_hits' => [
                             'sort' => [['date_recorded' => ['order' => 'desc']]],
                             'size' => 6,
-                            '_source' => ['title', 'thumbnailId', 'title_slug', 'duration', 'description']
+                            '_source' => [
+                                'title',
+                                'thumbnailId',
+                                'thumbnail_url',
+                                'title_slug',
+                                'asset_id',
+                                'duration',
+                                'description'
+                            ]
                         ]
                     ]
                 ]

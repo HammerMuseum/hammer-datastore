@@ -36,32 +36,18 @@ class VideoController extends Controller
      */
     public function show(Request $request, $id)
     {
-        try {
-            $result = $this->videoManager->get($id);
-            if ($result && count($result['result']) > 0) {
-                return response()->json([
-                    'success' => true,
-                    'data' => $result['result'],
-                    'pages' => $result['pages'],
-                    'aggregations' => $result['aggregations'],
-                ], 200);
-            }
+        $response = $this->videoManager->get($id);
+        if ($response['result']->count()) {
             return response()->json([
-                'success' => false,
-                'data' => false,
-                'pages' => [],
-                'aggregations' => [],
-                'message' => 'Video not found.'
-            ], 404);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'data' => [],
-                'pages' => [],
-                'aggregations' => [],
-                'message' => 'An error has occured.'
-            ], 503);
+                'success' => true,
+                'data' => $response['result']
+            ], 200);
         }
+        return response()->json([
+            'success' => false,
+            'data' => false,
+            'message' => 'Video not found.'
+        ], 404);
     }
 
     /**
@@ -90,7 +76,7 @@ class VideoController extends Controller
                     if ($format === 'vtt') {
                         $response = response($doc[$field], 200);
                         $response->header('Content-Type', 'text/vtt');
-                    } else if ($format === 'txt') {
+                    } elseif ($format === 'txt') {
                         $response = response($doc[$field], 200);
                         $response->header('Content-Type', 'text/plain');
                     } else {
@@ -120,25 +106,21 @@ class VideoController extends Controller
     public function index(Request $request)
     {
         $requestParams = $request->all();
-        $items = $this->videoManager->getAll($requestParams);
-        $result = collect(
-            $items
-        );
-        $count = $result->count();
-        if ($count > 0) {
+        $response = $this->videoManager->getAll($requestParams);
+        if ($response['result']->count()) {
             return response()->json([
                 'success' => true,
-                'data' => $result['result'],
-                'pages' => $result['pages'],
-                'aggregations' => $result['aggregations'],
+                'data' => $response['result']->all(),
+                'pages' => $response['pages'],
+                'aggregations' => $response['aggregations'],
             ], 200);
         }
         return response()->json([
             'success' => false,
-            'message' => 'No video resources found.',
+            'message' => 'No items found.',
             'pages' => [],
             'aggregations' => [],
             'data' => []
-        ], 404);
+        ], 200);
     }
 }
