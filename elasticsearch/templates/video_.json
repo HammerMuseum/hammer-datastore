@@ -41,6 +41,9 @@
         "speakers": {
           "type": "keyword"
         },
+        "thumbnailId": {
+          "type": "keyword"
+        },
         "thumbnail_url": {
           "type": "keyword"
         },

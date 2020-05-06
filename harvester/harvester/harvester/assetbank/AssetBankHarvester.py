@@ -1,6 +1,7 @@
 import os
 import logging
 import datetime
+import re
 from pathlib import Path
 import json
 import yaml
@@ -314,10 +315,13 @@ class AssetBankHarvester(HarvesterBase):
 
         output['asset_id'] = int(output['asset_id'])
 
-        # Get some non-attribute
+        # Get some non-attribute properties.
         output['video_url'] = root.xpath('//asset/contentUrl/text()')[0]
         output['thumbnail_url'] = root.xpath(
             '//asset/previewUrl/text()')[0]
+        thumbnailId = re.match(
+            ".*file=([a-z\d]+)\.jpg", output['thumbnail_url']).group(1)
+        output['thumbnailId'] = thumbnailId
 
         return output
 
