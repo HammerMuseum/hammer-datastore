@@ -34,7 +34,7 @@ class VideoController extends Controller
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getVideo(Request $request, $id)
+    public function show(Request $request, $id)
     {
         try {
             $result = $this->videoManager->get($id);
@@ -68,13 +68,13 @@ class VideoController extends Controller
      * @param $id
      * @return array|bool
      */
-    public function getVideoTranscript(Request $request, $id)
+    public function showTranscript(Request $request, $id)
     {
         // Default is to return value of transcription field.
         // Other formats can be requested via this parameter
         // if available.
         $format = $request->query('format');
-        if (!in_array($format, ['json', 'vtt'])) {
+        if (!in_array($format, ['json', 'vtt', 'txt'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Requested format is not a valid option.'
@@ -90,6 +90,9 @@ class VideoController extends Controller
                     if ($format === 'vtt') {
                         $response = response($doc[$field], 200);
                         $response->header('Content-Type', 'text/vtt');
+                    } else if ($format === 'txt') {
+                        $response = response($doc[$field], 200);
+                        $response->header('Content-Type', 'text/plain');
                     } else {
                         return response()->json([
                             'success' => true,
@@ -114,7 +117,7 @@ class VideoController extends Controller
     /**
      * Get all videos.
      */
-    public function getAllVideos(Request $request)
+    public function index(Request $request)
     {
         $requestParams = $request->all();
         $items = $this->videoManager->getAll($requestParams);
