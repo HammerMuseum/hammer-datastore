@@ -29,10 +29,12 @@ class VideoManager
     public function getAll($params)
     {
         $response = $this->searchManager->matchAll($params);
-        $response['result'] = array_map(function ($item) {
+        $collection = collect($response['result'])->map(function ($item) {
+            unset($item['video_url']);
             $item['links'] = ['self' => ['href' => config('app.url') . '/api/videos/' . $item['asset_id']]];
             return $item;
-        }, $response['result']);
+        });
+        $response['result'] = $collection;
         return $response;
     }
 
@@ -46,9 +48,12 @@ class VideoManager
     {
         $response = $this->searchManager->term(['asset_id' => $id]);
         if (!empty($response)) {
-            $result = $response['result'][0];
-            $result['src'] = $this->getPlaybackUrl($result['video_url'] . '/url');
-            $response['result'][0] = $result;
+            $collection = collect($response['result'])->map(function ($item) {
+                $item['src'] = $this->getVideoSrc($item['video_url'] . '/url');
+                unset($item['video_url']);
+                return $item;
+            });
+            $response['result'] = $collection;
             $response['links'] = ['self' => ['href' => config('app.url') . '/api/videos/' . $id]];
         }
         return $response;
@@ -60,7 +65,7 @@ class VideoManager
      * @param string $contentUrl
      * @return \Psr\Http\Message\StreamInterface
      */
-    public function getPlaybackUrl($contentUrl)
+    public function getVideoSrc($contentUrl)
     {
         try {
             $client = new Client();
