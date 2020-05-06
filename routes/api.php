@@ -34,3 +34,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 });
 
 Route::post('login', ['as' => 'login', 'uses' => 'Auth\LoginController@login'])->name('login');
+
+Route::fallback(function () {
+    return response()->json(['message' => 'Not found'], 404);
+})->name('api.fallback.404');
