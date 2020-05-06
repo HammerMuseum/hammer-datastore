@@ -11,7 +11,7 @@ use App\Search;
 class PlaylistManager
 {
     /**
-     * Playlist manager implementation.
+     * Search manager implementation.
      *
      * @var Search
      */
@@ -106,7 +106,7 @@ class PlaylistManager
                 ]
             ]
         ];
-        
+
         $result = $this->searchManager->search($params);
         $response = [];
         $hits = $result['result'];
@@ -119,6 +119,7 @@ class PlaylistManager
                 return [
                     'title' => $source['title'],
                     'thumbnail_url' => $source['thumbnail_url'],
+                    'thumbnailId' => $source['thumbnailId'],
                     'asset_id' => $source['asset_id'],
                     'title_slug' => $source['title_slug'],
                     'description' => $source['description'],
