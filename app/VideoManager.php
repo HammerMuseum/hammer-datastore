@@ -4,6 +4,10 @@ namespace App;
 
 use App\Search;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class VideoManager.
@@ -70,11 +74,10 @@ class VideoManager
         try {
             $client = new Client();
             $response = $client->request('GET', $contentUrl);
-        } catch (GuzzleHttp\Exception\ClientException $e) {
-            Log::error('Failed to get playback URL', ['message', $th->getMessage()]);
-            abort(503);
+            return $response->getBody()->getContents();
+        } catch (ClientException $e) {
+            Log::error('Failed to get playback URL', ['message', $e->getMessage()]);
+            return "";
         }
-
-        return $response->getBody()->getContents();
     }
 }
