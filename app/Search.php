@@ -185,6 +185,20 @@ class Search
             ]
         ];
 
+        $params['search_params']['body']['highlight'] = [
+            'number_of_fragments' => 1,
+            'fragment_size' => 150,
+            'fields' => [
+                'title' => [
+                    'number_of_fragments' => 0,
+                ],
+                'description' => new \stdClass(),
+                'transcription_txt' => [
+                    'order' => 'score',
+                ],
+            ],
+        ];
+
         $params = $this->addAdditionalParams($requestParams, $params);
         $result = $this->search($params);
         $result['result'] = $this->getHitSource($result['result']);
@@ -425,7 +439,11 @@ class Search
     protected function getHitSource($hits)
     {
         return array_map(function ($hit) {
-            return $hit['_source'];
+            $source = $hit['_source'];
+            if (isset($hit['highlight'])) {
+                $source['snippets'] = $hit['highlight'];
+            }
+            return $source;
         }, $hits);
     }
 
