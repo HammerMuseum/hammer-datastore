@@ -13,7 +13,13 @@
         },
         "description": {
           "type": "text",
-          "analyzer": "english"
+          "analyzer": "english",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
         },
         "in_playlists": {
           "type": "keyword"
@@ -49,14 +55,29 @@
         },
         "title": {
           "type": "text",
-          "analyzer": "english"
+          "analyzer": "english",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
         },
         "title_slug": {
           "type": "keyword"
         },
+        "transcription": {
+          "type": "keyword"
+        },
         "transcription_txt": {
           "type": "text",
-          "analyzer": "english"
+          "analyzer": "english",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
         },
         "transcription_vtt": {
           "type": "text",
