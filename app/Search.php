@@ -188,6 +188,8 @@ class Search
         $params['search_params']['body']['highlight'] = [
             'number_of_fragments' => 1,
             'fragment_size' => 150,
+            'pre_tags' => '<span class="ui-card__highlight">',
+            'post_tags' => '</span>',
             'fields' => [
                 'title' => [
                     'number_of_fragments' => 0,
