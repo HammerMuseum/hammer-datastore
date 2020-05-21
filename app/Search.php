@@ -160,10 +160,6 @@ class Search
         $params = $this->getDefaultParams();
         $params += $requestParams;
 
-        if (isset($requestParams['start'])) {
-            $params['search_params']['from'] = $requestParams['start'];
-        }
-
         $clause = isset($requestParams['term']) ? 'must' : 'should';
         $params['search_params']['body'] = [
             'query' => [
@@ -221,6 +217,9 @@ class Search
      */
     public function addAdditionalParams($requestParams, $params)
     {
+        if (isset($requestParams['page'])) {
+            $params['search_params']['from'] = $this->getPager($requestParams['page']);
+        }
         $params['search_params']['body'] += $this->addSortOptions($requestParams);
         $params['search_params']['body']['aggs'] = $this->addAggregationOptions();
         $params = $this->addFilterOptions($requestParams, $params);
@@ -464,7 +463,7 @@ class Search
                     'by_topic' => [
                         'top_hits' => [
                             'sort' => [['date_recorded' => ['order' => 'desc']]],
-                            'size' => 6,
+                            'size' => 10,
                             '_source' => [
                                 'title',
                                 'thumbnailId',
