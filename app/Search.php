@@ -15,10 +15,40 @@ class Search
     /**
      * @var Client
      */
-    protected $client;
+    private $client;
 
     /** @var int */
-    protected $pageSize = 12;
+    private $pageSize = 12;
+
+    /**
+     * List of valid aggregation fields and linked request parameter name.
+     *
+     * @var array
+     */
+    private $aggregationMap = [
+        'date_recorded' => 'date',
+        'in_playlists' => 'playlist',
+        'speakers' => 'people',
+        'topics' => 'topics',
+        'tags' => 'tags',
+    ];
+
+    /**
+     * List of fields that can be queried by text.
+     *
+     * @var array
+     */
+    private $searchableFields = [
+        'topics',
+        'title',
+        'description',
+        'transcription',
+        'tags',
+        'speakers',
+        'term',
+        'in_playlists',
+        'date_recorded'
+    ];
 
     /**
      * Search constructor.
@@ -31,7 +61,7 @@ class Search
     /**
      * Create a client instance.
      */
-    public function createClient()
+    private function createClient()
     {
         $params = [
             'hosts' => [
@@ -46,7 +76,7 @@ class Search
      * @param Client $client
      * @return Client
      */
-    public function setClient(Client $client)
+    private function setClient(Client $client)
     {
         return $this->client = $client;
     }
@@ -62,7 +92,7 @@ class Search
     /**
      * @return array
      */
-    public function getDefaultParams()
+    private function getDefaultParams()
     {
         return [
             'search_params' => [
@@ -138,19 +168,7 @@ class Search
      */
     public function match($requestParams = [])
     {
-        // Check if any of the searchable fields are present in the incoming request
-        $searchableFields = [
-          'topics',
-          'title',
-          'description',
-          'transcription',
-          'tags',
-          'speakers',
-          'term',
-          'in_playlists',
-          'date_recorded'
-        ];
-        $termSearched = array_intersect($searchableFields, array_keys($requestParams));
+        $termSearched = array_intersect($this->searchableFields, array_keys($requestParams));
 
         // If there was no searchable fields, search everything
         if (empty($requestParams) || empty($termSearched)) {
@@ -215,7 +233,7 @@ class Search
      *
      * @return mixed
      */
-    public function addAdditionalParams($requestParams, $params)
+    private function addAdditionalParams($requestParams, $params)
     {
         if (isset($requestParams['page'])) {
             $params['search_params']['from'] = $this->getPager($requestParams['page']);
@@ -232,7 +250,7 @@ class Search
      * @param $requestParams
      * @return array
      */
-    public function addSortOptions($requestParams)
+    private function addSortOptions($requestParams)
     {
         $sortOptions = [];
         // Apply a user selected sort
@@ -251,7 +269,7 @@ class Search
     /**
      * Adds aggregations options.
      */
-    public function addAggregationOptions()
+    private function addAggregationOptions()
     {
         return [
             'date_recorded' => [
@@ -292,7 +310,7 @@ class Search
      *
      * @return array
      */
-    public function getGlobalAggregationOptions()
+    private function getGlobalAggregationOptions()
     {
         return [
             'aggs' => [
@@ -487,21 +505,8 @@ class Search
      *
      * @return float|int
      */
-    public function getPager($pageParam)
+    private function getPager($pageParam)
     {
         return ((int)$pageParam - 1) * $this->pageSize;
     }
-
-    /**
-     * Array of allowed aggregation options.
-     *
-     * @var array
-     */
-    protected $aggregationMap = [
-        'date_recorded' => 'date',
-        'in_playlists' => 'playlist',
-        'speakers' => 'people',
-        'topics' => 'topics',
-        'tags' => 'tags',
-    ];
 }
