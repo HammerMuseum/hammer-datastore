@@ -66,8 +66,22 @@ class SearchController extends Controller
         return response()->json([
             'success' => true,
             'data' => $results['result'],
-            'pages' => [],
             'aggregations' => $results['aggregations'],
+            'message' => false
+        ], 200);
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
+    public function aggregate(Request $request, $term)
+    {
+        $results = $this->search->aggregateByterm($term);
+        return response()->json([
+            'success' => true,
+            'data' => $results['result'],
             'message' => false
         ], 200);
     }

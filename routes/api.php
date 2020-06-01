@@ -25,7 +25,8 @@ Route::get('videos/{id}/transcript', 'VideoController@showTranscript');
 Route::get('playlists', 'PlaylistController@index');
 Route::get('playlists/{name}', 'PlaylistController@show');
 Route::get('search', 'SearchController@search');
-Route::get('term', 'SearchController@term');
+Route::get('search/term', 'SearchController@term');
+Route::get('search/aggregate/{term}', 'SearchController@aggregate');
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::post('videos', 'ApiController@create');
