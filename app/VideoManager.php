@@ -76,7 +76,15 @@ class VideoManager
         $document = $response['result']->first();
         $params = $this->searchManager->getDefaultParams();
         $params['search_params']['size'] = 6;
-        $params['search_params']['_source_includes'] = ['asset_id', 'description', 'title', 'title_slug', 'thumbnailId', 'duration', 'date_recorded'];
+        $params['search_params']['_source_includes'] = [
+            'asset_id',
+            'description',
+            'title',
+            'title_slug',
+            'thumbnailId',
+            'duration',
+            'date_recorded'
+        ];
         $params['search_params']['body']['query'] = [
             'more_like_this' => [
                 'fields' => ['speakers','tags','topics'],
