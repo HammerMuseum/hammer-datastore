@@ -51,6 +51,29 @@ class VideoController extends Controller
     }
 
     /**
+     * Get a video by its asset ID
+     *
+     * @param Request $request
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function showRelated(Request $request, $id)
+    {
+        $response = $this->videoManager->getRelated($id);
+        if ($response['result']->count()) {
+            return response()->json([
+                'success' => true,
+                'data' => $response['result']
+            ], 200);
+        }
+        return response()->json([
+            'success' => false,
+            'data' => false,
+            'message' => 'Video not found.'
+        ], 404);
+    }
+
+    /**
      * @param $id
      * @return array|bool
      */

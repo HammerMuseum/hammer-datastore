@@ -22,10 +22,12 @@ use Illuminate\Http\Request;
 Route::get('videos', 'VideoController@index');
 Route::get('videos/{id}', 'VideoController@show');
 Route::get('videos/{id}/transcript', 'VideoController@showTranscript');
+Route::get('videos/{id}/related', 'VideoController@showRelated');
 Route::get('playlists', 'PlaylistController@index');
 Route::get('playlists/{name}', 'PlaylistController@show');
 Route::get('search', 'SearchController@search');
-Route::get('term', 'SearchController@term');
+Route::get('search/term', 'SearchController@term');
+Route::get('search/aggregate/{term}', 'SearchController@aggregate');
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::post('videos', 'ApiController@create');

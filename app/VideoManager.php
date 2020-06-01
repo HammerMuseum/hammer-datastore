@@ -51,10 +51,54 @@ class VideoManager
     public function get($id)
     {
         $response = $this->searchManager->term(['asset_id' => $id]);
-        if (!empty($response)) {
+        if (!empty($response['result'])) {
             $collection = collect($response['result'])->map(function ($item) {
                 $item['src'] = $this->getVideoSrc($item['video_url'] . '/url');
                 unset($item['video_url']);
+                return $item;
+            });
+            $response['result'] = $collection;
+            $response['links'] = ['self' => ['href' => config('app.url') . '/api/videos/' . $id]];
+            return $response;
+        } else {
+            abort(
+                response()->json(['message' => 'Not found.'], 404)
+            );
+        }
+    }
+
+    /**
+     * Returns related items for a single video.
+     */
+    public function getRelated($id)
+    {
+        $response = $this->get($id);
+        $document = $response['result']->first();
+        $params = $this->searchManager->getDefaultParams();
+        $params['search_params']['size'] = 6;
+        $params['search_params']['_source_includes'] = [
+            'asset_id',
+            'description',
+            'title',
+            'title_slug',
+            'thumbnailId',
+            'duration',
+            'date_recorded'
+        ];
+        $params['search_params']['body']['query'] = [
+            'more_like_this' => [
+                'fields' => ['speakers','tags','topics'],
+                'like' => [['_id' => $document['id']]],
+                'min_term_freq' => 1,
+                'min_doc_freq' => 1,
+                'minimum_should_match' => 1,
+                'boost_terms' => 1,
+            ],
+        ];
+        $response = $this->searchManager->search($params, true);
+
+        if (!empty($response)) {
+            $collection = collect($response['result'])->map(function ($item) {
                 return $item;
             });
             $response['result'] = $collection;
