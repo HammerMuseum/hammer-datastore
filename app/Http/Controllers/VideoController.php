@@ -60,17 +60,10 @@ class VideoController extends Controller
     public function showRelated(Request $request, $id)
     {
         $response = $this->videoManager->getRelated($id);
-        if ($response['result']->count()) {
-            return response()->json([
-                'success' => true,
-                'data' => $response['result']
-            ], 200);
-        }
         return response()->json([
-            'success' => false,
-            'data' => false,
-            'message' => 'Video not found.'
-        ], 404);
+            'success' => true,
+            'data' => $response['result']
+        ], 200);
     }
 
     /**

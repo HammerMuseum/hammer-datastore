@@ -97,13 +97,12 @@ class VideoManager
         ];
         $response = $this->searchManager->search($params, true);
 
-        if (!empty($response)) {
-            $collection = collect($response['result'])->map(function ($item) {
-                return $item;
-            });
-            $response['result'] = $collection;
-            $response['links'] = ['self' => ['href' => config('app.url') . '/api/videos/' . $id]];
-        }
+        $collection = collect($response['result'])->map(function ($item) {
+            return $item;
+        });
+        $response['result'] = $collection;
+        $response['links'] = ['self' => ['href' => config('app.url') . '/api/videos/' . $id]];
+
         return $response;
     }
 
