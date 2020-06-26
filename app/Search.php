@@ -146,7 +146,7 @@ class Search
                     $links['pager']['previous'] = 'page=' . ($start - 1);
                 }
                 $links['total'] = $result['hits']['total'];
-                $links['totalPages'] = round($result['hits']['total'] / $this->pageSize, 0);
+                $links['totalPages'] = ceil($result['hits']['total'] / $this->pageSize);
                 $links['currentPage'] = $start;
             }
 
