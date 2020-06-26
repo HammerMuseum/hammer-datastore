@@ -3,99 +3,97 @@
     "video_*"
   ],
   "mappings": {
-    "_doc": {
-      "properties": {
-        "asset_id": {
-          "type": "keyword"
-        },
-        "date_recorded": {
-          "type": "date"
-        },
-        "description": {
-          "type": "text",
-          "analyzer": "english",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
+    "properties": {
+      "asset_id": {
+        "type": "keyword"
+      },
+      "date_recorded": {
+        "type": "date"
+      },
+      "description": {
+        "type": "text",
+        "analyzer": "english",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
           }
-        },
-        "in_playlists": {
-          "type": "keyword"
-        },
-        "playlists": {
-          "type": "nested",
-          "properties": {
-            "id": {
-              "type": "keyword"
-            },
-            "name": {
-              "type": "keyword"
-            },
-            "position": {
-              "type": "integer"
-            }
-          }
-        },
-        "program_series": {
-          "type": "keyword"
-        },
-        "quote": {
-          "type": "keyword"
-        },
-        "speakers": {
-          "type": "keyword"
-        },
-        "thumbnailId": {
-          "type": "keyword"
-        },
-        "thumbnail_url": {
-          "type": "keyword"
-        },
-        "title": {
-          "type": "text",
-          "analyzer": "english",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "title_slug": {
-          "type": "keyword"
-        },
-        "transcription": {
-          "type": "keyword"
-        },
-        "transcription_txt": {
-          "type": "text",
-          "analyzer": "english",
-          "fields": {
-            "keyword": {
-              "type": "keyword",
-              "ignore_above": 256
-            }
-          }
-        },
-        "transcription_vtt": {
-          "type": "text",
-          "index": false
-        },
-        "transcription_json": {
-          "type": "object",
-          "enabled": false
-        },
-        "tags": {
-          "type": "keyword"
-        },
-        "topics": {
-          "type": "keyword"
-        },
-        "video_url": {
-          "type": "keyword"
         }
+      },
+      "in_playlists": {
+        "type": "keyword"
+      },
+      "playlists": {
+        "type": "nested",
+        "properties": {
+          "id": {
+            "type": "keyword"
+          },
+          "name": {
+            "type": "keyword"
+          },
+          "position": {
+            "type": "integer"
+          }
+        }
+      },
+      "program_series": {
+        "type": "keyword"
+      },
+      "quote": {
+        "type": "keyword"
+      },
+      "speakers": {
+        "type": "keyword"
+      },
+      "thumbnailId": {
+        "type": "keyword"
+      },
+      "thumbnail_url": {
+        "type": "keyword"
+      },
+      "title": {
+        "type": "text",
+        "analyzer": "english",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "title_slug": {
+        "type": "keyword"
+      },
+      "transcription": {
+        "type": "keyword"
+      },
+      "transcription_txt": {
+        "type": "text",
+        "analyzer": "english",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "transcription_vtt": {
+        "type": "text",
+        "index": false
+      },
+      "transcription_json": {
+        "type": "object",
+        "enabled": false
+      },
+      "tags": {
+        "type": "keyword"
+      },
+      "topics": {
+        "type": "keyword"
+      },
+      "video_url": {
+        "type": "keyword"
       }
     }
   }

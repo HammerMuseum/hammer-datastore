@@ -29,7 +29,6 @@ class ElasticsearchAdaptor  ():
         self.alias = alias
         self.index_prefix = 'video_'
 
-        self.es_type = '_doc'
         self.client = Elasticsearch(
             es_domain,
             scheme=scheme,
@@ -107,7 +106,6 @@ class ElasticsearchAdaptor  ():
                     data = json.load(f)
                     yield {
                         "_index": self.index_name,
-                        "_type": self.es_type,
                         "_source": data,
                     }
 

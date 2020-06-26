@@ -125,11 +125,14 @@ class Search
                 'currentPage' => '',
             ];
 
-            if (isset($result['hits']['total']) && $result['hits']['total'] > 0) {
+            $total = $result['hits']['total']['value'];
+            $hits = $result['hits']['hits'];
+
+            if ($total) {
                 if ($processSource) {
-                    $response = $this->getHitSource($result['hits']['hits']);
+                    $response = $this->getHitSource($hits);
                 } else {
-                    foreach ($result['hits']['hits'] as $hit) {
+                    foreach ($hits as $hit) {
                         $response[] = $hit;
                     }
                 }
@@ -139,14 +142,14 @@ class Search
                 $resultOffset = $this->getPager($start);
 
                 // As long as we haven't reached the end of the results, generate another 'next page' link
-                if (($resultOffset + $this->pageSize) < $result['hits']['total']) {
+                if (($resultOffset + $this->pageSize) < $total) {
                     $links['pager']['next'] = 'page=' . ($start + 1);
                 }
                 if ($resultOffset >= $this->pageSize) {
                     $links['pager']['previous'] = 'page=' . ($start - 1);
                 }
-                $links['total'] = $result['hits']['total'];
-                $links['totalPages'] = ceil($result['hits']['total'] / $this->pageSize);
+                $links['total'] = $total;
+                $links['totalPages'] = ceil($total / $this->pageSize);
                 $links['currentPage'] = $start;
             }
 
