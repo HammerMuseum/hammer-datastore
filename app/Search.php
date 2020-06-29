@@ -208,6 +208,7 @@ class Search
                     $clause => [
                         'multi_match' => [
                             'query' => isset($requestParams['term']) ? $requestParams['term'] : '',
+                            'fuzziness' => 'AUTO',
                             'fields' => [
                                 'title^2',
                                 'description',
