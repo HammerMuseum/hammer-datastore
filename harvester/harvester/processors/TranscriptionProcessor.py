@@ -44,7 +44,7 @@ class TranscriptionProcessor():
             return response.text
         except HTTPError as error:
             self.harvester.logger.warning(
-                'Error {} while fetching VTT transcription'.format(error.response.status_code))
+                'Error {} while fetching VTT transcription at location {}'.format(error.response.status_code, url))
 
     def get_transcript_json(self, location):
         """
@@ -57,7 +57,7 @@ class TranscriptionProcessor():
             return json.dumps(response.json())
         except HTTPError as error:
             self.harvester.logger.warning(
-                'Error {} while fetching JSON transcription'.format(error.response.status_code))
+                'Error {} while fetching JSON transcription at location {}'.format(error.response.status_code, url))
 
     def get_transcript_text(self, location):
         """
@@ -74,7 +74,7 @@ class TranscriptionProcessor():
             return response.text
         except HTTPError as error:
             self.harvester.logger.warning(
-                'Error {} while fetching plain text transcription'.format(error.response.status_code))
+                'Error {} while fetching plain text transcription at location {}'.format(error.response.status_code, url))
 
     def process(self, row):
         """
