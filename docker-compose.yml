@@ -61,7 +61,7 @@ services:
       NGINX_BACKEND_HOST: php
       NGINX_VHOST_PRESET: php
       NGINX_SERVER_ROOT: /var/www/html/public
-      NGINX_SERVER_EXTRA_CONF_FILEPATH: /etc/nginx/extra.conf
+      # NGINX_SERVER_EXTRA_CONF_FILEPATH: /etc/nginx/extra.conf
     volumes:
       - ./docker-nginx.conf:/etc/nginx/extra.conf
       # Options for macOS users (https://wodby.com/docs/stacks/php/local#docker-for-mac)
@@ -101,9 +101,11 @@ services:
   #     - "traefik.http.services.${PROJECT_NAME}_varnish.loadbalancer.server.port=6081"
   #     - "traefik.http.routers.${PROJECT_NAME}_varnish.rule=Host(`${PROJECT_BASE_URL}`)"
 
-#  redis:
-#    container_name: "${PROJECT_NAME}_redis"
-#    image: wodby/redis:$REDIS_TAG
+  redis:
+    container_name: "${PROJECT_NAME}_redis"
+    image: wodby/redis:$REDIS_TAG
+    networks:
+      - db
 
 #  pma:
 #    image: phpmyadmin/phpmyadmin
