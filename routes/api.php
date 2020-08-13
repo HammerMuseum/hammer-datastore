@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,15 +20,21 @@ use Illuminate\Http\Request;
 / });
 */
 
-Route::get('videos', 'VideoController@index');
-Route::get('videos/{id}', 'VideoController@show');
-Route::get('videos/{id}/transcript', 'VideoController@showTranscript');
-Route::get('videos/{id}/related', 'VideoController@showRelated');
-Route::get('playlists', 'PlaylistController@index');
-Route::get('playlists/{name}', 'PlaylistController@show');
-Route::get('search', 'SearchController@search');
-Route::get('search/term', 'SearchController@term');
-Route::get('search/aggregate/{term}', 'SearchController@aggregate');
+
+// cahe for 20 seconds.
+Route::get('videos/{id}', 'VideoController@show')->middleware('cacheResponse:600');
+
+// cache all these routes for 10 minutes.
+Route::group(['middleware' => 'cacheResponse:3600'], function () {
+    Route::get('videos', 'VideoController@index');
+    Route::get('videos/{id}/transcript', 'VideoController@showTranscript');
+    Route::get('videos/{id}/related', 'VideoController@showRelated');
+    Route::get('playlists', 'PlaylistController@index');
+    Route::get('playlists/{name}', 'PlaylistController@show');
+    Route::get('search', 'SearchController@search');
+    Route::get('search/term', 'SearchController@term');
+    Route::get('search/aggregate/{term}', 'SearchController@aggregate');
+});
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::post('videos', 'ApiController@create');

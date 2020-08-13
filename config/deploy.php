@@ -103,7 +103,7 @@ return [
     */
 
     'options' => [
-        'application' => env('APP_NAME', 'Laravel'),
+        'application' => env('APP_NAME', 'Hammer Datastore'),
         'http_user' => 'www-data',
         'upload_vendors' => true,
         'upload_options' => [
