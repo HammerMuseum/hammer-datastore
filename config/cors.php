@@ -19,16 +19,16 @@ return [
 
     'allowed_methods' => ['GET'],
 
-    'allowed_origins' => [''],
+    'allowed_origins' => env('ALLOWED_ORIGINS', ['*']),
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range'],
+    'allowed_headers' => ['*'],
 
     'exposed_headers' => [],
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 
 ];

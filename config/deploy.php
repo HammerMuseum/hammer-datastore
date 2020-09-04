@@ -70,6 +70,7 @@ return [
         // Deployment is done but not live yet (before symlink)
         'ready' => [
             'artisan:storage:link',
+            'artisan:responsecache:clear',
             'artisan:view:clear',
             'artisan:cache:clear',
             'artisan:config:cache',
@@ -199,7 +200,7 @@ return [
     */
 
     'include' => [
-        //
+        'recipe/tasks.php'
     ],
 
     /*

@@ -63,7 +63,7 @@ services:
       NGINX_SERVER_ROOT: /var/www/html/public
       # NGINX_SERVER_EXTRA_CONF_FILEPATH: /etc/nginx/extra.conf
     volumes:
-      - ./docker-nginx.conf:/etc/nginx/extra.conf
+      # - ./docker-nginx.conf:/etc/nginx/extra.conf
       # Options for macOS users (https://wodby.com/docs/stacks/php/local#docker-for-mac)
       - ./:/var/www/html:cached
       # - docker-sync:/var/www/html # Docker-sync

@@ -21,10 +21,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 
-// cahe for 20 seconds.
+// Cache for 10 minutes.
 Route::get('videos/{id}', 'VideoController@show')->middleware('cacheResponse:600');
 
-// cache all these routes for 10 minutes.
+// Cache all these routes for 1 hour.
 Route::group(['middleware' => 'cacheResponse:3600'], function () {
     Route::get('videos', 'VideoController@index');
     Route::get('videos/{id}/transcript', 'VideoController@showTranscript');
