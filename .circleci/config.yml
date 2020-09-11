@@ -9,7 +9,7 @@ defaults: &defaults
   docker:
     - image: circleci/php:7.4-buster-node-browsers-legacy
       environment:
-        HOST_URL: datastore.hammer.cogapp.com
+        HOST_URL: datastore.hammer.ucla.edu
         STAGE_HOST_URL: stage.datastore.hammer.cogapp.com
         DEV_HOST_URL: dev.datastore.hammer.cogapp.com
 
@@ -139,10 +139,10 @@ deploy: &deploy
     - run: ssh-keyscan -H $(echo "$HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $HOST_URL
     - run: ssh deploy@$HOST_URL sudo systemctl reload php7.4-fpm.service
-    - run: ssh deploy@$HOST_URL mkdir /var/www/datastore.hammer.cogapp.com/current/harvester/logs
-    - run: ssh deploy@$HOST_URL mkdir /var/www/datastore.hammer.cogapp.com/current/harvester/data
-    - run: ssh deploy@$HOST_URL sh /var/www/datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies.sh
-    - run: ssh deploy@$HOST_URL sudo mv /var/www/datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron /etc/cron.d
+    - run: ssh deploy@$HOST_URL mkdir /var/www/$HOST_URL/current/harvester/logs
+    - run: ssh deploy@$HOST_URL mkdir /var/www/$HOST_URL/current/harvester/data
+    - run: ssh deploy@$HOST_URL sh /var/www/$HOST_URL/current/harvester/install_harvester_dependencies.sh
+    - run: ssh deploy@$HOST_URL sudo mv /var/www/$HOST_URL/current/harvester/cron/run_harvester_cron /etc/cron.d
     - run: ssh deploy@$HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron
     - aws-white-list-circleci-ip/remove:
         port: 22
@@ -172,10 +172,10 @@ deploy_stage: &deploy_stage
     - run: ssh-keyscan -H $(echo "$STAGE_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $STAGE_HOST_URL
     - run: ssh deploy@$STAGE_HOST_URL sudo systemctl reload php7.4-fpm.service
-    - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/stage.datastore.hammer.cogapp.com/current/harvester/logs
-    - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/stage.datastore.hammer.cogapp.com/current/harvester/data
-    - run: ssh deploy@$STAGE_HOST_URL sh /var/www/stage.datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies_stage.sh
-    - run: ssh deploy@$STAGE_HOST_URL sudo mv /var/www/stage.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron_stage /etc/cron.d
+    - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/$STAGE_HOST_URL/current/harvester/logs
+    - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/$STAGE_HOST_URL/current/harvester/data
+    - run: ssh deploy@$STAGE_HOST_URL sh /var/www/$STAGE_HOST_URL/current/harvester/install_harvester_dependencies_stage.sh
+    - run: ssh deploy@$STAGE_HOST_URL sudo mv /var/www/$STAGE_HOST_URL/current/harvester/cron/run_harvester_cron_stage /etc/cron.d
     - run: ssh deploy@$STAGE_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_stage
     - aws-white-list-circleci-ip/remove:
         port: 22
@@ -205,10 +205,10 @@ deploy_dev: &deploy_dev
     - run: ssh-keyscan -H $(echo "$DEV_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: php artisan deploy $DEV_HOST_URL
     - run: ssh deploy@$DEV_HOST_URL sudo systemctl reload php7.4-fpm.service
-    - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/dev.datastore.hammer.cogapp.com/current/harvester/logs
-    - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/dev.datastore.hammer.cogapp.com/current/harvester/data
-    - run: ssh deploy@$DEV_HOST_URL sh /var/www/dev.datastore.hammer.cogapp.com/current/harvester/install_harvester_dependencies_dev.sh
-    - run: ssh deploy@$DEV_HOST_URL sudo mv /var/www/dev.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_cron_dev /etc/cron.d
+    - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/$DEV_HOST_URL/current/harvester/logs
+    - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/$DEV_HOST_URL/current/harvester/data
+    - run: ssh deploy@$DEV_HOST_URL sh /var/www/$DEV_HOST_URL/current/harvester/install_harvester_dependencies_dev.sh
+    - run: ssh deploy@$DEV_HOST_URL sudo mv /var/www/$DEV_HOST_URL/current/harvester/cron/run_harvester_cron_dev /etc/cron.d
     - run: ssh deploy@$DEV_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_dev
     - aws-white-list-circleci-ip/remove:
         port: 22

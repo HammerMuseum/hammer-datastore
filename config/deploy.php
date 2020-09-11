@@ -159,8 +159,8 @@ return [
     */
 
     'hosts' => [
-        'datastore.hammer.cogapp.com' => [
-            'deploy_path' => '/var/www/datastore.hammer.cogapp.com',
+        'datastore.hammer.ucla.edu' => [
+            'deploy_path' => '/var/www/datastore.hammer.ucla.edu',
             'user' => 'deploy',
         ],
         'stage.datastore.hammer.cogapp.com' => [
