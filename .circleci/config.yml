@@ -220,7 +220,7 @@ deploy_dev: &deploy_dev
 version: 2.1
 orbs:
   aws-cli: circleci/aws-cli@0.1.18
-  aws-white-list-circleci-ip: configure/aws-white-list-circleci-ip@1.0.0
+  aws-white-list-circleci-ip: avvo/aws-white-list-circleci-ip@0.0.2
 
 jobs:
   build_and_test:
