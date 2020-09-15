@@ -1,1 +1,1 @@
-0 11 * * * deploy /bin/sh /var/www/stage.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_for_environment.sh stage.datastore.hammer.cogapp.com https://hammer.assetbank-server.com/assetbank-hammer videos_stage
+0 11 * * * deploy /bin/sh /var/www/stage.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_for_environment.sh stage.datastore.hammer.cogapp.com https://hammer.assetbank-server.com/assetbank-hammer videos_stage 50
