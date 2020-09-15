@@ -204,7 +204,7 @@ class AssetBankHarvester(HarvesterBase):
             return False
 
         for asset in assets:
-            if self.records_processed > self.max_items:
+            if self.records_processed >= self.max_items:
                 break
 
             identifier = asset.xpath('id')[0].text

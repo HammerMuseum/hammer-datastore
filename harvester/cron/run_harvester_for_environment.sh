@@ -3,7 +3,7 @@
 params=()
 
 if [ ! -z "$4" ]; then
-    params+=("--limit $4")
+    params+=("--limit=$4")
 fi
 
 cd /var/www/$1/current/harvester/scripts

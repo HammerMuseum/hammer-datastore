@@ -36,8 +36,10 @@ parser.add_argument('--scheme', type=str, dest='scheme')
 
 parser.add_argument('--debug', action='store_true')
 
-parser.add_argument('--short', action='store_true',
-                    help='Only harvest 10 records at most.')
+parser.add_argument('--limit',
+                    type=int,
+                    dest='limit',
+                    help='Only harvest the specified number of records.')
 
 parser.add_argument('--since',
                     help='Optional. A date relative to today, can be "2019-01-01" or "yesterday" or "2 days ago" etc',
@@ -98,14 +100,14 @@ if __name__ == '__main__':
             harvester.add_logger('../logs',
                                 'harvest.log', 'AssetBankHarvester')
 
-            # If short is specified, only harvest the first 10 pages.
-            if args.short:
-                harvester.max_items = 4
-                logger.info('Limiting harvest to 4 records')
+            # If limit is specified, only harvest the first x items.
+            if args.limit:
+                harvester.max_items = args.limit
+                logger.info('Limiting harvest to %s records', args.limit)
 
             logger.info('Invoking Asset Bank harvester')
             harvester.process()
-        
+
             data_path = harvester.current_output_path
 
         # If submit option is enabled also process
