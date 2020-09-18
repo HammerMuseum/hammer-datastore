@@ -193,17 +193,19 @@ class AssetBankHarvester(HarvesterBase):
         response = requests.get(
             current_harvest_uri,
             headers={'Authorization': 'Bearer {}'.format(self.access_token)},
-            params={'approvalStatuses': 'full', 'assetTypeId': self.asset_type, 'pageSize': self.page_size, 'page': page_number},
+            params={'approvalStatuses': 'full', 'attribute_716': 'Yes', 'assetTypeId': self.asset_type, 'pageSize': self.page_size, 'page': page_number},
         )
         root = etree.fromstring(response.content)
         assets = root.xpath('//assetSummary')
 
+        self.logger.info('Page %i ' % page_number)
         self.logger.info('Found %i records' % len(assets))
 
         if not assets:
             return False
 
         for asset in assets:
+
             if self.records_processed >= self.max_items:
                 break
 
