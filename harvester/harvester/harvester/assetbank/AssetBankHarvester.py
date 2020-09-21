@@ -78,7 +78,7 @@ class AssetBankHarvester(HarvesterBase):
         ]
 
         self.processors = [
-            DelimiterProcessor(self, delimiter=',', fields=split_fields),
+            DelimiterProcessor(self, fields=split_fields),
             TranscriptionProcessor(
                 self, os.getenv('TRINT_API_KEY'), fields=transcription_fields),
             FriendlyUrlProcessor(self, fields=slug_field),
