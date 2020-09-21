@@ -1,6 +1,9 @@
 import os
 import logging
 import datetime
+import concurrent.futures
+import threading
+import time
 import re
 from pathlib import Path
 import json
@@ -34,6 +37,8 @@ class AssetBankHarvester(HarvesterBase):
     This may change during the run as directories are renamed.
     """
     current_output_path = 'None'
+
+    thread_local = threading.local()
 
     def __init__(self, host, options):
         HarvesterBase.__init__(self)
@@ -184,50 +189,71 @@ class AssetBankHarvester(HarvesterBase):
         """
         self.write_summary()
 
-    def do_harvest(self, page_number=0):
+    def get_asset_list(self, page_number=0):
         """
-        Main harvesting function.
+        If total assets size is bigger than several 000s
+        then this may need refactor to generator or similar.
         """
         current_harvest_uri = '{}'.format(self.harvest_uri)
+
+        self.logger.info('Creating asset list. Page %i ' % page_number)
 
         response = requests.get(
             current_harvest_uri,
             headers={'Authorization': 'Bearer {}'.format(self.access_token)},
-            params={'approvalStatuses': 'full', 'attribute_716': 'Yes', 'assetTypeId': self.asset_type, 'pageSize': self.page_size, 'page': page_number},
+            params={'approvalStatuses': 'full', 'attribute_716': 'Yes', 'assetTypeId': self.asset_type, 'page': page_number},
         )
         root = etree.fromstring(response.content)
         assets = root.xpath('//assetSummary')
 
-        self.logger.info('Page %i ' % page_number)
+        if not assets:
+            return []
+        else:
+            return self.get_asset_list(page_number + 1) + [asset for asset in assets]
+
+    def do_harvest(self):
+        """
+        Main harvesting function.
+
+        Orchetrates harvest by starting worker threads
+        for gathering individual assets.
+        """
+        assets = self.get_asset_list()
         self.logger.info('Found %i records' % len(assets))
 
-        if not assets:
-            return False
+        if self.max_items:
+            assets = assets[0:self.max_items]
+            self.logger.info('Harvesting to max limit of %i records' % len(assets))
 
-        for asset in assets:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            for asset in assets:
+                time.sleep(0.5)
+                executor.submit(self.harvest_asset, asset)
 
-            if self.records_processed >= self.max_items:
-                break
+    def harvest_asset(self, asset):
+        """
+        Controls the operation to fetch a single asset.
+        """
+        if self.records_processed >= self.max_items:
+            self.logger.debug('Harvest limit reached. Not harvesting %s', identifier)
+            return
 
-            identifier = asset.xpath('id')[0].text
-            self.logger.debug('Processing data record %s', identifier)
+        identifier = asset.xpath('id')[0].text
+        self.logger.info('Processing data record %s', identifier)
 
-            # process the record
-            asset_url = asset.xpath('fullAssetUrl')[0].text
-            response = requests.get(asset_url)
-            record = response.content
+        # process the record
+        asset_url = asset.xpath('fullAssetUrl')[0].text
 
-            try:
-                json_record = self.get_record_fields(record, identifier)
-            except Exception as error:
-                self.logger.info('Failed to retrieve metadata %s: %s', identifier, error)
-                self.records_failed += 1
-                continue
+        session = self.get_session()
+        response = session.get(asset_url)
 
-            self.add_playlist_metadata(json_record, identifier)
+        record = response.content
 
-            self.preprocess_record(json_record)
+        try:
+            json_record = self.get_record_fields(record, identifier)
             if self.validate_record(json_record):
+                self.add_playlist_metadata(json_record, identifier)
+                self.preprocess_record(json_record)
                 record_success = self.do_record_harvest(
                     json_record, identifier)
                 self.records_processed += 1
@@ -237,15 +263,13 @@ class AssetBankHarvester(HarvesterBase):
                     self.records_failed += 1
             else:
                 self.records_failed += 1
-
-        continue_harvest = self.do_harvest(page_number + 1)
-
-        if not continue_harvest:
-            return
+        except Exception as error:
+            self.logger.info('Failed to retrieve metadata %s: %s', identifier, error)
+            self.records_failed += 1
 
     def do_record_harvest(self, record, identifier):
         """
-        Controls the harvest operation.
+        Controls the record harvest operation.
         """
         file_name = '{!s}.json'.format(identifier)
         output = record
@@ -378,3 +402,8 @@ class AssetBankHarvester(HarvesterBase):
 
         with open(summary_path, 'w') as fh:
             fh.write(yaml.dump(summary, default_flow_style=False))
+
+    def get_session(self):
+        if not hasattr(self.thread_local, "session"):
+            self.thread_local.session = requests.Session()
+        return self.thread_local.session
