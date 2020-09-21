@@ -158,7 +158,7 @@ class AssetBankHarvester(HarvesterBase):
         for playlist in response.json():
             playlist = {
                 'id': playlist['id'],
-                'name': playlist['name'],
+                'name': playlist['name'].lower(),
                 'contents': self.get_playlist_contents(playlist['lightboxContentsUrl'])
             }
             playlists[playlist['id']] = playlist
@@ -174,6 +174,21 @@ class AssetBankHarvester(HarvesterBase):
             },
         )
         return [att['value'] for a in response.json() for att in a['attributes'] if att['name'] == 'assetId']
+
+    def add_playlist_metadata(self, record, identifier):
+        """
+        Adds a playlist data object for each record
+        """
+        playlists = []
+        for pid, data in self.playlists.items():
+            for index, asset_id in enumerate(data['contents']):
+                if asset_id == identifier:
+                    playlists.append({
+                        'id': pid,
+                        'name': data['name'].lower(),
+                        'position': index
+                    })
+        record['playlists'] = playlists
 
     def preprocess(self):
         """
@@ -280,22 +295,6 @@ class AssetBankHarvester(HarvesterBase):
         for processor in self.processors:
             processor.process(record)
 
-    def add_playlist_metadata(self, record, identifier):
-        """
-        Adds a playlist data object for each record
-        """
-        playlists = []
-        for pid, data in self.playlists.items():
-            for index, asset_id in enumerate(data['contents']):
-                if asset_id == identifier:
-                    playlists.append({
-                        'id': pid,
-                        'name': data['name'],
-                        'position': index
-                    })
-        record['in_playlists'] = [p['name'] for p in playlists]
-        record['playlists'] = playlists
-
     def get_record_fields(self, record, identifier):
         """
         List of fields could be moved to configuration
@@ -309,16 +308,17 @@ class AssetBankHarvester(HarvesterBase):
         # of the "value" property in the Asset Bank API response.
         attributes = {
             'asset_id': 'assetId',
-            'title': 'Title',
-            'description': 'Description',
             'date_recorded': 'Date',
+            'description': 'Description',
             'duration': 'Duration',
-            'tags': 'Tags',
-            'transcription': 'Transcription ID',
+            'in_playlists': 'Playlists',
             'program_series': 'Program Series',
+            'quote': 'Featured Quote',
             'speakers': 'People',
+            'tags': 'Tags',
+            'title': 'Title',
             'topics': 'Topics',
-            'quote': 'Featured Quote'
+            'transcription': 'Transcription ID',
         }
 
         output = {}
