@@ -378,11 +378,13 @@ class AssetBankHarvester(HarvesterBase):
         """
         Custom validation checks for this implementation.
         """
-        if record['title_slug'] in self.slugs:
-            self.logger.error(
-                'Record {} failed validation: duplicate URL.'.format(record['asset_id']))
-            return False
-        self.slugs.append(record['title_slug'])
+        required = ['title', 'description', 'date_recorded']
+        for field in required:
+            if not record[field]:
+                self.logger.error(
+                    'Record {} failed validation: missing field {}.'.format(record['asset_id'], field))
+                return False
+
         return True
 
     def write_summary(self):
