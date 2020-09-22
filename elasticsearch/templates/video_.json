@@ -82,10 +82,6 @@
         "type": "text",
         "index": false
       },
-      "transcription_json": {
-        "type": "object",
-        "enabled": false
-      },
       "tags": {
         "type": "keyword"
       },
