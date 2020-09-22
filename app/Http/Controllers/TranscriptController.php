@@ -32,11 +32,11 @@ class TranscriptController extends Controller
 
         if (in_array($format, ['json', 'vtt'])) {
             return $this->transcriptManager->get($format, $id);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Requested format is not a valid option.'
-            ], 400);
         }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Requested format is not a valid option.'
+        ], 400);
     }
 }

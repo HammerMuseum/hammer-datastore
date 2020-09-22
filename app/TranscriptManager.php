@@ -30,11 +30,11 @@ class TranscriptManager
             }
 
             return response($content)->header('Content-Type', $type);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'No transcription available.'
-            ], 404);
         }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No transcription available.'
+        ], 404);
     }
 }
