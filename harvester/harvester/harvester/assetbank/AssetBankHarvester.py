@@ -9,6 +9,8 @@ from pathlib import Path
 import json
 import yaml
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from dotenv import load_dotenv
 from lxml import etree
 from harvester.harvester import HarvesterBase
@@ -83,6 +85,27 @@ class AssetBankHarvester(HarvesterBase):
             DurationProcessor(self, fields=duration_field)
 
         ]
+
+    def get_session(self):
+        if not hasattr(self.thread_local, "session"):
+            self.thread_local.session = self.setup_http_session()
+        return self.thread_local.session
+
+    def setup_http_session(self):
+        """
+        Helper to setup http utilties
+        """
+        strategy = Retry(
+            total=3,
+            status_forcelist=[429, 500, 502, 503, 504],
+            method_whitelist=["GET"],
+            backoff_factor=1
+        )
+        adapter = HTTPAdapter(max_retries=strategy)
+        http = requests.Session()
+        http.mount("https://", adapter)
+        http.mount("http://", adapter)
+        return http
 
     def init_auth(self):
         """
@@ -402,8 +425,3 @@ class AssetBankHarvester(HarvesterBase):
 
         with open(summary_path, 'w') as fh:
             fh.write(yaml.dump(summary, default_flow_style=False))
-
-    def get_session(self):
-        if not hasattr(self.thread_local, "session"):
-            self.thread_local.session = requests.Session()
-        return self.thread_local.session
