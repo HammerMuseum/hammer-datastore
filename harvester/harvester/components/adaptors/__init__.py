@@ -1,1 +1,2 @@
 from .ElasticsearchAdaptor import ElasticsearchAdaptor
+from .LocalRepositoryAdaptor import LocalRepositoryAdaptor

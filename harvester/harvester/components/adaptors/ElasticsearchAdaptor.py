@@ -21,8 +21,32 @@ class ElasticsearchAdaptor  ():
 
     records_failed = 0
 
-    def __init__(self, input_data, es_domain, port='443', scheme='https', alias='videos'):
-        self.input_data_path = input_data
+    """
+    The adaptor will attempt to retrieve only the
+    following defined fields from the input data.
+    """
+    schema_fields = [
+        'asset_id',
+        'date_recorded',
+        'description',
+        'in_playlists',
+        'playlists',
+        'program_series',
+        'quote',
+        'speakers',
+        'thumbnailId',
+        'thumbnail_url',
+        'title' ,
+        'title_slug' ,
+        'transcription',
+        'transcription_txt',
+        'tags',
+        'topics',
+        'video_url',
+    ]
+
+    def __init__(self, data_path, es_domain, port='443', scheme='https', alias='videos'):
+        self.input_data_path = data_path
 
         # @todo Move to a config file
         self.timestamp = int(time.time())
@@ -37,7 +61,7 @@ class ElasticsearchAdaptor  ():
 
         self.index_name = self.create_index_name(self.index_prefix, self.timestamp)
 
-    def add_logger(self, log_directory, log_file, log_name='adaptor'):
+    def add_logger(self, log_directory, log_file, log_name='elasticsearch-adaptor'):
         """
         Add a basic logger, with a file and stream handler.
         """
@@ -79,7 +103,7 @@ class ElasticsearchAdaptor  ():
         """
         self.logger.info('Started processing at %s', time.ctime())
 
-        self.submit(self.input_data_path)
+        self.submit()
 
         self.logger.info('%i documents indexed' % self.records_processed)
         self.logger.info('%i documents failed' % self.records_failed)
@@ -99,21 +123,22 @@ class ElasticsearchAdaptor  ():
                 alias, self.index_name))
 
 
-    def load_records(self, directory):
-        for filename in os.listdir(directory):
-            if filename.endswith('.json'):
-                with open(os.path.join(directory, filename), 'r') as f:
-                    data = json.load(f)
-                    yield {
-                        "_index": self.index_name,
-                        "_source": data,
-                    }
+    def load(self):
+        paths = [path for path in os.listdir(self.input_data_path) if path.endswith('.json')]
+        for path in paths:
+            with open(os.path.join(self.input_data_path, path), 'r') as file:
+                data = self.select_fields(json.load(file))
+                yield {
+                    "_index": self.index_name,
+                    "_source": data,
+                }
 
+    def select_fields(self, data):
+        return { k:v for k,v in data.items() if k in self.schema_fields }
 
-    def submit(self, data_location):
+    def submit(self):
         try:
-            success, errors = helpers.bulk(self.client, self.load_records(
-                data_location), chunk_size=10, max_chunk_bytes=1028576)
+            success, errors = helpers.bulk(self.client, self.load(), chunk_size=2, request_timeout=30)
             if errors:
                 for error in errors:
                     self.logger.log_error('Document failed %s', error)
