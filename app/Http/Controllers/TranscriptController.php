@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Search;
+use App\TranscriptManager;
 
 /**
  * Class TranscriptController
@@ -11,15 +11,15 @@ use App\Search;
  */
 class TranscriptController extends Controller
 {
-    /** @var Search */
-    protected $search;
+    /** @var TranscriptManager */
+    protected $transcriptManager;
 
     /**
      * Constructor.
      */
-    public function __construct(Search $search)
+    public function __construct(TranscriptManager $transcriptManager)
     {
-        $this->search = $search;
+        $this->transcriptManager = $transcriptManager;
     }
 
     /**
@@ -28,44 +28,15 @@ class TranscriptController extends Controller
      */
     public function show(Request $request, $id)
     {
-        // Default is to return value of transcription field.
-        // Other formats can be requested via this parameter
-        // if available.
         $format = $request->query('format');
-        if (!in_array($format, ['json', 'vtt'])) {
+
+        if (in_array($format, ['json', 'vtt'])) {
+            return $this->transcriptManager->get($format, $id);
+        } else {
             return response()->json([
                 'success' => false,
                 'message' => 'Requested format is not a valid option.'
             ], 400);
-        } else {
-            $field = 'transcription_' . $format;
-        }
-
-        try {
-            $result = $this->search->field($field, $id);
-            if ($doc = $result['result'][0]) {
-                if (!empty($doc[$field])) {
-                    if ($format === 'vtt') {
-                        $response = response($doc[$field], 200);
-                        $response->header('Content-Type', 'text/vtt');
-                    } else {
-                        return response()->json([
-                            'success' => true,
-                            'data' => json_decode($doc[$field]),
-                        ], 200);
-                    }
-                    return $response;
-                }
-            }
-            return response()->json([
-                'success' => false,
-                'message' => 'No transcription available.'
-            ], 404);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'There was an error.'
-            ], 503);
         }
     }
 }
