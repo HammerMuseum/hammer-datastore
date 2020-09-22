@@ -83,6 +83,9 @@ class LocalRepositoryAdaptor  ():
                         self.add_file_to_repository(dest, data['transcription_vtt'])
 
                     self.records_processed += 1
+            except KeyError as e:
+                self.records_failed += 1
+                self.logger.error('ERROR: key: %s not found in input data %s', e, abs_input_path)
             except Exception as e:
                 self.records_failed += 1
                 self.logger.error('ERROR: %s', e)
