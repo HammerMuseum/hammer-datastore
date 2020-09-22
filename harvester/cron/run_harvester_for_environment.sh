@@ -14,5 +14,5 @@ PYTHONPATH=../. python3 run_harvester.py \
   --alias $3 \
   --asset-type=1 \
   --search-domain=https://search-hammermuseum-7ugp6zl6uxoivh2ihpx56t7wxu.us-west-1.es.amazonaws.com \
-  --storage=/var/www/$1/shared/storage/app
-  "${params[@]}" \
+  --storage=/var/www/$1/shared/storage/app \
+  "${params[@]}"
