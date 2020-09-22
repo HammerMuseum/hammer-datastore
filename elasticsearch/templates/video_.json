@@ -20,6 +20,9 @@
           }
         }
       },
+      "duration": {
+        "type": "duration"
+      },
       "in_playlists": {
         "type": "keyword"
       },

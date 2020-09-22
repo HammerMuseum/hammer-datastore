@@ -29,6 +29,7 @@ class ElasticsearchAdaptor  ():
         'asset_id',
         'date_recorded',
         'description',
+        'duration',
         'in_playlists',
         'playlists',
         'program_series',
