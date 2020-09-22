@@ -19,17 +19,17 @@ class TranscriptManager
         $exists = Storage::disk('transcripts')->exists($path);
 
         if ($exists) {
-            $fullpath = Storage::disk('transcripts')->path($path);
+            $content = Storage::disk('transcripts')->get($path);
 
             if ($format === 'vtt') {
-                return response()
-                    ->file($fullpath, ['Content-Type' => 'text/vtt']);
+                $type = 'text/vtt';
             }
 
             if ($format === 'json') {
-                return response()
-                    ->file($fullpath, ['Content-Type' => 'application/json']);
+                $type = 'application/json';
             }
+
+            return response($content)->header('Content-Type', $type);
         } else {
             return response()->json([
                 'success' => false,
