@@ -40,9 +40,6 @@
           }
         }
       },
-      "program_series": {
-        "type": "keyword"
-      },
       "quote": {
         "type": "keyword"
       },
