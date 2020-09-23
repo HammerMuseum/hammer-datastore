@@ -272,9 +272,9 @@ class AssetBankHarvester(HarvesterBase):
 
         try:
             json_record = self.get_record_fields(record, identifier)
+            self.preprocess_record(json_record)
             if self.validate_record(json_record):
                 self.add_playlist_metadata(json_record, identifier)
-                self.preprocess_record(json_record)
                 record_success = self.do_record_harvest(
                     json_record, identifier)
                 self.records_processed += 1
@@ -335,7 +335,6 @@ class AssetBankHarvester(HarvesterBase):
             'title': 'Title',
             'description': 'Description',
             'date_recorded': 'Date',
-            'duration': 'Duration',
             'tags': 'Tags',
             'transcription': 'Transcription ID',
             'program_series': 'Program Series',
@@ -399,7 +398,28 @@ class AssetBankHarvester(HarvesterBase):
         """
         Custom validation checks for this implementation.
         """
-        required = ['title', 'description', 'date_recorded']
+        required = [
+            'asset_id',
+            'date_recorded',
+            'description',
+            'duration',
+            'in_playlists',
+            'playlists',
+            'program_series',
+            'quote',
+            'speakers',
+            'thumbnailId',
+            'thumbnail_url',
+            'title' ,
+            'title_slug' ,
+            'transcription',
+            'transcription_txt',
+            'transcription_vtt',
+            'transcription_json',
+            'tags',
+            'topics',
+            'video_url'
+        ]
         for field in required:
             if not record[field]:
                 self.logger.error(
