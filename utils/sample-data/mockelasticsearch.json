@@ -24,7 +24,7 @@
           "duration": "",
           "tags": "",
           "transcription": "some transcription",
-          "program_series": "JazzPOP 2019",
+          "in_playlists": "JazzPOP 2019",
           "speakers": ["Leonard Nimoy"],
           "title_slug": "an-example-video-slug"
         }
