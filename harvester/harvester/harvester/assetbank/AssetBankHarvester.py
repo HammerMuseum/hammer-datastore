@@ -63,6 +63,7 @@ class AssetBankHarvester(HarvesterBase):
             'tags',
             'speakers',
             'topics',
+            'in_playlists'
         ]
 
         transcription_fields = [
@@ -178,6 +179,7 @@ class AssetBankHarvester(HarvesterBase):
                 'Accept': 'application/json'
             },
         )
+
         for playlist in response.json():
             playlist = {
                 'id': playlist['id'],
@@ -273,8 +275,8 @@ class AssetBankHarvester(HarvesterBase):
         try:
             json_record = self.get_record_fields(record, identifier)
             self.preprocess_record(json_record)
+            self.add_playlist_metadata(json_record, identifier)
             if self.validate_record(json_record):
-                self.add_playlist_metadata(json_record, identifier)
                 record_success = self.do_record_harvest(
                     json_record, identifier)
                 self.records_processed += 1
@@ -316,7 +318,6 @@ class AssetBankHarvester(HarvesterBase):
                         'name': data['name'],
                         'position': index
                     })
-        record['in_playlists'] = [p['name'] for p in playlists]
         record['playlists'] = playlists
 
     def get_record_fields(self, record, identifier):
@@ -340,6 +341,7 @@ class AssetBankHarvester(HarvesterBase):
             'program_series': 'Program Series',
             'speakers': 'People',
             'topics': 'Topics',
+            'in_playlists': 'Playlists',
             'quote': 'Featured Quote'
         }
 
