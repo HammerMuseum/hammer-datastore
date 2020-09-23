@@ -24,6 +24,10 @@ class ElasticsearchAdaptor  ():
     """
     The adaptor will attempt to retrieve only the
     following defined fields from the input data.
+    These will most likely match the fields used in your
+    Elasticsearch mapping. Additional fields will still be
+    indexed and Elasticsearch will make a best guess at
+    field type settings.
     """
     schema_fields = [
         'asset_id',
