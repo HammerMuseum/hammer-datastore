@@ -112,6 +112,8 @@ if __name__ == "__main__":
     logger.addHandler(fh)
 
     try:
+        submit = args.submit
+
         if data_path is None:
             harvester = AssetBankHarvester(args.url, options)
             harvester.output_base = "../data"
@@ -132,9 +134,13 @@ if __name__ == "__main__":
 
             data_path = harvester.current_output_path
 
+            if not harvester.success:
+                submit = False
+                logger.info("Harvest failed. Submission cancelled and ending run.")
+
         # If submit option is enabled also process
         # records through registered adaptors.
-        if args.submit:
+        if submit:
             logger.info("Running submission processes")
             logger.info("Starting Elasticsearch adaptor")
 
