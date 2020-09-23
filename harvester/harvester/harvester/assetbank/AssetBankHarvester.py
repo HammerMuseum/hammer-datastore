@@ -153,7 +153,7 @@ class AssetBankHarvester(HarvesterBase):
 
         if self.records_processed > 0:
             self.success = (self.records_succeeded /
-                            self.records_processed) > 0.9
+                            self.records_processed) > 0.6
             self.logger.info('Harvest succeeded')
         else:
             self.success = False
@@ -165,9 +165,9 @@ class AssetBankHarvester(HarvesterBase):
 
     def get_playlist_data(self):
         """
-        This particular implementation retrieves
+        This implementation retrieves
         playlist information from the DAMS and
-        then uses this information further down
+        then uses this information further along
         the pipeline, augmenting the metadata
         harvested for each asset.
         """
@@ -338,7 +338,6 @@ class AssetBankHarvester(HarvesterBase):
             'date_recorded': 'Date',
             'tags': 'Tags',
             'transcription': 'Transcription ID',
-            'program_series': 'Program Series',
             'speakers': 'People',
             'topics': 'Topics',
             'in_playlists': 'Playlists',
@@ -400,14 +399,13 @@ class AssetBankHarvester(HarvesterBase):
         """
         Custom validation checks for this implementation.
         """
-        required = [
+        present = [
             'asset_id',
             'date_recorded',
             'description',
             'duration',
             'in_playlists',
             'playlists',
-            'program_series',
             'quote',
             'speakers',
             'thumbnailId',
@@ -422,10 +420,31 @@ class AssetBankHarvester(HarvesterBase):
             'topics',
             'video_url'
         ]
+
+        required = [
+            'asset_id',
+            'date_recorded',
+            'description',
+            'duration',
+            'thumbnailId',
+            'thumbnail_url',
+            'title',
+            'title_slug',
+            'video_url'
+        ]
+
+        for field in present:
+            try:
+                record[field]
+            except KeyError as e:
+                self.logger.error(
+                    'Record {} failed validation: missing field {}.'.format(record['asset_id'], field))
+                return False
+
         for field in required:
             if not record[field]:
                 self.logger.error(
-                    'Record {} failed validation: missing field {}.'.format(record['asset_id'], field))
+                    'Record {} failed validation: required field {} has no data.'.format(record['asset_id'], field))
                 return False
 
         return True
