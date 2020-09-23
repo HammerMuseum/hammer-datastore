@@ -4,8 +4,10 @@ import json
 from pathlib import Path
 import time
 
-class LocalRepositoryAdaptor  ():
+
+class LocalRepositoryAdaptor:
     """Logger as set by the add_logging() method."""
+
     logger = None
 
     """Log level for logging module."""
@@ -13,7 +15,8 @@ class LocalRepositoryAdaptor  ():
 
     """Formatter for logging messages."""
     log_formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
     records_processed = 0
 
@@ -23,10 +26,7 @@ class LocalRepositoryAdaptor  ():
     The adaptor will attempt to retrieve only the
     following defined fields from the input data.
     """
-    schema_fields = [
-        'transcription_json',
-        'transcription_vtt'
-    ]
+    schema_fields = ["transcription_json", "transcription_vtt"]
 
     def __init__(self, source, destination):
         self.source = source
@@ -34,7 +34,7 @@ class LocalRepositoryAdaptor  ():
 
         self.timestamp = int(time.time())
 
-    def add_logger(self, log_directory, log_file, log_name='transcription-adaptor'):
+    def add_logger(self, log_directory, log_file, log_name="transcription-adaptor"):
         """
         Add a basic logger, with a file and stream handler.
         """
@@ -63,40 +63,46 @@ class LocalRepositoryAdaptor  ():
         """
         Manipulate and move data into local repository as needed.
         """
-        self.logger.info('Started processing at %s', time.ctime())
-        paths = [path for path in os.listdir(self.source) if path.endswith('.json')]
+        self.logger.info("Started processing at %s", time.ctime())
+        paths = [path for path in os.listdir(self.source) if path.endswith(".json")]
         for path in paths:
             try:
                 abs_input_path = os.path.join(self.source, path)
-                with open(abs_input_path, 'r') as file:
+                with open(abs_input_path, "r") as file:
 
                     data = self.select_fields(json.load(file))
 
-                    if data['transcription_json']:
-                        dest = os.path.join(self.destination, 'transcripts/json', Path(path).stem)
-                        self.logger.debug('requesting creation of file at %s' % dest)
-                        self.add_file_to_repository(dest, data['transcription_json'])
+                    if data["transcription_json"]:
+                        dest = os.path.join(
+                            self.destination, "transcripts/json", Path(path).stem
+                        )
+                        self.logger.debug("requesting creation of file at %s" % dest)
+                        self.add_file_to_repository(dest, data["transcription_json"])
 
-                    if data['transcription_vtt']:
-                        dest = os.path.join(self.destination, 'transcripts/vtt', Path(path).stem)
-                        self.logger.debug('requesting creation of file at %s' % dest)
-                        self.add_file_to_repository(dest, data['transcription_vtt'])
+                    if data["transcription_vtt"]:
+                        dest = os.path.join(
+                            self.destination, "transcripts/vtt", Path(path).stem
+                        )
+                        self.logger.debug("requesting creation of file at %s" % dest)
+                        self.add_file_to_repository(dest, data["transcription_vtt"])
 
                     self.records_processed += 1
             except KeyError as e:
                 self.records_failed += 1
-                self.logger.error('ERROR: key: %s not found in input data %s', e, abs_input_path)
+                self.logger.error(
+                    "ERROR: key: %s not found in input data %s", e, abs_input_path
+                )
             except Exception as e:
                 self.records_failed += 1
-                self.logger.error('ERROR: %s', e)
+                self.logger.error("ERROR: %s", e)
 
-        self.logger.info('%i records processed' % self.records_processed)
-        self.logger.info('%i records failed' % self.records_failed)
+        self.logger.info("%i records processed" % self.records_processed)
+        self.logger.info("%i records failed" % self.records_failed)
 
-        self.logger.info('Finished processing at %s', time.ctime())
+        self.logger.info("Finished processing at %s", time.ctime())
 
     def select_fields(self, data):
-        return { k:v for k,v in data.items() if k in self.schema_fields }
+        return {k: v for k, v in data.items() if k in self.schema_fields}
 
     def post_process(self):
         pass
@@ -104,9 +110,9 @@ class LocalRepositoryAdaptor  ():
     def add_file_to_repository(self, path, data):
         try:
             os.makedirs(os.path.dirname(path), exist_ok=True)
-            with open(path, 'w', encoding='utf-8') as f:
+            with open(path, "w", encoding="utf-8") as f:
                 f.write(data)
-                self.logger.debug('Created file at %s' % path)
+                self.logger.debug("Created file at %s" % path)
         except Exception as e:
-            self.logger.debug('Failed to create file at %s' % path)
-            self.logger.error('ERROR: %s', e)
+            self.logger.debug("Failed to create file at %s" % path)
+            self.logger.error("ERROR: %s", e)
