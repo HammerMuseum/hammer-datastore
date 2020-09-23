@@ -20,6 +20,9 @@
           }
         }
       },
+      "duration": {
+        "type": "duration"
+      },
       "in_playlists": {
         "type": "keyword"
       },
@@ -36,9 +39,6 @@
             "type": "integer"
           }
         }
-      },
-      "program_series": {
-        "type": "keyword"
       },
       "quote": {
         "type": "keyword"
@@ -81,10 +81,6 @@
       "transcription_vtt": {
         "type": "text",
         "index": false
-      },
-      "transcription_json": {
-        "type": "object",
-        "enabled": false
       },
       "tags": {
         "type": "keyword"

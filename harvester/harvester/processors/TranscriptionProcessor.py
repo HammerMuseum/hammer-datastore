@@ -16,7 +16,9 @@ class TranscriptionProcessor():
     def __init__(self, harvester, api_key, fields):
         self.harvester = harvester
         self.fields = fields
-        self.headers = {'api-key': api_key}
+        session = requests.Session()
+        session.headers.update({'api-key': api_key})
+        self.session = session
 
     def get_transcript_vtt(self, location):
         """
@@ -34,12 +36,12 @@ class TranscriptionProcessor():
         }
 
         try:
-            response = requests.get(
-                url, headers=self.headers, params=querystring)
+            response = self.session.get(
+                url, params=querystring)
             response.raise_for_status()
             response_json = response.json()
             url = response_json['url']
-            response = requests.get(url)
+            response = self.session.get(url)
             response.raise_for_status()
             return response.text
         except HTTPError as error:
@@ -52,7 +54,7 @@ class TranscriptionProcessor():
         """
         url = "https://api.trint.com/export/json/{}".format(location)
         try:
-            response = requests.get(url, headers=self.headers)
+            response = self.session.get(url)
             response.raise_for_status()
             return json.dumps(response.json())
         except HTTPError as error:
@@ -65,11 +67,11 @@ class TranscriptionProcessor():
         """
         url = "https://api.trint.com/export/text/{}".format(location)
         try:
-            response = requests.get(url, headers=self.headers)
+            response = self.session.get(url)
             response.raise_for_status()
             response_json = response.json()
             url = response_json['url']
-            response = requests.get(url)
+            response = self.session.get(url)
             response.raise_for_status()
             return response.text
         except HTTPError as error:

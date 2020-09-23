@@ -142,7 +142,7 @@ deploy: &deploy
     - run: ssh deploy@$PROD_DEPLOY_URL sudo systemctl reload php7.4-fpm.service
     - run: ssh deploy@$PROD_DEPLOY_URL mkdir /var/www/$HOST_URL/current/harvester/logs
     - run: ssh deploy@$PROD_DEPLOY_URL mkdir /var/www/$HOST_URL/current/harvester/data
-    - run: ssh deploy@$PROD_DEPLOY_URL sh /var/www/$HOST_URL/current/harvester/install_harvester_dependencies.sh
+    - run: ssh deploy@$PROD_DEPLOY_URL sh /var/www/$HOST_URL/current/harvester/install/install_harvester_dependencies.sh
     - run: ssh deploy@$PROD_DEPLOY_URL sudo mv /var/www/$HOST_URL/current/harvester/cron/run_harvester_cron /etc/cron.d
     - run: ssh deploy@$PROD_DEPLOY_URL sudo chown root:root /etc/cron.d/run_harvester_cron
     - aws-white-list-circleci-ip/remove:
@@ -175,7 +175,7 @@ deploy_stage: &deploy_stage
     - run: ssh deploy@$STAGE_HOST_URL sudo systemctl reload php7.4-fpm.service
     - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/$STAGE_HOST_URL/current/harvester/logs
     - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/$STAGE_HOST_URL/current/harvester/data
-    - run: ssh deploy@$STAGE_HOST_URL sh /var/www/$STAGE_HOST_URL/current/harvester/install_harvester_dependencies_stage.sh
+    - run: ssh deploy@$STAGE_HOST_URL sh /var/www/$STAGE_HOST_URL/current/harvester/install/install_harvester_dependencies_stage.sh
     - run: ssh deploy@$STAGE_HOST_URL sudo mv /var/www/$STAGE_HOST_URL/current/harvester/cron/run_harvester_cron_stage /etc/cron.d
     - run: ssh deploy@$STAGE_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_stage
     - aws-white-list-circleci-ip/remove:
@@ -208,7 +208,7 @@ deploy_dev: &deploy_dev
     - run: ssh deploy@$DEV_HOST_URL sudo systemctl reload php7.4-fpm.service
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/$DEV_HOST_URL/current/harvester/logs
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/$DEV_HOST_URL/current/harvester/data
-    - run: ssh deploy@$DEV_HOST_URL sh /var/www/$DEV_HOST_URL/current/harvester/install_harvester_dependencies_dev.sh
+    - run: ssh deploy@$DEV_HOST_URL sh /var/www/$DEV_HOST_URL/current/harvester/install/install_harvester_dependencies_dev.sh
     - run: ssh deploy@$DEV_HOST_URL sudo mv /var/www/$DEV_HOST_URL/current/harvester/cron/run_harvester_cron_dev /etc/cron.d
     - run: ssh deploy@$DEV_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_dev
     - aws-white-list-circleci-ip/remove:
