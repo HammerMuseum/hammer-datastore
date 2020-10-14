@@ -279,8 +279,10 @@ class Search
     {
         $params = $this->getDefaultParams();
         $params['search_params']['size'] = 0;
+
         // @todo move sort into request options
         $sort = ['date_recorded' => ['order' => 'desc']];
+
         $params['search_params']['body']['aggs'] = $this->getAggregationForTerm($term, $sort);
         $result = $this->search($params);
         $result['result'] = array_map(function ($bucket) use ($term) {
@@ -459,33 +461,37 @@ class Search
             'date_recorded' => [
                 'date_histogram' => [
                     'field' => 'date_recorded',
-                    'interval' => 'year'
-                ]
+                    'interval' => 'year',
+                ],
             ],
             'in_playlists' => [
                 'terms' => [
                     'field' => 'in_playlists',
-                    'size' => 1000
-                ]
+                    'size' => 1000,
+                    'order' => ['_key' =>'asc' ],
+                ],
             ],
             'speakers' => [
                 'terms' => [
                     'field' => 'speakers',
-                    'size' => 10000
-                ]
+                    'size' => 10000,
+                    'order' => ['_key' =>'asc' ],
                 ],
+            ],
             'topics' => [
                 'terms' => [
                     'field' => 'topics',
-                    'size' => 10000
-                ]
+                    'size' => 10000,
+                    'order' => ['_key' =>'asc' ],
+                ],
             ],
             'tags' => [
                 'terms' => [
                     'field' => 'tags',
-                    'size' => 10000
-                ]
-            ]
+                    'size' => 10000,
+                    'order' => ['_key' =>'asc' ],
+                ],
+            ],
         ];
     }
 
