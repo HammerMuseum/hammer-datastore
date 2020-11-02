@@ -1,1 +1,1 @@
-0 12 * * * deploy /bin/sh /var/www/datastore.hammer.ucla.edu/current/harvester/cron/run_harvester_for_environment.sh datastore.hammer.ucla.edu https://hammer.assetbank-server.com/assetbank-hammer videos
+0 12 * * * deploy /var/www/datastore.hammer.ucla.edu/current/harvester/cron/run_harvester_for_environment.sh datastore.hammer.ucla.edu https://hammer.assetbank-server.com/assetbank-hammer videos

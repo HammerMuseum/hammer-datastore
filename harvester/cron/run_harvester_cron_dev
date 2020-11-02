@@ -1,1 +1,1 @@
-0 10 * * * deploy /bin/sh /var/www/dev.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_for_environment.sh dev.datastore.hammer.cogapp.com https://hammer.assetbank-server.com/assetbank-hammer videos_dev 50
+0 10 * * * deploy /var/www/dev.datastore.hammer.cogapp.com/current/harvester/cron/run_harvester_for_environment.sh dev.datastore.hammer.cogapp.com https://hammer.assetbank-server.com/assetbank-hammer videos_dev 50
