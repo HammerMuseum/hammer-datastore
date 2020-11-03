@@ -2,65 +2,36 @@
 
 ### Requirements
 
-- MySQL
-- PHP 7.2
+- PHP 7.4
 - [Composer](https://getcomposer.org/)
+- Docker is recommended for development
 
 ### Setup
 
-Setup you your local virtual hosts or equivalent.
+Install Docker Engine for your operating system.
 
-From the project root, run:
-
-```sh
-ln -s .env.example .env
-```
-
-Create a database called `laravel-datastore`
-
-Populate your database credentials in the `.env` file e.g:
-
-```
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=laravel-datastore
-DB_USERNAME=<your-db-username>
-DB_PASSWORD=<your-db-password>
-```
-
-Then from the project root run:
-
-```sh
-composer install
-php artisan key:generate
-php artisan migrate
-```
-
-## Using Docker
-
-Install the correct version of Docker for your operating system. 
+Copy the example env file to create a local env file.
 
 ```sh
 ln -s .env.example.docker .env
 ```
 
-Check that the correct php image is selected in .env (choice depends on host operating system).
+Ensure that the correct php image is selected in the .env file for your host operating system.
 
 ```sh
 make up
 ```
 
-Create and upload an Elasticsearch mapping template. Index templates are stored in `elasticsearch/templates`
+Create and upload the Elasticsearch mapping template. Index templates are stored in `elasticsearch/templates`
 
 ```sh
 cd elasticsearch/scripts
 ./upload-index-template.sh --host http://localhost:9201 --name template_video --file ../templates/video_.json
 ```
 
-To run a harvest and submit documents to Elasticsearch.
+To run a harvest of the asset data and submit documents to Elasticsearch.
 
-```
+```sh
 cd harvester/scripts
 PYTHONPATH=../. python run_harvester.py https://hammer.assetbank-server.com/assetbank-hammer/rest/asset-search 1 --submit --search-domain=http://localhost --port=9201 --scheme=http
 ```
