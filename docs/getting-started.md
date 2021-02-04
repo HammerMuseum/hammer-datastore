@@ -22,26 +22,27 @@ Ensure that the correct php image is selected in the .env file for your host ope
 make up
 ```
 
-Create and upload the Elasticsearch mapping template. Index templates are stored in `elasticsearch/templates`
+Create and upload the mapping template to Elasticsearch. Index template stored in `elasticsearch/templates`
 
 ```sh
 cd elasticsearch/scripts
 ./upload-index-template.sh --host http://localhost:9201 --name template_video --file ../templates/video_.json
 ```
 
-To run a harvest of the asset data and submit documents to Elasticsearch.
+Add some data (requires VPN) 
 
 ```sh
-cd harvester/scripts
-PYTHONPATH=../. python run_harvester.py https://hammer.assetbank-server.com/assetbank-hammer/rest/asset-search 1 --submit --search-domain=http://localhost --port=9201 --scheme=http
+npx elasticdump \
+  --input=https://search-hammermuseum-7ugp6zl6uxoivh2ihpx56t7wxu.us-west-1.es.amazonaws.com/videos-dev
+  --output=http://localhost:9201/videos
 ```
 
-Further Harvester setup docs are in the readme.md within the harvester directory.
+Optional: [Setup a local harvester](../harvester/README.md).
 
 Notes:
 
 ```sh
-# When running php-based tools and Docker, prefix commands with:
+# When running php-based tools and Docker, prefix commands with:    
 docker-compose exec php <command>
 
 # e.g.
