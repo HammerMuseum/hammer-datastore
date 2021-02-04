@@ -21,7 +21,7 @@
         }
       },
       "duration": {
-        "type": "duration"
+        "type": "keyword"
       },
       "in_playlists": {
         "type": "keyword"
