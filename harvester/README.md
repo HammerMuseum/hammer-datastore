@@ -10,8 +10,10 @@ The harvester is not currently setup to run within Docker 😕. It is recommende
 cd scripts
 python setup.py install
 cd ../harvester/harvester/assetbank`
-`cp .env.example .env` then add API [credentials for Asset Bank](http://tpm.office.cogapp.com/index.php/pwd/view/769).
+`cp .env.example .env` 
 ```
+
+Add API [credentials for Asset Bank](http://tpm.office.cogapp.com/index.php/pwd/view/769) to `.env`
 
 ## Running a Harvest
 
