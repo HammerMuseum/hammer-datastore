@@ -33,7 +33,7 @@ Add some data (requires VPN)
 
 ```sh
 npx elasticdump \
-  --input=https://search-hammermuseum-7ugp6zl6uxoivh2ihpx56t7wxu.us-west-1.es.amazonaws.com/videos-dev
+  --input=https://search-hammermuseum-7ugp6zl6uxoivh2ihpx56t7wxu.us-west-1.es.amazonaws.com/videos_dev \
   --output=http://localhost:9201/videos
 ```
 
