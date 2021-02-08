@@ -29,11 +29,17 @@ cd elasticsearch/scripts
 ./upload-index-template.sh --host http://localhost:9201 --name template_video --file ../templates/video_.json
 ```
 
-Add some data (requires VPN) 
+Create an index named `videos`
+
+```sh
+curl -X PUT http://localhost:9201/videos
+```
+
+Add some data (requires VPN)
 
 ```sh
 npx elasticdump \
-  --input=https://search-hammermuseum-7ugp6zl6uxoivh2ihpx56t7wxu.us-west-1.es.amazonaws.com/videos-dev
+  --input=https://search-hammermuseum-7ugp6zl6uxoivh2ihpx56t7wxu.us-west-1.es.amazonaws.com/videos_dev \
   --output=http://localhost:9201/videos
 ```
 
@@ -42,7 +48,7 @@ Optional: [Setup a local harvester](../harvester/README.md).
 Notes:
 
 ```sh
-# When running php-based tools and Docker, prefix commands with:    
+# When running php-based tools and Docker, prefix commands with:
 docker-compose exec php <command>
 
 # e.g.
