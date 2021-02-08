@@ -225,7 +225,6 @@ class AssetBankHarvester(HarvesterBase):
             current_harvest_uri,
             headers={"Authorization": "Bearer {}".format(self.access_token)},
             params={
-                "attribute_716": "Yes",
                 "assetTypeId": self.asset_type,
                 "page": page_number,
             },
