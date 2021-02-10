@@ -252,9 +252,9 @@ class AssetBankHarvester(HarvesterBase):
             assets = assets[0 : self.max_items]
             self.logger.info("Harvesting to max limit of %i records" % len(assets))
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             for asset in assets:
-                time.sleep(0.5)
+                time.sleep(1.4)
                 executor.submit(self.harvest_asset, asset)
 
     def harvest_asset(self, asset):
