@@ -37,6 +37,8 @@ class AssetBankHarvester(HarvesterBase):
 
     playlist_user = 14
 
+    log_formatter = logging.Formatter(' %(asctime)s - %(threadName)s - %(name)s - %(levelname)s - %(message)s')
+
     """
     The current location of the output.
     This may change during the run as directories are renamed.
@@ -226,6 +228,7 @@ class AssetBankHarvester(HarvesterBase):
             headers={"Authorization": "Bearer {}".format(self.access_token)},
             params={
                 "assetTypeId": self.asset_type,
+                "descriptiveCategoryForm.categoryIds": 6,
                 "page": page_number,
             },
         )
@@ -251,9 +254,9 @@ class AssetBankHarvester(HarvesterBase):
             assets = assets[0 : self.max_items]
             self.logger.info("Harvesting to max limit of %i records" % len(assets))
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             for asset in assets:
-                time.sleep(0.5)
+                time.sleep(1.4)
                 executor.submit(self.harvest_asset, asset)
 
     def harvest_asset(self, asset):
@@ -367,7 +370,7 @@ class AssetBankHarvester(HarvesterBase):
         # Get some non-attribute properties.
         output["video_url"] = root.xpath("//asset/contentUrl/text()")[0]
         output["thumbnail_url"] = root.xpath("//asset/previewUrl/text()")[0]
-        thumbnailId = re.match(".*file=([a-z\d]+)\.jpg", output["thumbnail_url"]).group(
+        thumbnailId = re.match(".*file=([a-z\d]+)\.", output["thumbnail_url"]).group(
             1
         )
         output["thumbnailId"] = thumbnailId

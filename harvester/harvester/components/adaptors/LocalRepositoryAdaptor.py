@@ -66,8 +66,8 @@ class LocalRepositoryAdaptor:
         self.logger.info("Started processing at %s", time.ctime())
         paths = [path for path in os.listdir(self.source) if path.endswith(".json")]
         for path in paths:
+            abs_input_path = os.path.join(self.source, path)
             try:
-                abs_input_path = os.path.join(self.source, path)
                 with open(abs_input_path, "r") as file:
 
                     data = self.select_fields(json.load(file))
@@ -88,9 +88,9 @@ class LocalRepositoryAdaptor:
 
                     self.records_processed += 1
             except KeyError as e:
-                self.records_failed += 1
-                self.logger.error(
-                    "ERROR: key: %s not found in input data %s", e, abs_input_path
+                self.records_processed += 1
+                self.logger.warning(
+                    "%s not found in input data %s", e, abs_input_path
                 )
             except Exception as e:
                 self.records_failed += 1
