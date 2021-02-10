@@ -368,7 +368,7 @@ class AssetBankHarvester(HarvesterBase):
         # Get some non-attribute properties.
         output["video_url"] = root.xpath("//asset/contentUrl/text()")[0]
         output["thumbnail_url"] = root.xpath("//asset/previewUrl/text()")[0]
-        thumbnailId = re.match(".*file=([a-z\d]+)\.jpg", output["thumbnail_url"]).group(
+        thumbnailId = re.match(".*file=([a-z\d]+)\.", output["thumbnail_url"]).group(
             1
         )
         output["thumbnailId"] = thumbnailId
