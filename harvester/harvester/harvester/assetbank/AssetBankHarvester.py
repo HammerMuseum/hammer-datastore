@@ -37,6 +37,8 @@ class AssetBankHarvester(HarvesterBase):
 
     playlist_user = 14
 
+    log_formatter = logging.Formatter(' %(asctime)s - %(threadName)s - %(name)s - %(levelname)s - %(message)s')
+
     """
     The current location of the output.
     This may change during the run as directories are renamed.
