@@ -202,25 +202,8 @@ class Search
         $params += $requestParams;
 
         $clause = isset($requestParams['term']) ? 'must' : 'should';
-        $params['search_params']['body'] = [
-            'query' => [
-                'bool' => [
-                    $clause => [
-                        'multi_match' => [
-                            'query' => isset($requestParams['term']) ? $requestParams['term'] : '',
-                            'fields' => [
-                                'title^2',
-                                'description',
-                                'transcription_txt',
-                                'tags',
-                                'speakers',
-                                'topics',
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ];
+        $searchTerm = isset($requestParams['term']) ? $requestParams['term'] : '';
+        $params['search_params']['body'] = $this->freeTextQuery($searchTerm, $clause);
 
         $params['search_params']['body']['highlight'] = [
             'number_of_fragments' => 1,
@@ -294,6 +277,83 @@ class Search
             ];
         }, $result['aggregations'][$term]['buckets']);
         return $result;
+    }
+
+    /**
+     * Helper to return the default free text query body.
+     *
+     * Expands the default search query to combine
+     * both a phrase and a non-phrase type search
+     * improving the relevance of hits for queries
+     * with multiple words.
+     *
+     * The minimum_should_match parameter can be read as follows:
+     * queries up to three words should be highly accurate, between
+     * 4 and 8 words 20% of the query words could be missing in a hit,
+     * anything above no more than 3 words from the query can be missing
+     * in the search hit.
+     *
+    * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-minimum-should-match.html
+     */
+    private function freeTextQuery(string $queryTerm, $clause)
+    {
+        $queryBody = [
+            'query' => [
+                'bool' => [
+                    $clause => [
+                        'multi_match' => [
+                            'query' => $queryTerm,
+                            'minimum_should_match' => '3<-20% 8<-3',
+                            'fields' => [
+                                'title^2',
+                                'description',
+                                'transcription_txt',
+                                'tags',
+                                'speakers',
+                                'topics',
+                            ]
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        if (count(explode(' ', $queryTerm)) > 1) {
+            $queryBody['query']['bool']['should'] = [
+                [
+                    'multi_match' => [
+                        'query' => $queryTerm,
+                        'type' => 'phrase',
+                        'slop' => 100,
+                        'boost' => 10,
+                        'fields' => [
+                            'title',
+                            'description',
+                            'transcription_txt',
+                            'tags',
+                            'speakers',
+                            'topics',
+                        ]
+                    ],
+                ],
+                [
+                    'multi_match' => [
+                        'query' => $queryTerm,
+                        'operator' => 'and',
+                        "boost" => 4,
+                        'fields' => [
+                            'title',
+                            'description',
+                            'transcription_txt',
+                            'tags',
+                            'speakers',
+                            'topics',
+                        ]
+                    ],
+                ],
+            ];
+        }
+        return $queryBody;
     }
 
     /**
