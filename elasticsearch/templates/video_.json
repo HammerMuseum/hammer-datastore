@@ -12,13 +12,7 @@
       },
       "description": {
         "type": "text",
-        "analyzer": "english",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
+        "analyzer": "english"
       },
       "duration": {
         "type": "keyword"
@@ -46,6 +40,9 @@
       "speakers": {
         "type": "keyword"
       },
+      "tags": {
+        "type": "keyword"
+      },
       "thumbnailId": {
         "type": "keyword"
       },
@@ -65,28 +62,16 @@
       "title_slug": {
         "type": "keyword"
       },
+      "topics": {
+        "type": "keyword"
+      },
       "transcription": {
         "type": "keyword"
       },
       "transcription_txt": {
         "type": "text",
         "analyzer": "english",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
-      },
-      "transcription_vtt": {
-        "type": "text",
-        "index": false
-      },
-      "tags": {
-        "type": "keyword"
-      },
-      "topics": {
-        "type": "keyword"
+        "position_increment_gap": 100
       },
       "video_url": {
         "type": "keyword"
