@@ -588,7 +588,7 @@ class Search
                 foreach ($values as $value) {
                     // Build the multiple terms filter query
                     if ($key === 'date_recorded') {
-                        $params['search_params']['body']['query']['bool']['filter']['bool']['should'][] = [
+                        $params['search_params']['body']['query']['bool']['filter']['bool']['must'][] = [
                             'range' => [
                                 $field => [
                                     'gte' => $value . '||/y',
