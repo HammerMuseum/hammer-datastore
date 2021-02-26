@@ -42,7 +42,7 @@ class Search
         'topics',
         'title',
         'description',
-        'transcription',
+        'transcription_txt',
         'tags',
         'speakers',
         'term',
@@ -96,7 +96,7 @@ class Search
     {
         return [
             'search_params' => [
-                '_source_excludes' => ['transcription*'],
+                '_source_excludes' => ['transcription_txt'],
                 'size' => $this->pageSize,
                 'index' => config('app.es_index')
             ]
@@ -193,7 +193,7 @@ class Search
     {
         $termSearched = array_intersect($this->searchableFields, array_keys($requestParams));
 
-        // If there was no searchable fields, search everything
+        // If there are no searchable fields in the request, search everything
         if (empty($requestParams) || empty($termSearched)) {
             return $this->matchAll($requestParams);
         }
