@@ -347,6 +347,13 @@ class AssetBankHarvester(HarvesterBase):
             "quote": "Featured Quote",
         }
 
+        multivalued = {
+            "speakers",
+            "topics",
+            "in_playlists",
+            "tags",
+        }
+
         output = {}
         root = etree.fromstring(record)
         for key, value in attributes.items():
@@ -357,6 +364,8 @@ class AssetBankHarvester(HarvesterBase):
             attribute_value = root.xpath(query)
             if len(attribute_value):
                 output[key] = str(attribute_value[0])
+            elif key in multivalued:
+                output[key] = []
             else:
                 output[key] = ""
 
