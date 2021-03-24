@@ -3,6 +3,7 @@ import logging
 import datetime
 import concurrent.futures
 import threading
+import random
 import time
 import re
 from pathlib import Path
@@ -256,7 +257,7 @@ class AssetBankHarvester(HarvesterBase):
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             for asset in assets:
-                time.sleep(1.4)
+                time.sleep(0.8)
                 executor.submit(self.harvest_asset, asset)
 
     def harvest_asset(self, asset):
