@@ -54,6 +54,7 @@ class AssetBankHarvester(HarvesterBase):
         env_path = Path(__file__).parent.absolute() / ".env"
         load_dotenv(dotenv_path=env_path)
 
+        self.summary = None
         self.host = host
         self.access_token = None
         self.init_auth()
@@ -151,7 +152,7 @@ class AssetBankHarvester(HarvesterBase):
         self.logger.info("%i records failed", self.records_failed)
 
         if self.records_processed > 0:
-            self.success = (self.records_succeeded / self.records_processed) > 0.6
+            self.success = (self.records_succeeded / self.records_processed) > 0.9
             self.logger.info("Harvest succeeded")
         else:
             self.success = False
@@ -467,6 +468,8 @@ class AssetBankHarvester(HarvesterBase):
             "errors": self.errors,
             "success": "{!s}".format(self.success),
         }
+
+        self.summary = summary
 
         summary_path = os.path.join(self.current_output_path, "summary.log")
 

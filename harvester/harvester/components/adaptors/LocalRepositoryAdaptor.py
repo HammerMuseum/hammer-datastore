@@ -19,7 +19,7 @@ class LocalRepositoryAdaptor:
     )
 
     records_processed = 0
-
+    records_succeeded = 0
     records_failed = 0
 
     """
@@ -63,7 +63,10 @@ class LocalRepositoryAdaptor:
         """
         Manipulate and move data into local repository as needed.
         """
+        self.logger.info("------------------------")
         self.logger.info("Started processing at %s", time.ctime())
+        self.logger.info("------------------------")
+
         paths = [path for path in os.listdir(self.source) if path.endswith(".json")]
         for path in paths:
             abs_input_path = os.path.join(self.source, path)
@@ -87,25 +90,36 @@ class LocalRepositoryAdaptor:
                         self.add_file_to_repository(dest, data["transcription_vtt"])
 
                     self.records_processed += 1
+                    self.records_succeeded += 1
             except KeyError as e:
                 self.records_processed += 1
                 self.logger.warning(
                     "%s not found in input data %s", e, abs_input_path
                 )
             except Exception as e:
+                self.records_processed += 1
                 self.records_failed += 1
                 self.logger.error("ERROR: %s", e)
 
-        self.logger.info("%i records processed" % self.records_processed)
-        self.logger.info("%i records failed" % self.records_failed)
+        if self.records_processed > 0:
+            self.success = (self.records_succeeded / self.records_processed) > 0.9
+        else:
+            self.success = False
 
-        self.logger.info("Finished processing at %s", time.ctime())
+        if self.success:
+            self.logger.info("Local repository adaptor processing completed successfully.")
+        else:
+            self.logger.info("Local repository adaptor processing failed.")
+
+        self.logger.info("Processed: %i", self.records_processed)
+        self.logger.info("Success: %i", self.records_succeeded)
+        self.logger.info("Errors: %i", self.records_failed)
 
     def select_fields(self, data):
         return {k: v for k, v in data.items() if k in self.schema_fields}
 
     def post_process(self):
-        pass
+        self.logger.info("Finished processing at %s", time.ctime())
 
     def add_file_to_repository(self, path, data):
         try:

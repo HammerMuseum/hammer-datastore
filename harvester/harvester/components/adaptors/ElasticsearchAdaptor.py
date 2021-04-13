@@ -22,7 +22,7 @@ class ElasticsearchAdaptor:
     )
 
     records_processed = 0
-
+    records_succeeded = 0
     records_failed = 0
 
     """
@@ -64,9 +64,14 @@ class ElasticsearchAdaptor:
         self.alias = alias
         self.index_prefix = "video_"
 
-        self.client = Elasticsearch(es_domain, scheme=scheme, port=port)
+        self.index_name = "{}{}".format(self.index_prefix, int(time.time()))
 
-        self.index_name = self.create_index_name(self.index_prefix, self.timestamp)
+        # Create new Elasticsearch client
+        self.client = Elasticsearch(
+            es_domain,
+            scheme=scheme,
+            port=port
+        )
 
     def add_logger(self, log_directory, log_file, log_name="elasticsearch-adaptor"):
         """
@@ -97,21 +102,36 @@ class ElasticsearchAdaptor:
         index_name = self.index_name
         self.create_index(index_name)
         self.logger.info("Using index %s", index_name)
+
         # Create alias if required.
         alias = self.alias
-        self.create_alias(alias)
+        self.prepare_alias(alias)
         self.logger.info("Using alias: %s", alias)
 
     def process(self):
         """
         Submit documents for indexing.
         """
+        self.logger.info("------------------------")
         self.logger.info("Started processing at %s", time.ctime())
+        self.logger.info("------------------------")
 
         self.submit()
 
-        self.logger.info("%i documents indexed" % self.records_processed)
-        self.logger.info("%i documents failed" % self.records_failed)
+        if self.records_processed > 0:
+            self.success = (self.records_succeeded / self.records_processed) > 0.9
+        else:
+            self.success = False
+
+        if self.success:
+            self.logger.info("Elasticsearch adaptor completed successfully.")
+        else:
+            self.logger.info("Elasticsearch adaptor failed.")
+            self.success = False
+
+        self.logger.info("Processed: %i", self.records_processed)
+        self.logger.info("Indexed: %i", self.records_succeeded)
+        self.logger.info("Errors: %i", self.records_failed)
 
         self.logger.info("Finished processing at %s", time.ctime())
 
@@ -120,10 +140,19 @@ class ElasticsearchAdaptor:
         Promote the new index to
         the configured alias.
         """
-        # Switch alias to newly created index
+        # Switch alias to newly created index if process successful
+        if not self.success:
+            self.logger.info("Finished processing at %s", time.ctime())
+            return
+
         alias = self.alias
-        if self.update_alias(alias, self.index_name):
-            print("Updated {} alias to point to {}.".format(alias, self.index_name))
+        try:
+            self.update_alias(alias, self.index_name)
+            self.logger.info("Updated {} alias to point to {}.".format(alias, self.index_name))
+        except Exception as e:
+            self.logger.error("ERROR: Failed to update alias: {}.".format(e))
+        finally:
+            self.logger.info("Finished processing at %s", time.ctime())
 
     def load(self):
         paths = [
@@ -138,30 +167,35 @@ class ElasticsearchAdaptor:
                 }
 
     def select_fields(self, data):
-        return {k: v for k, v in data.items() if k in self.schema_fields}
+        if len(self.schema_fields):
+            return {k: v for k, v in data.items() if k in self.schema_fields}
+        else:
+            return data.items()
 
     def submit(self):
         try:
             success, errors = helpers.bulk(
-                self.client, self.load(), chunk_size=2, request_timeout=30
+                self.client,
+                self.load(),
+                chunk_size=2,
+                request_timeout=30,
+                raise_on_error=False,
             )
+
             if errors:
                 for error in errors:
-                    self.logger.log_error("Document failed %s", error)
+                    self.logger.error("Document failed %s", error)
                     self.records_failed += 1
                     self.records_processed += 1
 
+            self.records_succeeded += success
             self.records_processed += success
-            self.logger.info("Successfully indexed: %i documents", success)
 
+            self.logger.info("Processed: %i documents", self.records_processed)
+            self.logger.info("Indexed: %i documents", self.records_succeeded)
+            self.logger.info("Errors: %i documents", self.records_failed)
         except Exception as e:
             self.logger.error("ERROR: %s", e)
-
-    def create_index_name(self, prefix, timestamp):
-        """
-        Create a new index for each run.
-        """
-        return "{}{}".format(prefix, timestamp)
 
     def create_index(self, index_name):
         """
@@ -171,12 +205,12 @@ class ElasticsearchAdaptor:
         try:
             self.client.indices.create(index=index_name)
             self.logger.info("Created index %s", index_name)
-        except Exception as err:
+        except ElasticsearchException as err:
             self.logger.error("ERROR - Could not create index %s", err)
 
-    def create_alias(self, alias):
+    def prepare_alias(self, alias):
         """
-        Adds a new alias to Elasticsearch.
+        Adds a new alias to Elasticsearch if required.
         :param alias: The new alias name
         """
         # Add the defined alias if it doesn't already exist on the cluster.
@@ -196,23 +230,20 @@ class ElasticsearchAdaptor:
         :param new_index_name: The name of the index to be added to the alias
         """
         # Switch old index with the newly generated index.
-        try:
-            # Get indices attached to the alias
-            alias_state = self.client.indices.get_alias(alias)
-            current_indices = list(alias_state.keys())
-            # Update alias swapping out old index for new
-            self.client.indices.update_aliases(
-                {
-                    "actions": [
-                        {"remove": {"indices": current_indices, "alias": alias}},
-                        {"add": {"index": new_index_name, "alias": alias}},
-                    ]
-                }
-            )
-            self.logger.info(
-                "Removed %s from alias %s", ", ".join(current_indices), alias
-            )
-            self.logger.info("Added %s to alias %s", new_index_name, alias)
-        except ElasticsearchException as e:
-            self.logger.error("ERROR updating alias %s %o", alias, e)
+        # Get indices attached to the alias
+        alias_state = self.client.indices.get_alias(alias)
+        current_indices = list(alias_state.keys())
 
+        # Update alias swapping out old index for new
+        self.client.indices.update_aliases(
+            {
+                "actions": [
+                    {"remove": {"indices": current_indices, "alias": alias}},
+                    {"add": {"index": new_index_name, "alias": alias}},
+                ]
+            }
+        )
+        self.logger.info(
+            "Removed %s from alias %s", ", ".join(current_indices), alias
+        )
+        self.logger.info("Added %s to alias %s", new_index_name, alias)
