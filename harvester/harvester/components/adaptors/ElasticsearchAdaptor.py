@@ -99,14 +99,18 @@ class ElasticsearchAdaptor:
         """
         Index and alias creation
         """
-        index_name = self.index_name
-        self.create_index(index_name)
-        self.logger.info("Using index %s", index_name)
+        try:
+            index_name = self.index_name
+            self.create_index(index_name)
+            self.logger.info("Using index %s", index_name)
 
-        # Create alias if required.
-        alias = self.alias
-        self.prepare_alias(alias)
-        self.logger.info("Using alias: %s", alias)
+            # Create alias if required.
+            alias = self.alias
+            self.prepare_alias(alias)
+            self.logger.info("Using alias: %s", alias)
+        except Exception as e:
+            self.logger.error('Error: could not create index -  {}'.format(e))
+            exit(1)
 
     def process(self):
         """
@@ -147,6 +151,7 @@ class ElasticsearchAdaptor:
 
         alias = self.alias
         try:
+            self.refresh_index(self.index_name)
             self.update_alias(alias, self.index_name)
             self.logger.info("Updated {} alias to point to {}.".format(alias, self.index_name))
         except Exception as e:
@@ -177,7 +182,9 @@ class ElasticsearchAdaptor:
             success, errors = helpers.bulk(
                 self.client,
                 self.load(),
-                chunk_size=2,
+                chunk_size=10,
+                max_retries=4,
+                initial_backoff=1,
                 request_timeout=30,
                 raise_on_error=False,
             )
@@ -197,16 +204,24 @@ class ElasticsearchAdaptor:
         except Exception as e:
             self.logger.error("ERROR: %s", e)
 
+    def refresh_index(self, index_name):
+        self.client.indices.refresh(index_name)
+        self.client.indices.forcemerge(index_name)
+
     def create_index(self, index_name):
         """
         Adds a new index to Elasticsearch.
         :param index_name: The new index name
         """
-        try:
-            self.client.indices.create(index=index_name)
-            self.logger.info("Created index %s", index_name)
-        except ElasticsearchException as err:
-            self.logger.error("ERROR - Could not create index %s", err)
+        settings = {
+            "settings": {
+                "index": {
+                    "refresh_interval" : "-1"
+                }
+            }
+        }
+        self.client.indices.create(index_name, body=settings)
+        self.logger.info("Created index %s", index_name)
 
     def prepare_alias(self, alias):
         """
