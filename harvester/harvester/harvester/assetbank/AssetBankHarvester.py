@@ -114,7 +114,7 @@ class AssetBankHarvester(HarvesterBase):
         Setup authentication necessary to communicate with the Asset Bank API.
         """
         try:
-            print("Attempting to Authenticate with Asset Bank")
+            self.logger.info("Attempting to Authenticate with Asset Bank")
             token_url = "{}{}".format(self.host, "/oauth/token")
             headers = {"Content-Type": "application/x-www-form-urlencoded"}
             data = {
@@ -128,9 +128,9 @@ class AssetBankHarvester(HarvesterBase):
             response.raise_for_status()
             content = response.json()
             self.access_token = content["access_token"]
-            print("Authentication successful")
+            self.logger.info("Authentication successful")
         except requests.HTTPError as error:
-            print("Failed to authenticate with API. Check credentials. %s", error)
+            self.logger.error("Failed to authenticate with API. Check credentials. %s", error)
             exit()
 
     def harvest(self):
