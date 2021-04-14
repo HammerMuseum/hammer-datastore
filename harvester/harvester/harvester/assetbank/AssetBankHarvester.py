@@ -353,7 +353,7 @@ class AssetBankHarvester(HarvesterBase):
         root = etree.fromstring(record)
         for key, value in attributes.items():
             field = "name"
-            query = '//attributes/attribute[{}[contains(text(), "{}")]]/value/text()'.format(
+            query = '//attributes/attribute[{}[text()="{}"]]/value/text()'.format(
                 field, value
             )
             attribute_value = root.xpath(query)
