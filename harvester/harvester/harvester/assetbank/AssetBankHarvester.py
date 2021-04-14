@@ -66,6 +66,7 @@ class AssetBankHarvester(HarvesterBase):
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
         self.harvest_uri = "{}/{}".format(self.host, "rest/asset-search")
         self.asset_type = options["assetType"]
+        self.assetIds = options['assetIds']
         self.docs = []
         self.slugs = []
 
@@ -225,15 +226,23 @@ class AssetBankHarvester(HarvesterBase):
 
         self.logger.info("Creating asset list. Page %i " % page_number)
 
+        params = {
+            "assetTypeId": self.asset_type,
+            "descriptiveCategoryForm.categoryIds": 6,
+            "page": page_number,
+        }
+
+        if self.assetIds:
+            params = {
+                'assetIds': self.assetIds
+            }
+
         response = requests.get(
             current_harvest_uri,
             headers={"Authorization": "Bearer {}".format(self.access_token)},
-            params={
-                "assetTypeId": self.asset_type,
-                "descriptiveCategoryForm.categoryIds": 6,
-                "page": page_number,
-            },
+            params=params
         )
+
         root = etree.fromstring(response.content)
         assets = root.xpath("//assetSummary")
 
@@ -249,6 +258,7 @@ class AssetBankHarvester(HarvesterBase):
         Orchetrates harvest by starting worker threads
         for gathering individual assets.
         """
+
         assets = self.get_asset_list()
         self.logger.info("Found %i records" % len(assets))
 

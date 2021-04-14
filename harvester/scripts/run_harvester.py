@@ -19,6 +19,12 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--assets",
+    type=int,
+    help="Only harvest asset with ID."
+)
+
+parser.add_argument(
     "--submit",
     action="store_true",
     help="If set, will attempt to submit the harvested records to the search index.",
@@ -68,6 +74,7 @@ args = parser.parse_args()
 # Prepare arguments for passing into the harvester
 options = {
     "assetType": args.type,
+    "assetIds": args.assets,
 }
 
 if args.since:
