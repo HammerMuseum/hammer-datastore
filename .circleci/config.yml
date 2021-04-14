@@ -10,7 +10,7 @@ defaults: &defaults
     - image: circleci/php:7.4-buster-node-browsers-legacy
       environment:
         HOST_URL: datastore.hammer.ucla.edu
-        PROD_DEPLOY_URL: datastore.hammer.cogapp.com
+        PROD_DEPLOY_URL: 52.8.89.103
         STAGE_HOST_URL: stage.datastore.hammer.cogapp.com
         DEV_HOST_URL: dev.datastore.hammer.cogapp.com
 
@@ -138,7 +138,7 @@ deploy: &deploy
     - create_harvester_env_file:
         environment: $HOST_URL
     - run: ssh-keyscan -H $(echo "$PROD_DEPLOY_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: php artisan deploy $PROD_DEPLOY_URL
+    - run: php artisan deploy production
     - run: ssh deploy@$PROD_DEPLOY_URL sudo systemctl reload php7.4-fpm.service
     - run: ssh deploy@$PROD_DEPLOY_URL mkdir /var/www/$HOST_URL/current/harvester/logs
     - run: ssh deploy@$PROD_DEPLOY_URL mkdir /var/www/$HOST_URL/current/harvester/data
@@ -171,7 +171,7 @@ deploy_stage: &deploy_stage
     - create_harvester_env_file:
         environment: $STAGE_HOST_URL
     - run: ssh-keyscan -H $(echo "$STAGE_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: php artisan deploy $STAGE_HOST_URL
+    - run: php artisan deploy staging
     - run: ssh deploy@$STAGE_HOST_URL sudo systemctl reload php7.4-fpm.service
     - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/$STAGE_HOST_URL/current/harvester/logs
     - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/$STAGE_HOST_URL/current/harvester/data
@@ -204,7 +204,7 @@ deploy_dev: &deploy_dev
     - create_harvester_env_file:
         environment: $DEV_HOST_URL
     - run: ssh-keyscan -H $(echo "$DEV_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: php artisan deploy $DEV_HOST_URL
+    - run: php artisan deploy dev
     - run: ssh deploy@$DEV_HOST_URL sudo systemctl reload php7.4-fpm.service
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/$DEV_HOST_URL/current/harvester/logs
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/$DEV_HOST_URL/current/harvester/data
