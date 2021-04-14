@@ -239,16 +239,21 @@ class Search
     {
         $params = $this->getDefaultParams();
         $params += $requestParams;
+
         if (isset($requestParams['page'])) {
             $params['search_params']['from'] = $this->getPager($requestParams['page']);
         }
+
         $params['search_params']['body'] = [
             'query' => [
                 'match_all' => (object) [],
             ]
         ];
+
         $params['search_params']['body'] += $this->getGlobalAggregationOptions();
-        $params['search_params']['body'] += $this->addSortOptions($requestParams);
+
+        $order = isset($requestParams['order']) ? $requestParams['order'] : 'desc';
+        $params['search_params']['body'] += $this->addSortOptions('date_recorded', $order);
 
         $result = $this->search($params);
         $result['result'] = $this->getHitSource($result['result']);
@@ -484,9 +489,16 @@ class Search
         if (isset($requestParams['page'])) {
             $params['search_params']['from'] = $this->getPager($requestParams['page']);
         }
-        $params['search_params']['body'] += $this->addSortOptions($requestParams);
+
+        if (isset($requestParams['sort'])) {
+            $sortField = $requestParams['sort'];
+            $order = isset($requestParams['order']) ? $requestParams['order'] : 'desc';
+            $params['search_params']['body'] += $this->addSortOptions($sortField, $order);
+        }
+
         $params['search_params']['body']['aggs'] = $this->addAggregationOptions();
         $params = $this->addFilterOptions($requestParams, $params);
+
         return $params;
     }
 
@@ -496,19 +508,14 @@ class Search
      * @param $requestParams
      * @return array
      */
-    private function addSortOptions($requestParams)
+    private function addSortOptions($field, $order)
     {
         $sortOptions = [];
-        // Apply a user selected sort
-        if (!empty($requestParams)) {
-            if (isset($requestParams['sort'])) {
-                $sortOptions['sort'] = [
-                    $requestParams['sort'] => [
-                        'order' => !isset($requestParams['order']) ? 'desc' : $requestParams['order']
-                    ]
-                ];
-            }
-        }
+        $sortOptions['sort'] = [
+            $field => [
+                'order' => $order,
+            ]
+        ];
         return $sortOptions;
     }
 
