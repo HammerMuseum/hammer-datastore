@@ -224,12 +224,10 @@ class AssetBankHarvester(HarvesterBase):
 
         current_harvest_uri = "{}".format(self.harvest_uri)
         session = self.get_session()
-        page_number = 0
 
         params = {
             "assetTypeId": self.asset_type,
             "attribute_21": 'Active',
-            "page": page_number,
         }
 
         if self.assetIds:
@@ -237,19 +235,24 @@ class AssetBankHarvester(HarvesterBase):
                 'assetIds': self.assetIds
             }
 
-        while page_number == 0 or len(assets) > 0:
+        page_number = 0
+        assets = []
+
+        while page_number == 0 or len(assets):
+            params['page'] = page_number
+
+            self.logger.debug("Fetching page {}".format(params['page']))
+
             response =  session.get(
                 current_harvest_uri,
                 params=params
             )
 
+            page_number = page_number + 1
+
             root = etree.fromstring(response.content)
             assets = root.xpath("//assetSummary")
-
-            params['page'] = page_number + 1
-
             yield [asset for asset in assets]
-
 
     def do_harvest(self):
         """
@@ -259,15 +262,13 @@ class AssetBankHarvester(HarvesterBase):
         for gathering individual assets.
         """
         read = 0
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            for page in self.get_asset_list():
+                if read >= self.max_items:
+                    self.logger.info("Harvesting reached max limit")
+                    break
 
-        for page in self.get_asset_list():
-            if read >= self.max_items:
-                self.logger.info("Harvesting reached max limit")
-                break
-
-            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
                 for asset in page:
-                    time.sleep(0.8)
                     executor.submit(self.harvest_asset, asset)
                     read += 1
                     if read >= self.max_items:
@@ -294,9 +295,11 @@ class AssetBankHarvester(HarvesterBase):
             json_record = self.get_record_fields(record, identifier)
             self.preprocess_record(json_record)
             self.add_playlist_metadata(json_record, identifier)
+
             if self.validate_record(json_record):
                 record_success = self.do_record_harvest(json_record, identifier)
                 self.records_processed += 1
+
                 if record_success:
                     self.records_succeeded += 1
                 else:
