@@ -3,8 +3,7 @@ import logging
 import datetime
 import concurrent.futures
 import threading
-import random
-import time
+from time import sleep
 import re
 from pathlib import Path
 import json
@@ -217,19 +216,17 @@ class AssetBankHarvester(HarvesterBase):
         """
         self.write_summary()
 
-    def get_asset_list(self, page_number=0):
+    def get_asset_list(self):
         """
-        If total assets size is bigger than several 000s
-        then this may need refactor to generator or similar.
+        Returns an iterator for all requested assets.
         """
-        current_harvest_uri = "{}".format(self.harvest_uri)
 
-        self.logger.info("Creating asset list. Page %i " % page_number)
+        current_harvest_uri = "{}".format(self.harvest_uri)
+        session = self.get_session()
 
         params = {
             "assetTypeId": self.asset_type,
-            "descriptiveCategoryForm.categoryIds": 6,
-            "page": page_number,
+            "attribute_21": 'Active',
         }
 
         if self.assetIds:
@@ -237,19 +234,24 @@ class AssetBankHarvester(HarvesterBase):
                 'assetIds': self.assetIds
             }
 
-        response = requests.get(
-            current_harvest_uri,
-            headers={"Authorization": "Bearer {}".format(self.access_token)},
-            params=params
-        )
+        page_number = 0
+        assets = []
 
-        root = etree.fromstring(response.content)
-        assets = root.xpath("//assetSummary")
+        while page_number == 0 or len(assets):
+            params['page'] = page_number
 
-        if not assets:
-            return []
-        else:
-            return self.get_asset_list(page_number + 1) + [asset for asset in assets]
+            self.logger.debug("Fetching page {}".format(params['page']))
+
+            response =  session.get(
+                current_harvest_uri,
+                params=params
+            )
+
+            page_number = page_number + 1
+
+            root = etree.fromstring(response.content)
+            assets = root.xpath("//assetSummary")
+            yield [asset for asset in assets]
 
     def do_harvest(self):
         """
@@ -258,26 +260,25 @@ class AssetBankHarvester(HarvesterBase):
         Orchetrates harvest by starting worker threads
         for gathering individual assets.
         """
-
-        assets = self.get_asset_list()
-        self.logger.info("Found %i records" % len(assets))
-
-        if self.max_items:
-            assets = assets[0 : self.max_items]
-            self.logger.info("Harvesting to max limit of %i records" % len(assets))
-
+        read = 0
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-            for asset in assets:
-                time.sleep(0.8)
-                executor.submit(self.harvest_asset, asset)
+            for page in self.get_asset_list():
+                if read >= self.max_items:
+                    self.logger.info("Harvesting reached max limit")
+                    break
+
+                for asset in page:
+                    executor.submit(self.harvest_asset, asset)
+                    sleep(0.2)
+                    read += 1
+                    if read >= self.max_items:
+                        self.logger.info("Harvesting reached max limit")
+                        break
 
     def harvest_asset(self, asset):
         """
         Controls the operation to fetch a single asset.
         """
-        if self.records_processed >= self.max_items:
-            self.logger.debug("Harvest limit reached. Not harvesting %s", identifier)
-            return
 
         identifier = asset.xpath("id")[0].text
         self.logger.info("Processing data record %s", identifier)
@@ -294,9 +295,11 @@ class AssetBankHarvester(HarvesterBase):
             json_record = self.get_record_fields(record, identifier)
             self.preprocess_record(json_record)
             self.add_playlist_metadata(json_record, identifier)
+
             if self.validate_record(json_record):
                 record_success = self.do_record_harvest(json_record, identifier)
                 self.records_processed += 1
+
                 if record_success:
                     self.records_succeeded += 1
                 else:

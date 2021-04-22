@@ -37,5 +37,6 @@ setup(
         "elasticsearch",
         "python-dotenv",
         "requests",
+        "filecache"
     ],
 )

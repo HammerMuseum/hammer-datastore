@@ -49,7 +49,6 @@ class TranscriptionProcessor():
         try:
             response = self.session.get(
                 url, params=querystring)
-            sleep(0.2)
             response.raise_for_status()
             response_json = response.json()
             url = response_json['url']
@@ -58,7 +57,10 @@ class TranscriptionProcessor():
             return response.text
         except HTTPError as error:
             self.harvester.logger.warning(
-                '{} code when fetching VTT transcription from {}'.format(error.response.status_code, url))
+                '{} code when fetching VTT transcription from {}'.format(
+                    error.response.status_code, url
+                )
+            )
             self.harvester.logger.debug(error)
 
     def get_transcript_json(self, location):
@@ -68,12 +70,14 @@ class TranscriptionProcessor():
         url = "https://api.trint.com/export/json/{}".format(location)
         try:
             response = self.session.get(url)
-            sleep(0.2)
             response.raise_for_status()
             return json.dumps(response.json())
         except HTTPError as error:
             self.harvester.logger.warning(
-                '{} code when fetching JSON transcription from {}'.format(error.response.status_code, url))
+                '{} code when fetching JSON transcription from {}'.format(
+                    error.response.status_code, url
+                )
+            )
             self.harvester.logger.debug(error)
 
     def get_transcript_text(self, location):
@@ -83,7 +87,6 @@ class TranscriptionProcessor():
         url = "https://api.trint.com/export/text/{}".format(location)
         try:
             response = self.session.get(url)
-            sleep(0.2)
             response.raise_for_status()
             response_json = response.json()
             url = response_json['url']
@@ -92,7 +95,10 @@ class TranscriptionProcessor():
             return response.text
         except HTTPError as error:
             self.harvester.logger.warning(
-                '{} code when fetching JSON transcription from {}'.format(error.response.status_code, url))
+                '{} code when fetching JSON transcription from {}'.format(
+                    error.response.status_code, url
+                )
+            )
             self.harvester.logger.debug(error)
 
     def process(self, row):
@@ -105,5 +111,8 @@ class TranscriptionProcessor():
                 continue
             self.harvester.logger.debug('Processing a {!s}'.format(field))
             row["{}_vtt".format(field)] = self.get_transcript_vtt(value)
+            sleep(0.2)
             row["{}_json".format(field)] = self.get_transcript_json(value)
+            sleep(0.2)
             row["{}_txt".format(field)] = self.get_transcript_text(value)
+            sleep(0.2)
