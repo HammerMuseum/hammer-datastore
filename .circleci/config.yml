@@ -23,7 +23,8 @@ defaults: &defaults
 
     - image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
       environment:
-        ES_JAVA_OPTS: -Xms500m -Xmx500m
+        - discovery.type=single-node
+        - ES_JAVA_OPTS: -Xms500m -Xmx500m
 
 # Defines the cache restore mechanism for composer dependencies.
 restore_cache: &restore_cache
