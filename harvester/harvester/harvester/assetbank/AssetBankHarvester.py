@@ -3,8 +3,7 @@ import logging
 import datetime
 import concurrent.futures
 import threading
-import random
-import time
+from time import sleep
 import re
 from pathlib import Path
 import json
@@ -270,6 +269,7 @@ class AssetBankHarvester(HarvesterBase):
 
                 for asset in page:
                     executor.submit(self.harvest_asset, asset)
+                    sleep(0.2)
                     read += 1
                     if read >= self.max_items:
                         self.logger.info("Harvesting reached max limit")
