@@ -2,6 +2,9 @@
   "index_patterns": [
     "video_*"
   ],
+  "settings": {
+    "number_of_shards": 1
+  },
   "mappings": {
     "properties": {
       "asset_id": {
