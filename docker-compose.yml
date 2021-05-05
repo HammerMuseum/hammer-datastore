@@ -120,6 +120,7 @@ services:
 #      - "traefik.http.routers.${PROJECT_NAME}_pma.rule=Host(`pma.${PROJECT_BASE_URL}`)"
 
   elasticsearch:
+    container_name: "${PROJECT_NAME}_elasticsearch"
     image: wodby/elasticsearch:$ELASTICSEARCH_TAG
     environment:
       ES_JAVA_OPTS: "-Xms500m -Xmx500m"
@@ -137,6 +138,7 @@ services:
      - "traefik.http.routers.${PROJECT_NAME}_elasticsearch.rule=Host(`elasticsearch.${PROJECT_BASE_URL}`)"
 
   kibana:
+    container_name: "${PROJECT_NAME}_kibana"
     image: wodby/kibana:$KIBANA_TAG
     depends_on:
       - elasticsearch
