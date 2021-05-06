@@ -3,6 +3,7 @@ import shlex
 import json
 import datetime
 import time
+from pymediainfo import MediaInfo
 from filecache import filecache
 
 class DurationProcessor():
@@ -23,7 +24,7 @@ class DurationProcessor():
             try:
                 self.harvester.logger.debug('Processing a video duration')
                 new_field = 'duration'
-                video_url = row[field]
+                video_url = str(row[field])
 
                 tic = time.perf_counter()
                 duration = get_duration(video_url)
@@ -35,20 +36,13 @@ class DurationProcessor():
             except Exception as e:
                 self.harvester.logger.error(e)
 
-# In order to cache the output of this function, it cannot be on the class.
-# The filecache module won't work as a new instance is created each for each harvest.
-def get_duration(file_path):
-    cmd = str('mediainfo --Inform="Video;%Duration%"')
-    args = shlex.split(cmd)
-    args.append(str(file_path))
-    result = run_process(args)
-    return float(result) * 1000
-
 @filecache
-def run_process(args):
-    # run the process, decode stdout into utf-8 & convert to JSON
-    return subprocess.check_output(args)
+def get_duration(path):
+    media_info = MediaInfo.parse(path)
+    for track in media_info.tracks:
+        if track.track_type == "Video":
+            duration = track.other_duration[3]
+            return duration
 
 def format_duration(duration):
-    duration = str(datetime.timedelta(seconds=duration))
-    return '{}'.format(duration.split(".")[0])
+    return duration.split('.')[0]
