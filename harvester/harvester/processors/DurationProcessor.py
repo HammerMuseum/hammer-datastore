@@ -11,7 +11,7 @@ class DurationProcessor():
 
     Returns as a string.
 
-    Uses ffprobe
+    Uses mediainfo
     """
 
     def __init__(self, harvester, fields=[]):
@@ -38,16 +38,15 @@ class DurationProcessor():
 # In order to cache the output of this function, it cannot be on the class.
 # The filecache module won't work as a new instance is created each for each harvest.
 def get_duration(file_path):
-    cmd = str("ffprobe -v quiet -print_format json -show_streams")
+    cmd = str('mediainfo --Inform="Video;%Duration%"')
     args = shlex.split(cmd)
     args.append(str(file_path))
-    output = run_ff_probe(args)
-    output_json = json.loads(output.decode('utf-8'))
-    return float(output_json['streams'][0]['duration'])
+    result = run_process(args)
+    return float(result) * 1000
 
 @filecache
-def run_ff_probe(args):
-    # run the ffprobe process, decode stdout into utf-8 & convert to JSON
+def run_process(args):
+    # run the process, decode stdout into utf-8 & convert to JSON
     return subprocess.check_output(args)
 
 def format_duration(duration):
