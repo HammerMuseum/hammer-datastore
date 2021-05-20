@@ -1,6 +1,7 @@
 import json
 import requests
 from time import sleep
+from filecache import filecache
 from requests import HTTPError
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -19,10 +20,10 @@ class TranscriptionProcessor():
         self.harvester = harvester
         self.fields = fields
         strategy = Retry(
-            total=3,
+            total=5,
             status_forcelist=[403, 429, 500, 502, 503, 504],
             method_whitelist=["GET"],
-            backoff_factor=2,
+            backoff_factor=4,
         )
         adapter = HTTPAdapter(max_retries=strategy)
         http = requests.Session()
@@ -111,8 +112,8 @@ class TranscriptionProcessor():
                 continue
             self.harvester.logger.debug('Processing a {!s}'.format(field))
             row["{}_vtt".format(field)] = self.get_transcript_vtt(value)
-            sleep(0.2)
+            sleep(0.4)
             row["{}_json".format(field)] = self.get_transcript_json(value)
-            sleep(0.2)
+            sleep(0.4)
             row["{}_txt".format(field)] = self.get_transcript_text(value)
-            sleep(0.2)
+            sleep(0.4)
