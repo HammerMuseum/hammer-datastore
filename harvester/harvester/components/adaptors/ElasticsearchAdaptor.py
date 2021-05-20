@@ -55,7 +55,7 @@ class ElasticsearchAdaptor:
     ]
 
     def __init__(
-        self, data_path, es_domain, port="443", scheme="https", alias="videos"
+        self, data_path, es_domain, port="443", scheme="https", alias="videos", update=False
     ):
         self.input_data_path = data_path
 
@@ -63,8 +63,7 @@ class ElasticsearchAdaptor:
         self.timestamp = int(time.time())
         self.alias = alias
         self.index_prefix = "video_"
-
-        self.index_name = "{}{}".format(self.index_prefix, int(time.time()))
+        self.update = update
 
         # Create new Elasticsearch client
         self.client = Elasticsearch(
@@ -72,6 +71,11 @@ class ElasticsearchAdaptor:
             scheme=scheme,
             port=port
         )
+
+        if self.update:
+            self.index_name = self.establish_index_name(self.alias)
+        else:
+            self.index_name = "{}{}".format(self.index_prefix, int(time.time()))
 
     def add_logger(self, log_directory, log_file, log_name="elasticsearch-adaptor"):
         """
@@ -101,7 +105,10 @@ class ElasticsearchAdaptor:
         """
         try:
             index_name = self.index_name
-            self.create_index(index_name)
+
+            if not self.update:
+                self.create_index(index_name)
+
             self.logger.info("Using index %s", index_name)
 
             # Create alias if required.
@@ -144,7 +151,7 @@ class ElasticsearchAdaptor:
         Promote the new index to
         the configured alias.
         """
-        # Switch alias to newly created index if process successful
+        # Switch alias to newly created index only if process successful
         if not self.success:
             self.logger.info("Finished processing at %s", time.ctime())
             return
@@ -152,8 +159,9 @@ class ElasticsearchAdaptor:
         alias = self.alias
         try:
             self.refresh_index(self.index_name)
-            self.update_alias(alias, self.index_name)
-            self.logger.info("Updated {} alias to point to {}.".format(alias, self.index_name))
+            if not self.update:
+                self.update_alias(alias, self.index_name)
+                self.logger.info("Updated {} alias to point to {}.".format(alias, self.index_name))
         except Exception as e:
             self.logger.error("ERROR: Failed to update alias: {}.".format(e))
         finally:
@@ -169,6 +177,7 @@ class ElasticsearchAdaptor:
                 yield {
                     "_index": self.index_name,
                     "_source": data,
+                    "_id": data['asset_id'],
                 }
 
     def select_fields(self, data):
@@ -223,6 +232,18 @@ class ElasticsearchAdaptor:
         self.client.indices.create(index_name, body=settings)
         self.logger.info("Created index %s", index_name)
 
+    def establish_index_name(self, alias):
+        try:
+            alias_state = self.client.indices.get_alias(alias)
+            current_indices = list(alias_state.keys())
+            if len(current_indices) > 1:
+                raise EstablishIndexNameException('Cannot use "since" because multiple indexes are in use for this alias.')
+            else:
+                return current_indices[0]
+        except EstablishIndexNameException as e:
+            print(str(e))
+            exit(1)
+
     def prepare_alias(self, alias):
         """
         Adds a new alias to Elasticsearch if required.
@@ -262,3 +283,8 @@ class ElasticsearchAdaptor:
             "Removed %s from alias %s", ", ".join(current_indices), alias
         )
         self.logger.info("Added %s to alias %s", new_index_name, alias)
+
+
+class EstablishIndexNameException(Exception):
+    """Exception raised when a suitable index cannot be found"""
+    pass

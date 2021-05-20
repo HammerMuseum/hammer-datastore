@@ -37,7 +37,7 @@ class AssetBankHarvester(HarvesterBase):
 
     playlist_user = 14
 
-    log_formatter = logging.Formatter(' %(asctime)s - %(threadName)s - %(name)s - %(levelname)s - %(message)s')
+    log_formatter = logging.Formatter(" %(asctime)s - %(threadName)s - %(name)s - %(levelname)s - %(message)s")
 
     """
     The current location of the output.
@@ -65,7 +65,9 @@ class AssetBankHarvester(HarvesterBase):
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
         self.harvest_uri = "{}/{}".format(self.host, "rest/asset-search")
         self.asset_type = options["assetType"]
-        self.assetIds = options['assetIds']
+        self.assetIds = options["assetIds"]
+        self.since = options["since"]
+
         self.slugs = []
 
         split_fields = ["tags", "speakers", "topics", "in_playlists"]
@@ -208,6 +210,7 @@ class AssetBankHarvester(HarvesterBase):
         Preprocessing callback.
         """
         self.playlists = self.get_playlist_data()
+        self.assets_in_featured_playlist = [data["contents"] for pid, data in self.playlists.items()][0]
 
     def postprocess(self):
         """
@@ -215,7 +218,7 @@ class AssetBankHarvester(HarvesterBase):
         """
         self.write_summary()
 
-    def get_asset_list(self):
+    def get_asset_list(self, ids=None, since=None):
         """
         Returns an iterator for all requested assets.
         """
@@ -225,21 +228,24 @@ class AssetBankHarvester(HarvesterBase):
 
         params = {
             "assetTypeId": self.asset_type,
-            "attribute_21": 'Active',
+            "attribute_21": "Active",
         }
 
-        if self.assetIds:
+        if ids:
             params = {
-                'assetIds': self.assetIds
+                "assetIds": ids
             }
+
+        if since:
+            params["dateModLower"] = since
 
         page_number = 0
         assets = []
 
         while page_number == 0 or len(assets):
-            params['page'] = page_number
+            params["page"] = page_number
 
-            self.logger.debug("Fetching page {}".format(params['page']))
+            self.logger.debug("Fetching page {}".format(params["page"]))
 
             response =  session.get(
                 current_harvest_uri,
@@ -261,7 +267,7 @@ class AssetBankHarvester(HarvesterBase):
         """
         read = 0
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-            for page in self.get_asset_list():
+            for page in self.get_asset_list(since=self.since):
                 if read >= self.max_items:
                     self.logger.info("Harvesting reached max limit")
                     break
@@ -273,6 +279,27 @@ class AssetBankHarvester(HarvesterBase):
                     if read >= self.max_items:
                         self.logger.info("Harvesting reached max limit")
                         break
+
+            # Ensure playlist data updated if running a partial harvest
+            if self.since:
+                self.logger.info("Ensure playlist up to date")
+                session = self.get_session()
+                assetIds = self.assets_in_featured_playlist
+
+                for id in assetIds:
+                    response =  session.get(
+                        "{}".format(self.harvest_uri),
+                        params = {
+                            "assetTypeId": self.asset_type,
+                            "attribute_21": "Active",
+                            "assetIds": id,
+                        }
+                    )
+
+                    root = etree.fromstring(response.content)
+                    assets = root.xpath("//assetSummary")
+                    executor.submit(self.harvest_asset, assets[0])
+                    sleep(0.2)
 
     def harvest_asset(self, asset):
         """

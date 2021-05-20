@@ -78,8 +78,12 @@ options = {
 }
 
 if args.since:
-    optional = {"from": dateparser.parse(args.since).strftime("%Y-%m-%d")}
-    options = dict(options, **optional)
+    from_date = dateparser.parse(
+        args.since, settings={"RETURN_AS_TIMEZONE_AWARE": True, "TIMEZONE": "UTC"}
+    )
+    options["since"] = from_date.replace(microsecond=0).isoformat("T")
+else:
+    options["since"] = None
 
 if args.data_path:
     DATA_DIR = Path(args.data_path)
@@ -151,7 +155,8 @@ if __name__ == "__main__":
             logger.info("Running submission processes")
             logger.info("Starting Elasticsearch adaptor")
 
-            kwargs = dict(port=args.port, scheme=args.scheme, alias=args.alias)
+            kwargs = dict(port=args.port, scheme=args.scheme,
+                alias=args.alias, update=(args.since is not None))
             adaptors = [
                 # Adapts harvest data for elasticsearch
                 ElasticsearchAdaptor(
