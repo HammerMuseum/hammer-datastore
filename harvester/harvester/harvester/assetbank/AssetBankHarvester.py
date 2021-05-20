@@ -66,7 +66,6 @@ class AssetBankHarvester(HarvesterBase):
         self.harvest_uri = "{}/{}".format(self.host, "rest/asset-search")
         self.asset_type = options["assetType"]
         self.assetIds = options['assetIds']
-        self.docs = []
         self.slugs = []
 
         split_fields = ["tags", "speakers", "topics", "in_playlists"]
@@ -317,7 +316,6 @@ class AssetBankHarvester(HarvesterBase):
         file_name = "{!s}.json".format(identifier)
         output = record
         if output:
-            self.docs.append(output)
             return self.write_record(output, file_name)
 
     def preprocess_record(self, record):
