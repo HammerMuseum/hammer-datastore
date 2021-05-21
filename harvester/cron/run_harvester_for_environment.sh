@@ -1,22 +1,28 @@
 #! /bin/bash
 
-cd /var/www/$1/current/harvester/scripts
+ELASTICSEARCH_DOMAIN="https://search-hammermuseum-7ugp6zl6uxoivh2ihpx56t7wxu.us-west-1.es.amazonaws.com"
+SITE=$1
+HOST=$2
+ALIAS=$3
+LIMIT=$4
+SINCE=$5
 
-if [ ! -z "$4" ]; then
-  PYTHONPATH=../. python3 run_harvester.py \
+COMMAND="PYTHONPATH=../. python3 run_harvester.py \
   --submit \
-  --host=$2 \
-  --alias=$3 \
+  --host=$HOST \
+  --alias=$ALIAS \
   --asset-type=1 \
-  --search-domain=https://search-hammermuseum-7ugp6zl6uxoivh2ihpx56t7wxu.us-west-1.es.amazonaws.com \
-  --storage=/var/www/$1/shared/storage/app \
-  --limit=$4
-else
-  PYTHONPATH=../. python3 run_harvester.py \
-  --submit \
-  --host=$2 \
-  --alias=$3 \
-  --asset-type=1 \
-  --search-domain=https://search-hammermuseum-7ugp6zl6uxoivh2ihpx56t7wxu.us-west-1.es.amazonaws.com \
-  --storage=/var/www/$1/shared/storage/app
+  --search-domain=$ELASTICSEARCH_DOMAIN \
+  --storage=/var/www/$SITE/shared/storage/app"
+
+
+if test -n "${LIMIT-}"; then
+  COMMAND="$COMMAND --limit=$LIMIT"
 fi
+
+if test -n "${SINCE-}"; then
+  COMMAND="$COMMAND --since=$SINCE"
+fi
+
+echo $COMMAND
+cd "/var/www/$SITE/current/harvester/scripts" && $COMMAND
