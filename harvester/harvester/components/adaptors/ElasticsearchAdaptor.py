@@ -188,6 +188,9 @@ class ElasticsearchAdaptor:
 
     def submit(self):
         try:
+            if self.update:
+                self.reset_playlist_content_prior_to_rebuild()
+
             success, errors = helpers.bulk(
                 self.client,
                 self.load(),
@@ -283,6 +286,32 @@ class ElasticsearchAdaptor:
             "Removed %s from alias %s", ", ".join(current_indices), alias
         )
         self.logger.info("Added %s to alias %s", new_index_name, alias)
+
+    def reset_playlist_content_prior_to_rebuild(self):
+        """
+        This should really be implemented as a
+        generic hooks pre and post hooks system.
+        If doing a partial update this will ensure playlist
+        content that has been removed is removed from the index.
+        The partial harvest will always get the latest playlist
+        data and rebuild it.
+        """
+        body = {
+            "query": {
+                "nested": {
+                    "path": "playlists",
+                    "query": {
+                        "term": {
+                            "playlists.id": {
+                                "value": 16
+                            }
+                        }
+                    }
+                }
+            },
+            "script" : "ctx._source.playlists = []"
+        }
+        self.client.update_by_query(index=self.alias, body=body)
 
 
 class EstablishIndexNameException(Exception):
