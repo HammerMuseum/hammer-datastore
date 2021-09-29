@@ -131,8 +131,7 @@ deploy: &deploy
         name: Install deploy dependency rsync
         command: sudo apt install rsync
     - run: composer install --optimize-autoloader --no-dev
-    - aws-cli/setup
-    - aws-white-list-circleci-ip/add:
+    - aws-sg-white-list-circleci-ip/add:
         port: 22
         tag-key: group
         tag-value: bastion
@@ -146,7 +145,7 @@ deploy: &deploy
     - run: ssh deploy@$PROD_DEPLOY_URL sh /var/www/$HOST_URL/current/harvester/install/install_harvester_dependencies.sh
     - run: ssh deploy@$PROD_DEPLOY_URL sudo mv /var/www/$HOST_URL/current/harvester/cron/run_harvester_cron /etc/cron.d
     - run: ssh deploy@$PROD_DEPLOY_URL sudo chown root:root /etc/cron.d/run_harvester_cron
-    - aws-white-list-circleci-ip/remove:
+    - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group
         tag-value: bastion
@@ -164,8 +163,7 @@ deploy_stage: &deploy_stage
         name: Install deploy dependency rsync
         command: sudo apt install rsync
     - run: composer install --optimize-autoloader --no-dev
-    - aws-cli/setup
-    - aws-white-list-circleci-ip/add:
+    - aws-sg-white-list-circleci-ip/add:
         port: 22
         tag-key: group
         tag-value: bastion
@@ -179,7 +177,7 @@ deploy_stage: &deploy_stage
     - run: ssh deploy@$STAGE_HOST_URL sh /var/www/$STAGE_HOST_URL/current/harvester/install/install_harvester_dependencies_stage.sh
     - run: ssh deploy@$STAGE_HOST_URL sudo mv /var/www/$STAGE_HOST_URL/current/harvester/cron/run_harvester_cron_stage /etc/cron.d
     - run: ssh deploy@$STAGE_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_stage
-    - aws-white-list-circleci-ip/remove:
+    - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group
         tag-value: bastion
@@ -197,8 +195,7 @@ deploy_dev: &deploy_dev
         name: Install deploy dependency rsync
         command: sudo apt install rsync
     - run: composer install --optimize-autoloader --no-dev
-    - aws-cli/setup
-    - aws-white-list-circleci-ip/add:
+    - aws-sg-white-list-circleci-ip/add:
         port: 22
         tag-key: group
         tag-value: bastion
@@ -212,7 +209,7 @@ deploy_dev: &deploy_dev
     - run: ssh deploy@$DEV_HOST_URL sh /var/www/$DEV_HOST_URL/current/harvester/install/install_harvester_dependencies_dev.sh
     - run: ssh deploy@$DEV_HOST_URL sudo mv /var/www/$DEV_HOST_URL/current/harvester/cron/run_harvester_cron_dev /etc/cron.d
     - run: ssh deploy@$DEV_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_dev
-    - aws-white-list-circleci-ip/remove:
+    - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group
         tag-value: bastion
@@ -220,8 +217,7 @@ deploy_dev: &deploy_dev
 # Declare all of the jobs we should run.
 version: 2.1
 orbs:
-  aws-cli: circleci/aws-cli@0.1.18
-  aws-white-list-circleci-ip: avvo/aws-white-list-circleci-ip@0.0.2
+  aws-sg-white-list-circleci-ip: inokappa/aws-sg-white-list-circleci-ip@0.0.3
 
 jobs:
   build_and_test:
