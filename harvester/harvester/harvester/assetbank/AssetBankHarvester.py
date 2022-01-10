@@ -424,9 +424,13 @@ class AssetBankHarvester(HarvesterBase):
         """
         record_path = os.path.join(self.current_output_path, file_name)
 
+        # TODO: Remove this check?
+        # It shouldn't matter if something is harvested twice, this can
+        # happen in the case of a partial harvest with a playlist.
+        # It isn't enough to fail an entire harvest.
         if os.path.exists(record_path):
-            self.logger.error("Record already exists at %s. Skipping.", record_path)
-            return False
+            self.logger.info("Record already exists for %s. Skipping.", record_path)
+            return True
 
         try:
             os.makedirs(os.path.dirname(record_path), exist_ok=True)
