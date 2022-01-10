@@ -37,7 +37,9 @@ class AssetBankHarvester(HarvesterBase):
 
     playlist_user = 14
 
-    log_formatter = logging.Formatter(" %(asctime)s - %(threadName)s - %(name)s - %(levelname)s - %(message)s")
+    log_formatter = logging.Formatter(
+        " %(asctime)s - %(threadName)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
     """
     The current location of the output.
@@ -210,7 +212,9 @@ class AssetBankHarvester(HarvesterBase):
         Preprocessing callback.
         """
         self.playlists = self.get_playlist_data()
-        self.assets_in_featured_playlist = [data["contents"] for pid, data in self.playlists.items()][0]
+        self.assets_in_featured_playlist = [
+            data["contents"] for pid, data in self.playlists.items()
+        ][0]
 
     def postprocess(self):
         """
@@ -232,9 +236,7 @@ class AssetBankHarvester(HarvesterBase):
         }
 
         if ids:
-            params = {
-                "assetIds": ids
-            }
+            params = {"assetIds": ids}
 
         if since:
             params["dateModLower"] = since
@@ -247,10 +249,7 @@ class AssetBankHarvester(HarvesterBase):
 
             self.logger.debug("Fetching page {}".format(params["page"]))
 
-            response =  session.get(
-                current_harvest_uri,
-                params=params
-            )
+            response = session.get(current_harvest_uri, params=params)
 
             page_number = page_number + 1
 
@@ -287,13 +286,13 @@ class AssetBankHarvester(HarvesterBase):
                 assetIds = self.assets_in_featured_playlist
 
                 for id in assetIds:
-                    response =  session.get(
+                    response = session.get(
                         "{}".format(self.harvest_uri),
-                        params = {
+                        params={
                             "assetTypeId": self.asset_type,
                             "attribute_21": "Active",
                             "assetIds": id,
-                        }
+                        },
                     )
 
                     root = etree.fromstring(response.content)
@@ -410,9 +409,7 @@ class AssetBankHarvester(HarvesterBase):
         # Get some non-attribute properties.
         output["video_url"] = root.xpath("//asset/contentUrl/text()")[0]
         output["thumbnail_url"] = root.xpath("//asset/previewUrl/text()")[0]
-        thumbnailId = re.match(".*file=([a-z\d]+)\.", output["thumbnail_url"]).group(
-            1
-        )
+        thumbnailId = re.match(".*file=([a-z\d]+)\.", output["thumbnail_url"]).group(1)
         output["thumbnailId"] = thumbnailId
 
         return output
