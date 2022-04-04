@@ -9,7 +9,7 @@
 
 Install Docker Engine for your operating system.
 
-Create a local .env file by combining the env example and then add Docker varibles to it. (If you are **not** using Docker, then skip the second command).
+Create a local .env file by copying the example.
 
 ```sh
 cp .env.example .env
