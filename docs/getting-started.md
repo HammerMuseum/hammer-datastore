@@ -19,6 +19,8 @@ Ensure that the correct php image is selected in the .env file for your host ope
 
 ```sh
 make up
+docker-compose exec php composer install
+docker-compose exec php php artisan key:generate
 ```
 
 Create and upload the mapping template to Elasticsearch. The index template is stored in `elasticsearch/templates`
