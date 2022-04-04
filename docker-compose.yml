@@ -6,7 +6,7 @@ networks:
 
 services:
   mariadb:
-    image: wodby/mariadb:$MARIADB_TAG
+    image: mariadb:10.5.8
     container_name: "${PROJECT_NAME}_mariadb"
     stop_grace_period: 30s
     environment:
@@ -121,11 +121,12 @@ services:
 
   elasticsearch:
     container_name: "${PROJECT_NAME}_elasticsearch"
-    image: wodby/elasticsearch:$ELASTICSEARCH_TAG
+    image: elasticsearch:7.16.2
     environment:
-      ES_JAVA_OPTS: "-Xms500m -Xmx500m"
+      ES_JAVA_OPTS: -Xms500m -Xmx500m
+      discovery.type: single-node
     ports:
-      - "127.0.0.1:9201:9200"
+      - "9201:9200"
     ulimits:
       memlock:
         soft: -1

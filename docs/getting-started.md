@@ -1,19 +1,18 @@
 # Setting up a development environment
 
-### Requirements
+## Requirements
 
 - PHP 7.4
-- [Composer](https://getcomposer.org/)
-- Docker is recommended for development
+- Docker
 
-### Setup
+## Setup
 
 Install Docker Engine for your operating system.
 
-Copy the example env file to create a local env file.
+Create a local .env file by combining the env example and then add Docker varibles to it. (If you are **not** using Docker, then skip the second command).
 
 ```sh
-ln -s .env.example.docker .env
+cp .env.example .env
 ```
 
 Ensure that the correct php image is selected in the .env file for your host operating system.
@@ -22,14 +21,16 @@ Ensure that the correct php image is selected in the .env file for your host ope
 make up
 ```
 
-Create and upload the mapping template to Elasticsearch. Index template stored in `elasticsearch/templates`
+Create and upload the mapping template to Elasticsearch. The index template is stored in `elasticsearch/templates`
 
 ```sh
 cd elasticsearch/scripts
 ./upload-index-template.sh --host http://localhost:9201 --name template_video --file ../templates/video_.json
 ```
 
-Add some data (requires VPN)
+### Add data to local search index (requires VPN)
+
+The following command copies data from the dev videos index into your local Docker Elasticsearch environment.
 
 ```sh
 npx elasticdump \
@@ -37,9 +38,13 @@ npx elasticdump \
   --output=http://localhost:9201/videos
 ```
 
-Optional: [Setup a local harvester](../harvester/README.md).
+### Transcript data
 
-Notes:
+There is a (mostly) complete copy of the transcript data on Alessi.
+
+Download it into your local `storage` folder.
+
+### Notes
 
 ```sh
 # When running php-based tools and Docker, prefix commands with:
@@ -53,3 +58,7 @@ docker-compose exec php php artisan cache:clear
 ```
 
 Note the double `php` in the second command above. The first `php` refers to the name of the Docker service, the second refers to the command to invoke `php` on the command line.
+
+### Optional steps
+
+[Setup a local harvester](../harvester/README.md).
