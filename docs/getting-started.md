@@ -8,9 +8,11 @@
 
 ## Setup
 
-Install Docker and DDEV
+Install Docker and DDEV on your host machine.
 
-Create a local .env file by copying the example.
+### Create the DDEV environment
+
+Create a local copy of the `.env` file by copying the example file.
 
 ```sh
 cp .env.ddev.example .env
