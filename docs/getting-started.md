@@ -4,6 +4,7 @@
 
 - Docker
 - DDEV
+- NodeJS 14 (use [nvm](https://github.com/nvm-sh/nvm/blob/master/README.md#intro))
 
 ## Setup
 
@@ -26,12 +27,6 @@ npx elasticdump \
   --output=http://hammer-datastore.ddev.site:9200/videos_dev
 ```
 
-### Transcript data
-
-There is a (mostly) complete copy of the transcript data on Alessi.
-
-Download and unzip it into your local `storage` folder.
-
 ### Notes
 
 ```sh
@@ -44,4 +39,12 @@ ddev exec artisan cache:clear
 
 ### Optional steps
 
+#### Harvester
+
 [Setup a local harvester](../harvester/README.md).
+
+#### Transcript data
+
+There is a copy of the transcript data on Alessi.
+
+Download and unzip it into your local `storage` folder.
