@@ -27,6 +27,14 @@ npx elasticdump \
   --output=http://hammer-datastore.ddev.site:9200/videos_dev
 ```
 
+### Test
+
+Available endpoints:
+
+- /api/videos
+- /api/videos/<id> e.g. <https://hammer-datastore.ddev.site/api/videos/1730>
+- /api/search
+
 ### Notes
 
 ```sh
