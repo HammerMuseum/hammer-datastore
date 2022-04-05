@@ -21,6 +21,8 @@ hooks:
   post-start:
     - composer: install
     - exec: php artisan key:generate
+    - exec: php artisan config:clear
+    - exec: php artisan config:cache
     - exec-host: |
         cd elasticsearch/scripts && \
         ./upload-index-template.sh --host http://hammer-datastore.ddev.site:9200 --name template_video --file ../templates/video_.json
