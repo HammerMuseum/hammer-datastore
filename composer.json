@@ -1,7 +1,7 @@
 {
-    "name": "laravel/laravel",
+    "name": "hammermuseum/datastore",
     "type": "project",
-    "description": "The Laravel Framework.",
+    "description": "Hammer Datastore API",
     "keywords": [
         "framework",
         "laravel"
