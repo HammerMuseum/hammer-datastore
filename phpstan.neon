@@ -1,0 +1,10 @@
+#includes:
+#    - phpstan-baseline.neon
+
+parameters:
+    phpVersion: 80100
+    paths:
+        - app
+    level: 0
+    ignoreErrors:
+    checkMissingIterableValueType: false
