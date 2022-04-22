@@ -74,8 +74,8 @@ build_and_test: &build_and_test
   <<: *defaults
   steps:
     - run: sudo apt-get update
-    - run: sudo docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd
-    - run: sudo docker-php-ext-install zip bcmath pdo_mysql
+#    - run: sudo docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd
+#    - run: sudo docker-php-ext-install zip bcmath pdo_mysql
 
     - checkout
 
