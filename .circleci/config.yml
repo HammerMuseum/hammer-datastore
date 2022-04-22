@@ -7,7 +7,7 @@
 # Defines images and working directory.
 defaults: &defaults
   docker:
-    - image: cimg/php:8.1-node
+    - image: cimg/php:8.1.4-browsers
       environment:
         HOST_URL: datastore.hammer.ucla.edu
         PROD_DEPLOY_URL: 52.8.89.103
