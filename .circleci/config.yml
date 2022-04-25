@@ -80,12 +80,16 @@ build_and_test: &build_and_test
     - checkout
 
     - run:
+        name: Wait for db
+        command: dockerize -wait http://localhost:9200 -timeout 3m
+
+    - run:
         name: Set up Elasticsearch
         command: |
-          curl http://hammer-datastore.ddev.site:9200
-          curl -s -X PUT -H "Content-Type: application/json" "hammer-datastore.ddev.site:9200/_template/template_video" -d @./elasticsearch/templates/video_.json
-          curl -s -X PUT "hammer-datastore.ddev.site:9200/video_testing?pretty"
-          curl -s -H "Content-Type: application/x-ndjson" -XPOST "hammer-datastore.ddev.site:9200/_bulk" --data-binary @./utils/sample-data/sample-elastic.json
+          curl http://localhost:9200
+          curl -s -X PUT -H "Content-Type: application/json" "localhost:9200/_template/template_video" -d @./elasticsearch/templates/video_.json
+          curl -s -X PUT "localhost:9200/video_testing?pretty"
+          curl -s -H "Content-Type: application/x-ndjson" -XPOST "localhost:9200/_bulk" --data-binary @./utils/sample-data/sample-elastic.json
 
     - run: rm .env.testing
     - run: mv .circleci/.env.testing .env.testing
