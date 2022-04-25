@@ -39,12 +39,12 @@ set('rsync_dest', '{{release_path}}');
 set('rsync', [
     'exclude'      => [
         'deploy.php',
+        '.ddev',
         '.git',
         'node_modules',
         '.babelrc',
         '.circleci/',
         '.editorconfig',
-        '.env.example.docker',
         '.env.example',
         '.env.testing',
         '.eslintrc.js',
@@ -55,7 +55,6 @@ set('rsync', [
         '.stylelintrc',
         'docs',
         'LaravelREADME.md',
-        'Makefile',
         'node_modules/',
         'package-lock.json',
         'package.json',
@@ -67,7 +66,6 @@ set('rsync', [
         'server.php',
         'storage/',
         'tests/',
-        'traefik.yml',
         'webpack.mix.js',
     ],
     'exclude-file' => false,
@@ -111,8 +109,7 @@ task('deploy', [
     'artisan:view:clear',
     'artisan:cache:clear',
     'artisan:config:cache',
-    'artisan:migrate',
-    // publish is a group task which includes symlink, unlock, cleanup and success.
+    // publish is a group task which includes migrate, symlink, unlock, cleanup and success.
     'deploy:publish',
 ]);
 

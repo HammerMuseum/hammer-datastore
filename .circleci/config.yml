@@ -80,11 +80,12 @@ build_and_test: &build_and_test
     - checkout
 
     - run:
-        name: Set up Elasticsearch for sets test suite
+        name: Set up Elasticsearch
         command: |
-          curl -s -o /dev/null -X PUT -H "Content-Type: application/json" "localhost:9200/_template/template_video" -d @./elasticsearch/templates/video_.json
-          curl -s -o /dev/null -X PUT "localhost:9200/video_testing?pretty"
-          curl -s -o /dev/null -H "Content-Type: application/x-ndjson" -XPOST "localhost:9200/_bulk" --data-binary @./utils/sample-data/sample-elastic.json
+          curl http://localhost:9200
+          curl -s -X PUT -H "Content-Type: application/json" "localhost:9200/_template/template_video" -d @./elasticsearch/templates/video_.json
+          curl -s -X PUT "localhost:9200/video_testing?pretty"
+          curl -s -H "Content-Type: application/x-ndjson" -XPOST "localhost:9200/_bulk" --data-binary @./utils/sample-data/sample-elastic.json
 
     - run: rm .env.testing
     - run: mv .circleci/.env.testing .env.testing
