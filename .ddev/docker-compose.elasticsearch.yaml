@@ -7,8 +7,6 @@ services:
     expose:
       - "9200"
       - "9300"
-    external_links:
-      - "ddev-router:${DDEV_HOSTNAME}"
     environment:
       - cluster.name=docker-cluster
       - discovery.type=single-node
@@ -24,7 +22,7 @@ services:
       - elasticsearch:/usr/share/elasticsearch/data
       - ".:/mnt/ddev_config"
     healthcheck:
-      test: ["CMD-SHELL", "curl --fail -s localhost:9200"]
+      test: ["CMD-SHELL", "curl --fail -s hammer-datastore.ddev.site:9200"]
 
 volumes:
   elasticsearch:

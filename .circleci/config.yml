@@ -82,10 +82,10 @@ build_and_test: &build_and_test
     - run:
         name: Set up Elasticsearch
         command: |
-          curl http://localhost:9200
-          curl -s -X PUT -H "Content-Type: application/json" "localhost:9200/_template/template_video" -d @./elasticsearch/templates/video_.json
-          curl -s -X PUT "localhost:9200/video_testing?pretty"
-          curl -s -H "Content-Type: application/x-ndjson" -XPOST "localhost:9200/_bulk" --data-binary @./utils/sample-data/sample-elastic.json
+          curl http://hammer-datastore.ddev.site:9200
+          curl -s -X PUT -H "Content-Type: application/json" "hammer-datastore.ddev.site:9200/_template/template_video" -d @./elasticsearch/templates/video_.json
+          curl -s -X PUT "hammer-datastore.ddev.site:9200/video_testing?pretty"
+          curl -s -H "Content-Type: application/x-ndjson" -XPOST "hammer-datastore.ddev.site:9200/_bulk" --data-binary @./utils/sample-data/sample-elastic.json
 
     - run: rm .env.testing
     - run: mv .circleci/.env.testing .env.testing
@@ -129,6 +129,12 @@ deploy: &deploy
     - attach_workspace:
         at: /home/circleci/project
     - run:
+        name: Install Deployer
+        command: |
+          curl -LO https://deployer.org/deployer.phar
+          sudo mv deployer.phar /usr/local/bin/dep
+          sudo chmod +x /usr/local/bin/dep
+    - run:
         name: Install deploy dependency rsync
         command: sudo apt install rsync
     - run: composer install --optimize-autoloader --no-dev
@@ -139,7 +145,7 @@ deploy: &deploy
     - create_harvester_env_file:
         environment: $HOST_URL
     - run: ssh-keyscan -H $(echo "$PROD_DEPLOY_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: php artisan deploy production
+    - run: ./vendor/deployer/deployer/deployer.phar deploy production
     - run: ssh deploy@$PROD_DEPLOY_URL sudo systemctl reload php8.1-fpm.service
     - run: ssh deploy@$PROD_DEPLOY_URL mkdir /var/www/$HOST_URL/current/harvester/logs
     - run: ssh deploy@$PROD_DEPLOY_URL mkdir /var/www/$HOST_URL/current/harvester/data
@@ -161,6 +167,12 @@ deploy_stage: &deploy_stage
     - attach_workspace:
         at: /home/circleci/project
     - run:
+        name: Install Deployer
+        command: |
+          curl -LO https://deployer.org/deployer.phar
+          sudo mv deployer.phar /usr/local/bin/dep
+          sudo chmod +x /usr/local/bin/dep
+    - run:
         name: Install deploy dependency rsync
         command: sudo apt install rsync
     - run: composer install --optimize-autoloader --no-dev
@@ -171,7 +183,7 @@ deploy_stage: &deploy_stage
     - create_harvester_env_file:
         environment: $STAGE_HOST_URL
     - run: ssh-keyscan -H $(echo "$STAGE_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: php artisan deploy staging
+    - run: ./vendor/deployer/deployer/deployer.phar deploy staging
     - run: ssh deploy@$STAGE_HOST_URL sudo systemctl reload php8.1-fpm.service
     - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/$STAGE_HOST_URL/current/harvester/logs
     - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/$STAGE_HOST_URL/current/harvester/data
@@ -193,6 +205,12 @@ deploy_dev: &deploy_dev
     - attach_workspace:
         at: /home/circleci/project
     - run:
+        name: Install Deployer
+        command: |
+          curl -LO https://deployer.org/deployer.phar
+          sudo mv deployer.phar /usr/local/bin/dep
+          sudo chmod +x /usr/local/bin/dep
+    - run:
         name: Install deploy dependency rsync
         command: sudo apt install rsync
     - run: composer install --optimize-autoloader --no-dev
@@ -203,7 +221,7 @@ deploy_dev: &deploy_dev
     - create_harvester_env_file:
         environment: $DEV_HOST_URL
     - run: ssh-keyscan -H $(echo "$DEV_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: php artisan deploy dev
+    - run: ./vendor/deployer/deployer/deployer.phar deploy dev
     - run: ssh deploy@$DEV_HOST_URL sudo systemctl reload php8.1-fpm.service
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/$DEV_HOST_URL/current/harvester/logs
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/$DEV_HOST_URL/current/harvester/data
