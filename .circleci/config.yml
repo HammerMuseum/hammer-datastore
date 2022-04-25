@@ -30,13 +30,13 @@ defaults: &defaults
 restore_cache: &restore_cache
   # We use the composer.lock as a way to determine if we can cache our build.
   keys:
-  - composer-v2-{{ checksum "composer.lock" }}
+  - composer-v3-{{ checksum "composer.lock" }}
   # fallback to using the latest cache if no exact match is found
   - composer-v2-
 
 # Defines the cache saving mechanism for composer dependencies.
 save_cache: &save_cache
-  key: composer-v2-{{ checksum "composer.lock" }}
+  key: composer-v3-{{ checksum "composer.lock" }}
   paths:
     - vendor
 
@@ -80,7 +80,7 @@ build_and_test: &build_and_test
     - checkout
 
     - run:
-        name: Wait for db
+        name: Wait for elasticsearch
         command: dockerize -wait http://localhost:9200 -timeout 3m
 
     - run:
