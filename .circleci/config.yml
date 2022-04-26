@@ -138,7 +138,7 @@ deploy: &deploy
           sudo chmod +x /usr/local/bin/dep
     - run:
         name: Install deploy dependency rsync
-        command: sudo apt install rsync
+        command: sudo apt update && sudo apt-get install rsync
     - run: composer install --optimize-autoloader --no-dev
     - aws-sg-white-list-circleci-ip/add:
         port: 22
@@ -147,7 +147,7 @@ deploy: &deploy
     - create_harvester_env_file:
         environment: $HOST_URL
     - run: ssh-keyscan -H $(echo "$PROD_DEPLOY_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: ./vendor/deployer/deployer/deployer.phar deploy production
+    - run: ./vendor/deployer/deployer/deployer.phar deploy 52.8.89.103
     - run: ssh deploy@$PROD_DEPLOY_URL sudo systemctl reload php8.1-fpm.service
     - run: ssh deploy@$PROD_DEPLOY_URL mkdir /var/www/$HOST_URL/current/harvester/logs
     - run: ssh deploy@$PROD_DEPLOY_URL mkdir /var/www/$HOST_URL/current/harvester/data
@@ -176,7 +176,7 @@ deploy_stage: &deploy_stage
           sudo chmod +x /usr/local/bin/dep
     - run:
         name: Install deploy dependency rsync
-        command: sudo apt install rsync
+        command: sudo apt update && sudo apt-get install rsync
     - run: composer install --optimize-autoloader --no-dev
     - aws-sg-white-list-circleci-ip/add:
         port: 22
@@ -185,7 +185,7 @@ deploy_stage: &deploy_stage
     - create_harvester_env_file:
         environment: $STAGE_HOST_URL
     - run: ssh-keyscan -H $(echo "$STAGE_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: ./vendor/deployer/deployer/deployer.phar deploy staging
+    - run: ./vendor/deployer/deployer/deployer.phar deploy stage.datastore.hammer.cogapp.com
     - run: ssh deploy@$STAGE_HOST_URL sudo systemctl reload php8.1-fpm.service
     - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/$STAGE_HOST_URL/current/harvester/logs
     - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/$STAGE_HOST_URL/current/harvester/data
@@ -223,7 +223,7 @@ deploy_dev: &deploy_dev
     - create_harvester_env_file:
         environment: $DEV_HOST_URL
     - run: ssh-keyscan -H $(echo "$DEV_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: ./vendor/deployer/deployer/deployer.phar deploy dev
+    - run: ./vendor/deployer/deployer/deployer.phar deploy dev.datastore.hammer.cogapp.com
     - run: ssh deploy@$DEV_HOST_URL sudo systemctl reload php8.1-fpm.service
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/$DEV_HOST_URL/current/harvester/logs
     - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/$DEV_HOST_URL/current/harvester/data
