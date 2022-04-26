@@ -84,7 +84,6 @@ build_and_test: &build_and_test
     - run:
         name: Set up Elasticsearch
         command: |
-          curl http://localhost:9200
           curl -s -X PUT -H "Content-Type: application/json" "localhost:9200/_template/template_video" -d @./elasticsearch/templates/video_.json
           curl -s -X PUT "localhost:9200/video_testing?pretty"
           curl -s -H "Content-Type: application/x-ndjson" -XPOST "localhost:9200/_bulk" --data-binary @./utils/sample-data/sample-elastic.json

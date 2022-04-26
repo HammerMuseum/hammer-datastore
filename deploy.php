@@ -6,10 +6,10 @@ require 'recipe/laravel.php';
 require 'recipe/tasks.php';
 
 // Project name
-set('application', 'Laravel');
+set('application', 'Hammer Datastore');
 
 // Project repository
-set('repository', 'git@github.com:HammerMuseum/hammer-video.git');
+set('repository', 'git@github.com:HammerMuseum/hammer-datastore.git');
 
 // [Optional] Allocate tty for git clone. Default value is false.
 set('git_tty', true);
