@@ -215,8 +215,8 @@ deploy_dev: &deploy_dev
     - run:
         name: Install deploy dependency rsync
         - command:
-        sudo apt update
-        sudo apt-get install rsync
+          sudo apt update
+          sudo apt-get install rsync
     - run: composer install --optimize-autoloader --no-dev
     - aws-sg-white-list-circleci-ip/add:
         port: 22
