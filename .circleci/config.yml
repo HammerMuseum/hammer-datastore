@@ -214,7 +214,7 @@ deploy_dev: &deploy_dev
           sudo chmod +x /usr/local/bin/dep
     - run:
         name: Install deploy dependency rsync
-        - command:
+        command:
           sudo apt update
           sudo apt-get install rsync
     - run: composer install --optimize-autoloader --no-dev
