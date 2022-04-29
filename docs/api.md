@@ -36,7 +36,7 @@ in the `.insomnia` directory at the root of this repository.
 To generate the documentation, go to the `.insomnia` folder in your terminal and run:
 
 ```sh
-npx serve
+npx serve ./docs
 ```
 
 ### Updating the documentation
