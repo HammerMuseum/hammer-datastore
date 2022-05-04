@@ -37,8 +37,6 @@ Route::group(['middleware' => 'cacheResponse:3600'], function () {
 });
 
 Route::group(['middleware' => 'auth:api'], function () {
-    Route::post('videos', 'ApiController@create');
-    Route::put('videos/{id}', 'ApiController@update');
     Route::delete('videos/{id}', 'ApiController@delete');
 });
 

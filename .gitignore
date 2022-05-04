@@ -20,3 +20,5 @@ storage/testing.sqlite
 __pycache__
 harvester/data
 harvester/logs
+.DS_Store
+.insomnia/docs
