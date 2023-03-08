@@ -83,7 +83,11 @@ class AssetBankHarvester(HarvesterBase):
         self.processors = [
             DelimiterProcessor(self, fields=split_fields),
             TranscriptionProcessor(
-                self, os.getenv("TRINT_API_KEY"), fields=transcription_fields
+                self,
+                os.getenv("TRINT_API_KEY"),
+                fields=transcription_fields,
+                local_dir='/var/manual_transcripts',
+                local_dir_key='asset_id'
             ),
             FriendlyUrlProcessor(self, fields=slug_field),
             DurationProcessor(self, fields=duration_field),

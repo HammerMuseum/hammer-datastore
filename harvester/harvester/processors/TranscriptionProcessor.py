@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 import requests
 from time import sleep
 from filecache import filecache
@@ -13,12 +14,44 @@ class TranscriptionProcessor():
     The core process() method accepts an identifier that can be used to fetch
     a remote resource.
 
+    :param harvester: The harvester that this processor is attached to.
+    :type harvester: HarvesterBase
+    :param api_key: Trint API key.
+    :type api_key: str
+    :param fields: The fields holding the Trint ID for a transcript.
+    :type fields: list[str]
+    :param local_dir:
+        A local directory that holds transcripts (VTT, JSON, TXT). If defined, `local_dir_key` must also be defined.
+    :type local_dir: str, optional
+    :param local_dir_key:
+        The row's field holding a key that matches the name of the file (i.e. not including the extension).
+        If defined, `local_dir` must also be defined.
+    :type local_dir_key: str, optional
+
     Returns the content of the file.
     """
 
-    def __init__(self, harvester, api_key, fields):
+    def __init__(self, harvester, api_key, fields, local_dir=None, local_dir_key=None):
         self.harvester = harvester
         self.fields = fields
+
+        if local_dir or local_dir_key:
+            # if we have a local_dir, we must have a local_dir_key to access files.
+            for name, var in [
+                ("local_dir", local_dir),
+                ("local_dir_key", local_dir_key),
+            ]:
+                if not var:
+                    raise NameError(f"'{name}' must be defined")
+
+            # check if local_dir is a valid dir
+            local_dir = Path(local_dir).resolve()
+            if not local_dir.is_dir():
+                raise FileNotFoundError(f"No folder exists at {local_dir}")
+
+            self.local_dir = local_dir
+            self.local_dir_key = local_dir_key
+
         strategy = Retry(
             total=5,
             status_forcelist=[403, 429, 500, 502, 503, 504],
@@ -108,8 +141,17 @@ class TranscriptionProcessor():
         """
         for field in self.fields:
             value = row[field]
-            if not row[field]:
+            if not value:
+                # No Trint ID defined, so check for files that have been manually added to the server
+                if self.local_dir:
+                    for suffix in ['vtt', 'json', 'txt']:
+                        custom_transcript_file = f'{row[self.local_dir_key]}.{suffix}'
+                        custom_transcript = self.local_dir.joinpath(custom_transcript_file)
+                        if custom_transcript.exists():
+                            with open(custom_transcript) as fh:
+                                row[f'{field}_{suffix}'] = fh.read()
                 continue
+            # Get transcripts from Trint
             self.harvester.logger.debug('Processing a {!s}'.format(field))
             row["{}_vtt".format(field)] = self.get_transcript_vtt(value)
             sleep(0.4)
