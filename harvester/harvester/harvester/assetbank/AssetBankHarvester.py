@@ -271,7 +271,7 @@ class AssetBankHarvester(HarvesterBase):
         """
         read = 0
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-            for page in self.get_asset_list(since=self.since):
+            for page in self.get_asset_list(ids=self.assetIds, since=self.since):
                 if read >= self.max_items:
                     self.logger.info("Harvesting reached max limit")
                     break

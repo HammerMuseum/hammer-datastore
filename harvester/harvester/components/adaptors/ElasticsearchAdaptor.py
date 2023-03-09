@@ -3,9 +3,6 @@ import logging
 import json
 import time
 from elasticsearch import Elasticsearch, helpers
-from elasticsearch.exceptions import (
-    ElasticsearchException,
-)
 
 
 class ElasticsearchAdaptor:
@@ -66,11 +63,7 @@ class ElasticsearchAdaptor:
         self.update = update
 
         # Create new Elasticsearch client
-        self.client = Elasticsearch(
-            es_domain,
-            scheme=scheme,
-            port=port
-        )
+        self.client = Elasticsearch(es_domain)
 
         if self.update:
             self.index_name = self.establish_index_name(self.alias)
@@ -217,8 +210,8 @@ class ElasticsearchAdaptor:
             self.logger.error("ERROR: %s", e)
 
     def refresh_index(self, index_name):
-        self.client.indices.refresh(index_name)
-        self.client.indices.forcemerge(index_name)
+        self.client.indices.refresh(index=index_name)
+        self.client.indices.forcemerge(index=index_name)
 
     def create_index(self, index_name):
         """
@@ -232,12 +225,12 @@ class ElasticsearchAdaptor:
                 }
             }
         }
-        self.client.indices.create(index_name, body=settings)
+        self.client.indices.create(index=index_name, body=settings)
         self.logger.info("Created index %s", index_name)
 
     def establish_index_name(self, alias):
         try:
-            alias_state = self.client.indices.get_alias(alias)
+            alias_state = self.client.indices.get_alias(index=alias)
             current_indices = list(alias_state.keys())
             if len(current_indices) > 1:
                 raise EstablishIndexNameException('Cannot use "since" because multiple indexes are in use for this alias.')
@@ -259,7 +252,7 @@ class ElasticsearchAdaptor:
                 self.client.indices.put_alias(
                     name=alias, index="{}*".format(self.index_prefix)
                 )
-        except ElasticsearchException as e:
+        except Exception as e:
             self.logger.error("ERROR - Could not create alias %s", e)
 
     def update_alias(self, alias, new_index_name):
@@ -270,18 +263,19 @@ class ElasticsearchAdaptor:
         """
         # Switch old index with the newly generated index.
         # Get indices attached to the alias
-        alias_state = self.client.indices.get_alias(alias)
+        alias_state = self.client.indices.get_alias(index=alias)
         current_indices = list(alias_state.keys())
 
         # Update alias swapping out old index for new
-        self.client.indices.update_aliases(
-            {
+        actions = [{
                 "actions": [
                     {"remove": {"indices": current_indices, "alias": alias}},
                     {"add": {"index": new_index_name, "alias": alias}},
                 ]
-            }
-        )
+            }]
+
+        self.client.indices.update_aliases(actions=actions)
+
         self.logger.info(
             "Removed %s from alias %s", ", ".join(current_indices), alias
         )
