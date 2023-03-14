@@ -159,6 +159,7 @@ class ElasticsearchAdaptor:
         except Exception as e:
             self.logger.error("ERROR: Failed to update alias: {}.".format(e))
         finally:
+            self.cleanup_indices(days=7)
             self.logger.info("Finished processing at %s", time.ctime())
 
     def load(self):
