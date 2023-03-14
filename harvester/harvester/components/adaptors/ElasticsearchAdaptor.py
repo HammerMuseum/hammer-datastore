@@ -2,6 +2,7 @@ import os
 import logging
 import json
 import time
+from datetime import datetime, timedelta
 from elasticsearch import Elasticsearch, helpers
 
 
@@ -306,6 +307,52 @@ class ElasticsearchAdaptor:
             "script" : "ctx._source.playlists = []"
         }
         self.client.update_by_query(index=self.alias, body=body)
+
+    def cleanup_indices(self, days):
+        """
+        Delete indices if they fit the criteria and are older than a certain number of days.
+
+        Age of the index is parsed using its name, rather than its creation date.
+        If a date cannot be parsed the index will be ignored.
+
+        Args:
+            days (int): if an index is older than 'now' minus days, it will be deleted.
+        """
+        EXPIRY_DATE = datetime.now() - timedelta(days=days)
+
+        self.logger.info(
+            "Checking for, and deleting indices with no alias, that are older than {} day(s), with the prefix '{}'".format(
+                days, self.index_prefix
+            )
+        )
+        # get all indices
+        all_indices = dict(self.client.indices.get(index="*"))
+
+        to_delete = []
+        for index_name, index_properties in all_indices.items():
+            # ignore any index that has an alias
+            if index_properties["aliases"].keys():
+                self.logger.info("Skipping {}; it has an alias.".format(index_name))
+                continue
+            # if here, the index has no alias, try parsing its date
+            try:
+                date = index_name.replace(self.index_prefix, "")
+                date = datetime.fromtimestamp(int(date))
+            except ValueError:
+                self.logger.info(
+                    "Skipping {}; can't parse {} as a date.".format(index_name, date)
+                )
+                continue
+
+            if date <= EXPIRY_DATE:
+                to_delete.append(index_name)
+
+        if to_delete:
+            self.client.indices.delete(index=to_delete)
+            self.logger.info("Deleted old indices: {}".format(', '.join(to_delete)))
+        else:
+            self.logger.info("No old indices to delete")
+
 
 
 class EstablishIndexNameException(Exception):
