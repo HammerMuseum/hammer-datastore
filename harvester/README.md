@@ -7,8 +7,7 @@ The harvester is not currently setup to run within Docker 😕. It is recommende
 ّIf you just need some data, then use the `elasticdump` method outlined in the [setup guide](../docs/getting-started.md) directory.
 
 ```sh
-cd scripts
-python setup.py install
+pip install -e .
 cd ../harvester/harvester/assetbank
 cp .env.example .env
 ```
