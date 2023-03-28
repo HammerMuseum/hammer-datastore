@@ -7,10 +7,9 @@ The harvester is not currently setup to run within Docker 😕. It is recommende
 ّIf you just need some data, then use the `elasticdump` method outlined in the [setup guide](../docs/getting-started.md) directory.
 
 ```sh
-cd scripts
-python setup.py install
-cd ../harvester/harvester/assetbank`
-`cp .env.example .env` 
+pip install -e .
+cd ../harvester/harvester/assetbank
+cp .env.example .env
 ```
 
 Add API [credentials for Asset Bank](http://tpm.office.cogapp.com/index.php/pwd/view/769) to `.env`
