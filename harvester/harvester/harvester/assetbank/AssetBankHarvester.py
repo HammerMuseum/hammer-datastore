@@ -53,7 +53,6 @@ class AssetBankHarvester(HarvesterBase):
         env_path = Path(__file__).parent.absolute() / ".env"
         load_dotenv(dotenv_path=env_path)
 
-        self.summary = None
         self.host = host
         self.access_token = None
         self.init_auth()
@@ -83,7 +82,11 @@ class AssetBankHarvester(HarvesterBase):
         self.processors = [
             DelimiterProcessor(self, fields=split_fields),
             TranscriptionProcessor(
-                self, os.getenv("TRINT_API_KEY"), fields=transcription_fields
+                self,
+                os.getenv("TRINT_API_KEY"),
+                fields=transcription_fields,
+                local_dir='/var/manual_transcripts',
+                local_dir_key='asset_id'
             ),
             FriendlyUrlProcessor(self, fields=slug_field),
             DurationProcessor(self, fields=duration_field),
@@ -217,6 +220,8 @@ class AssetBankHarvester(HarvesterBase):
         Postprocessing callback.
         """
         self.write_summary()
+        if os.getenv("SLACK_WEBHOOK"):
+            self.post_summary_to_url(os.getenv("SLACK_WEBHOOK"))
 
     def get_asset_list(self, ids=None, since=None):
         """
@@ -267,7 +272,7 @@ class AssetBankHarvester(HarvesterBase):
         """
         read = 0
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-            for page in self.get_asset_list(since=self.since):
+            for page in self.get_asset_list(ids=self.assetIds, since=self.since):
                 if read >= self.max_items:
                     self.logger.info("Harvesting reached max limit")
                     break
@@ -494,8 +499,9 @@ class AssetBankHarvester(HarvesterBase):
 
         return True
 
-    def write_summary(self):
-        summary = {
+    @property
+    def summary(self):
+        return {
             "type": self.__class__.__name__,
             "version": self.version,
             "start": self.start_time,
@@ -507,9 +513,69 @@ class AssetBankHarvester(HarvesterBase):
             "success": "{!s}".format(self.success),
         }
 
-        self.summary = summary
-
+    def write_summary(self):
         summary_path = os.path.join(self.current_output_path, "summary.log")
 
         with open(summary_path, "w") as fh:
-            fh.write(yaml.dump(summary, default_flow_style=False))
+            fh.write(yaml.dump(self.summary, default_flow_style=False))
+
+    def post_summary_to_url(self, url):
+        summary = self.summary
+        success = summary.get("success") == "True"
+        message = []
+
+        try:
+            start = datetime.datetime.strptime(summary.get("start"), self.date_format)
+            end = datetime.datetime.strptime(summary.get("end"), self.date_format)
+            message.extend(
+                [
+                    "Started: {}".format(start),
+                    "Finished: {}".format(end),
+                    "Duration: {}".format(end - start),
+                ]
+            )
+        except (ValueError, TypeError):
+            pass
+
+        message.append(
+            ", ".join(
+                [
+                    "Processed: {}".format(summary.get("processed", "?")),
+                    "Succeeded: {}".format(summary.get("succeeded", "?")),
+                    "Failed: {}".format(summary.get("failed", "?")),
+                    "Errors: {}".format(summary.get("errors", "?")),
+                ]
+            )
+        )
+
+        dump = "\n".join(["{}: {}".format(k, v) for k, v in summary.items()])
+
+        all_blocks = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "*@channel, this harvest failed.*",
+                },
+            }
+            if not success
+            else {},
+            {
+                "type": "section",
+                "text": {"type": "plain_text", "text": "\n".join(message)},
+            }
+            if message
+            else {},
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": "```{}```".format(dump)},
+            }
+            if dump
+            else {},
+        ]
+
+        payload = {"blocks": list(filter(None, all_blocks))}
+
+        r = requests.post(url, json=payload)
+        if not r.ok:
+            self.logger.error("Failed to POST summary to Slack.")
