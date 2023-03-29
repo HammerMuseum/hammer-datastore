@@ -269,14 +269,14 @@ class ElasticsearchAdaptor:
         current_indices = list(alias_state.keys())
 
         # Update alias swapping out old index for new
-        actions = [{
+        actions = {
                 "actions": [
                     {"remove": {"indices": current_indices, "alias": alias}},
                     {"add": {"index": new_index_name, "alias": alias}},
                 ]
-            }]
+            }
 
-        self.client.indices.update_aliases(actions=actions)
+        self.client.indices.update_aliases(actions)
 
         self.logger.info(
             "Removed %s from alias %s", ", ".join(current_indices), alias
