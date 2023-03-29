@@ -66,6 +66,7 @@ class AssetBankHarvester(HarvesterBase):
         self.asset_type = options["assetType"]
         self.assetIds = options["assetIds"]
         self.since = options["since"]
+        self.production = options["production"]
 
         self.slugs = []
 
@@ -220,7 +221,7 @@ class AssetBankHarvester(HarvesterBase):
         Postprocessing callback.
         """
         self.write_summary()
-        if os.getenv("SLACK_WEBHOOK"):
+        if os.getenv("SLACK_WEBHOOK") and self.production:
             self.post_summary_to_url(os.getenv("SLACK_WEBHOOK"))
 
     def get_asset_list(self, ids=None, since=None):

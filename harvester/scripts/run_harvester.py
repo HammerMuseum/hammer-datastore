@@ -73,6 +73,7 @@ args = parser.parse_args()
 options = {
     "assetType": args.type,
     "assetIds": args.assets,
+    "production": args.production,
 }
 
 if args.since:

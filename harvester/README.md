@@ -13,8 +13,7 @@ cp .env.example .env
 ```
 
 Add API [credentials for Asset Bank](http://tpm.office.cogapp.com/index.php/pwd/view/769) to `.env`.
-
--   Note: leave `SLACK_WEBHOOK` empty, unless you want to spam the `#hammer-notifications` Slack channel, otherwise use [this URL](https://tpm.office.cogapp.com/index.php/pwd/view/1059).
+The value for `SLACK_WEBHOOK` is on [TPM](https://tpm.office.cogapp.com/index.php/pwd/view/1059).
 
 ## Running a Harvest
 
