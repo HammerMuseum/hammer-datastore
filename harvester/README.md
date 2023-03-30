@@ -22,11 +22,11 @@ cd scripts
 PYTHONPATH=../. python run_harvester.py \
   --submit \
   --host=https://hammer.assetbank-server.com/assetbank-hammer \
-  --port=9201 \
-  --scheme=http \
   --alias=videos \
   --asset-type=1 \
   --search-domain=http://localhost:9201 \
   --storage=/path/to/repo/shared/storage/app \
   --limit=20
 ```
+
+For full options: `python run_harvester.py -h`
