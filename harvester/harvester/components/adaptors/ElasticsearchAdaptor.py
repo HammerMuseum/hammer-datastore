@@ -53,7 +53,7 @@ class ElasticsearchAdaptor:
     ]
 
     def __init__(
-        self, data_path, es_domain, port="443", scheme="https", alias="videos", update=False
+        self, data_path, es_domain, alias="videos", update=False, cleanup=False
     ):
         self.input_data_path = data_path
 
@@ -62,6 +62,7 @@ class ElasticsearchAdaptor:
         self.alias = alias
         self.index_prefix = "video_"
         self.update = update
+        self.cleanup = cleanup
 
         # Create new Elasticsearch client
         self.client = Elasticsearch(es_domain)
@@ -159,7 +160,8 @@ class ElasticsearchAdaptor:
         except Exception as e:
             self.logger.error("ERROR: Failed to update alias: {}.".format(e))
         finally:
-            self.cleanup_indices(days=7)
+            if self.cleanup:
+                self.cleanup_indices(days=7)
             self.logger.info("Finished processing at %s", time.ctime())
 
     def load(self):
@@ -269,14 +271,14 @@ class ElasticsearchAdaptor:
         current_indices = list(alias_state.keys())
 
         # Update alias swapping out old index for new
-        actions = [{
+        actions = {
                 "actions": [
                     {"remove": {"indices": current_indices, "alias": alias}},
                     {"add": {"index": new_index_name, "alias": alias}},
                 ]
-            }]
+            }
 
-        self.client.indices.update_aliases(actions=actions)
+        self.client.indices.update_aliases(actions)
 
         self.logger.info(
             "Removed %s from alias %s", ", ".join(current_indices), alias

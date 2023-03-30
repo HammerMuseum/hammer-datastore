@@ -67,6 +67,7 @@ commands:
       - run: echo -e "AB_USERNAME=$AB_USERNAME" >> harvester/harvester/harvester/assetbank/.env
       - run: echo -e "AB_PASSWORD=$AB_PASSWORD" >> harvester/harvester/harvester/assetbank/.env
       - run: echo -e "TRINT_API_KEY=$TRINT_API_KEY\n" >> harvester/harvester/harvester/assetbank/.env
+      - run: echo -e "SLACK_WEBHOOK=$SLACK_WEBHOOK\n" >> harvester/harvester/harvester/assetbank/.env
 
 
 # Jobs
