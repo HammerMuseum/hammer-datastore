@@ -48,9 +48,7 @@ parser.add_argument(
 
 parser.add_argument("--alias", type=str, dest="alias")
 
-parser.add_argument("--port", type=str, dest="port")
-
-parser.add_argument("--scheme", type=str, dest="scheme")
+parser.add_argument("--production", action="store_true", help='Use if running on production environment.')
 
 parser.add_argument("--debug", action="store_true")
 
@@ -75,6 +73,7 @@ args = parser.parse_args()
 options = {
     "assetType": args.type,
     "assetIds": args.assets,
+    "production": args.production,
 }
 
 if args.since:
@@ -155,8 +154,12 @@ if __name__ == "__main__":
             logger.info("Running submission processes")
             logger.info("Starting Elasticsearch adaptor")
 
-            kwargs = dict(port=args.port, scheme=args.scheme,
-                alias=args.alias, update=(args.since is not None))
+            kwargs = dict(
+                alias=args.alias,
+                update=(args.since is not None),
+                cleanup=args.production,
+            )
+
             adaptors = [
                 # Adapts harvest data for elasticsearch
                 ElasticsearchAdaptor(

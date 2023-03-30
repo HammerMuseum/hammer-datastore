@@ -34,7 +34,7 @@ setup(
         "pytest",
         "tqdm",
         "dateparser",
-        "elasticsearch",
+        "elasticsearch==7.5.1",
         "python-dotenv",
         "requests",
         "filecache",
