@@ -328,9 +328,9 @@ class AssetBankHarvester(HarvesterBase):
             self.preprocess_record(json_record)
             self.add_playlist_metadata(json_record, identifier)
 
+            self.records_processed += 1
             if self.validate_record(json_record):
                 record_success = self.do_record_harvest(json_record, identifier)
-                self.records_processed += 1
 
                 if record_success:
                     self.records_succeeded += 1
