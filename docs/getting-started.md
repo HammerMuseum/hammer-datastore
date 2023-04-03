@@ -19,14 +19,18 @@ cp .env.ddev.example .env
 ddev start
 ```
 
-### Populate the search index (requires VPN)
+### Populate a search index
 
-The following command copies data from the dev videos index into your local Docker Elasticsearch environment.
+You can shortcut to a full index with the following command, which
+copies data from the an elasticsearch index into your DDEV Elasticsearch.
+
+You will need to know the URL of the elasticsearch index you want to copy from.
+See the Wiki for further information.
 
 ```sh
 npx elasticdump \
-  --input=https://search-hammermuseum-search-sq42amyo3koerexnacxk3gws5i.us-west-1.es.amazonaws.com/videos_dev \
-  --output=http://hammer-datastore.ddev.site:9200/videos_dev
+  --input=https://<elasticsearch-url>/<index-name> \
+  --output=http://hammer-datastore.ddev.site:9200/<index-name>
 ```
 
 ### Test
@@ -55,6 +59,4 @@ ddev exec artisan cache:clear
 
 #### Transcript data
 
-There is a copy of the transcript data on Alessi.
-
-Download and unzip it into your local `storage` folder.
+A harvest will generate the transcript output data.
