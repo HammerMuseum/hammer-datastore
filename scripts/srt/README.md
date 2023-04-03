@@ -27,13 +27,4 @@ python3 srt.py *.srt
 
 ## Upload transcript files
 
-The processed files need to then be moved to the backend server, so they're available to the Harvester.
-
-Find the server user & IP at the [Cogapp Wiki](http://wiki.office.cogapp.com/wiki/index.php/Hammer_Video_Archive#Servers), and the contents of the `.pem` file referenced below in [TPM](http://tpm.office.cogapp.com/index.php/pwd/view/656).
-
-```bash
-# you must be on the VPN to run this
-rsync -chavzP --stats -e "ssh -i ~/.ssh/hammer/hammer-backend.pem" manual_transcripts/* user@ip:/var/manual_transcripts/
-```
-
-Note: if `/var/manual_transcripts/` doesn't exist on the server you will need to SSH on and create it with: `mkdir -m 777 /var/manual_transcripts`.
+See the Hammer Channel internal Wiki for full details.
