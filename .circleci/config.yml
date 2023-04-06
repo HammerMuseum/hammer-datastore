@@ -8,11 +8,6 @@
 defaults: &defaults
   docker:
     - image: cimg/php:8.1.4-browsers
-      environment:
-        HOST_URL: datastore.hammer.ucla.edu
-        PROD_DEPLOY_URL: 52.8.89.103
-        STAGE_HOST_URL: stage.datastore.hammer.cogapp.com
-        DEV_HOST_URL: dev.datastore.hammer.cogapp.com
 
     - image: circleci/mariadb:latest
       environment:
@@ -67,7 +62,7 @@ commands:
       - run: echo -e "AB_USERNAME=$AB_USERNAME" >> harvester/harvester/harvester/assetbank/.env
       - run: echo -e "AB_PASSWORD=$AB_PASSWORD" >> harvester/harvester/harvester/assetbank/.env
       - run: echo -e "TRINT_API_KEY=$TRINT_API_KEY\n" >> harvester/harvester/harvester/assetbank/.env
-
+      - run: echo -e "SLACK_WEBHOOK=$SLACK_WEBHOOK\n" >> harvester/harvester/harvester/assetbank/.env
 
 # Jobs
 build_and_test: &build_and_test
@@ -100,7 +95,7 @@ build_and_test: &build_and_test
     - restore_cache: *restore_node_cache
     - run: npm install
     - save_cache: *save_node_cache
-    - run: npm run prod
+    - run: npm run production
 
     # prepare database
     - run: php artisan key:generate --env=testing
@@ -144,15 +139,13 @@ deploy: &deploy
         tag-key: group
         tag-value: bastion
     - create_harvester_env_file:
-        environment: $HOST_URL
-    - run: ssh-keyscan -H $(echo "$PROD_DEPLOY_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: ./vendor/deployer/deployer/deployer.phar deploy 52.8.89.103
-    - run: ssh deploy@$PROD_DEPLOY_URL sudo systemctl reload php8.1-fpm.service
-    - run: ssh deploy@$PROD_DEPLOY_URL mkdir /var/www/$HOST_URL/current/harvester/logs
-    - run: ssh deploy@$PROD_DEPLOY_URL mkdir /var/www/$HOST_URL/current/harvester/data
-    - run: ssh deploy@$PROD_DEPLOY_URL sh /var/www/$HOST_URL/current/harvester/install/install_harvester_dependencies.sh
-    - run: ssh deploy@$PROD_DEPLOY_URL sudo mv /var/www/$HOST_URL/current/harvester/cron/run_harvester_cron /etc/cron.d
-    - run: ssh deploy@$PROD_DEPLOY_URL sudo chown root:root /etc/cron.d/run_harvester_cron
+        environment: $CI_HOST_URL
+    - run: ssh-keyscan -H $(echo "$CI_PROD_DEPLOY_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
+    - run: ./vendor/deployer/deployer/deployer.phar deploy live
+    - run: ssh deploy@$CI_PROD_DEPLOY_URL sudo systemctl reload php8.1-fpm.service
+    - run: ssh deploy@$CI_PROD_DEPLOY_URL mkdir /var/www/$CI_HOST_URL/current/harvester/logs
+    - run: ssh deploy@$CI_PROD_DEPLOY_URL mkdir /var/www/$CI_HOST_URL/current/harvester/data
+    - run: ssh deploy@$CI_PROD_DEPLOY_URL sh /var/www/$CI_HOST_URL/current/harvester/install/install_harvester_dependencies.sh
     - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group
@@ -182,15 +175,13 @@ deploy_stage: &deploy_stage
         tag-key: group
         tag-value: bastion
     - create_harvester_env_file:
-        environment: $STAGE_HOST_URL
-    - run: ssh-keyscan -H $(echo "$STAGE_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: ./vendor/deployer/deployer/deployer.phar deploy stage.datastore.hammer.cogapp.com
-    - run: ssh deploy@$STAGE_HOST_URL sudo systemctl reload php8.1-fpm.service
-    - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/$STAGE_HOST_URL/current/harvester/logs
-    - run: ssh deploy@$STAGE_HOST_URL mkdir /var/www/$STAGE_HOST_URL/current/harvester/data
-    - run: ssh deploy@$STAGE_HOST_URL sh /var/www/$STAGE_HOST_URL/current/harvester/install/install_harvester_dependencies_stage.sh
-    - run: ssh deploy@$STAGE_HOST_URL sudo mv /var/www/$STAGE_HOST_URL/current/harvester/cron/run_harvester_cron_stage /etc/cron.d
-    - run: ssh deploy@$STAGE_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_stage
+        environment: $CI_STAGE_HOST_URL
+    - run: ssh-keyscan -H $(echo "$CI_STAGE_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
+    - run: ./vendor/deployer/deployer/deployer.phar deploy stage
+    - run: ssh deploy@$CI_STAGE_HOST_URL sudo systemctl reload php8.1-fpm.service
+    - run: ssh deploy@$CI_STAGE_HOST_URL mkdir /var/www/$CI_STAGE_HOST_URL/current/harvester/logs
+    - run: ssh deploy@$CI_STAGE_HOST_URL mkdir /var/www/$CI_STAGE_HOST_URL/current/harvester/data
+    - run: ssh deploy@$CI_STAGE_HOST_URL sh /var/www/$CI_STAGE_HOST_URL/current/harvester/install/install_harvester_dependencies_stage.sh
     - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group
@@ -220,15 +211,13 @@ deploy_dev: &deploy_dev
         tag-key: group
         tag-value: bastion
     - create_harvester_env_file:
-        environment: $DEV_HOST_URL
-    - run: ssh-keyscan -H $(echo "$DEV_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
-    - run: ./vendor/deployer/deployer/deployer.phar deploy dev.datastore.hammer.cogapp.com
-    - run: ssh deploy@$DEV_HOST_URL sudo systemctl reload php8.1-fpm.service
-    - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/$DEV_HOST_URL/current/harvester/logs
-    - run: ssh deploy@$DEV_HOST_URL mkdir /var/www/$DEV_HOST_URL/current/harvester/data
-    - run: ssh deploy@$DEV_HOST_URL sh /var/www/$DEV_HOST_URL/current/harvester/install/install_harvester_dependencies_dev.sh
-    - run: ssh deploy@$DEV_HOST_URL sudo mv /var/www/$DEV_HOST_URL/current/harvester/cron/run_harvester_cron_dev /etc/cron.d
-    - run: ssh deploy@$DEV_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_dev
+        environment: $CI_DEV_HOST_URL
+    - run: ssh-keyscan -H $(echo "$CI_DEV_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
+    - run: ./vendor/deployer/deployer/deployer.phar deploy dev
+    - run: ssh deploy@$CI_DEV_HOST_URL sudo systemctl reload php8.1-fpm.service
+    - run: ssh deploy@$CI_DEV_HOST_URL mkdir /var/www/$CI_DEV_HOST_URL/current/harvester/logs
+    - run: ssh deploy@$CI_DEV_HOST_URL mkdir /var/www/$CI_DEV_HOST_URL/current/harvester/data
+    - run: ssh deploy@$CI_DEV_HOST_URL sh /var/www/$CI_DEV_HOST_URL/current/harvester/install/install_harvester_dependencies_dev.sh
     - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group

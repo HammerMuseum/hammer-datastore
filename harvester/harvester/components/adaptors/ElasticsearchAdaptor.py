@@ -2,10 +2,8 @@ import os
 import logging
 import json
 import time
+from datetime import datetime, timedelta
 from elasticsearch import Elasticsearch, helpers
-from elasticsearch.exceptions import (
-    ElasticsearchException,
-)
 
 
 class ElasticsearchAdaptor:
@@ -55,7 +53,7 @@ class ElasticsearchAdaptor:
     ]
 
     def __init__(
-        self, data_path, es_domain, port="443", scheme="https", alias="videos", update=False
+        self, data_path, es_domain, alias="videos", update=False, cleanup=False
     ):
         self.input_data_path = data_path
 
@@ -64,13 +62,10 @@ class ElasticsearchAdaptor:
         self.alias = alias
         self.index_prefix = "video_"
         self.update = update
+        self.cleanup = cleanup
 
         # Create new Elasticsearch client
-        self.client = Elasticsearch(
-            es_domain,
-            scheme=scheme,
-            port=port
-        )
+        self.client = Elasticsearch(es_domain)
 
         if self.update:
             self.index_name = self.establish_index_name(self.alias)
@@ -165,6 +160,8 @@ class ElasticsearchAdaptor:
         except Exception as e:
             self.logger.error("ERROR: Failed to update alias: {}.".format(e))
         finally:
+            if self.cleanup:
+                self.cleanup_indices(days=7)
             self.logger.info("Finished processing at %s", time.ctime())
 
     def load(self):
@@ -217,8 +214,8 @@ class ElasticsearchAdaptor:
             self.logger.error("ERROR: %s", e)
 
     def refresh_index(self, index_name):
-        self.client.indices.refresh(index_name)
-        self.client.indices.forcemerge(index_name)
+        self.client.indices.refresh(index=index_name)
+        self.client.indices.forcemerge(index=index_name)
 
     def create_index(self, index_name):
         """
@@ -232,12 +229,12 @@ class ElasticsearchAdaptor:
                 }
             }
         }
-        self.client.indices.create(index_name, body=settings)
+        self.client.indices.create(index=index_name, body=settings)
         self.logger.info("Created index %s", index_name)
 
     def establish_index_name(self, alias):
         try:
-            alias_state = self.client.indices.get_alias(alias)
+            alias_state = self.client.indices.get_alias(index=alias)
             current_indices = list(alias_state.keys())
             if len(current_indices) > 1:
                 raise EstablishIndexNameException('Cannot use "since" because multiple indexes are in use for this alias.')
@@ -259,7 +256,7 @@ class ElasticsearchAdaptor:
                 self.client.indices.put_alias(
                     name=alias, index="{}*".format(self.index_prefix)
                 )
-        except ElasticsearchException as e:
+        except Exception as e:
             self.logger.error("ERROR - Could not create alias %s", e)
 
     def update_alias(self, alias, new_index_name):
@@ -270,18 +267,19 @@ class ElasticsearchAdaptor:
         """
         # Switch old index with the newly generated index.
         # Get indices attached to the alias
-        alias_state = self.client.indices.get_alias(alias)
+        alias_state = self.client.indices.get_alias(index=alias)
         current_indices = list(alias_state.keys())
 
         # Update alias swapping out old index for new
-        self.client.indices.update_aliases(
-            {
+        actions = {
                 "actions": [
                     {"remove": {"indices": current_indices, "alias": alias}},
                     {"add": {"index": new_index_name, "alias": alias}},
                 ]
             }
-        )
+
+        self.client.indices.update_aliases(actions)
+
         self.logger.info(
             "Removed %s from alias %s", ", ".join(current_indices), alias
         )
@@ -312,6 +310,52 @@ class ElasticsearchAdaptor:
             "script" : "ctx._source.playlists = []"
         }
         self.client.update_by_query(index=self.alias, body=body)
+
+    def cleanup_indices(self, days):
+        """
+        Delete indices if they fit the criteria and are older than a certain number of days.
+
+        Age of the index is parsed using its name, rather than its creation date.
+        If a date cannot be parsed the index will be ignored.
+
+        Args:
+            days (int): if an index is older than 'now' minus days, it will be deleted.
+        """
+        EXPIRY_DATE = datetime.now() - timedelta(days=days)
+
+        self.logger.info(
+            "Checking for, and deleting indices with no alias, that are older than {} day(s), with the prefix '{}'".format(
+                days, self.index_prefix
+            )
+        )
+        # get all indices
+        all_indices = dict(self.client.indices.get(index="*"))
+
+        to_delete = []
+        for index_name, index_properties in all_indices.items():
+            # ignore any index that has an alias
+            if index_properties["aliases"].keys():
+                self.logger.info("Skipping {}; it has an alias.".format(index_name))
+                continue
+            # if here, the index has no alias, try parsing its date
+            try:
+                date = index_name.replace(self.index_prefix, "")
+                date = datetime.fromtimestamp(int(date))
+            except ValueError:
+                self.logger.info(
+                    "Skipping {}; can't parse {} as a date.".format(index_name, date)
+                )
+                continue
+
+            if date <= EXPIRY_DATE:
+                to_delete.append(index_name)
+
+        if to_delete:
+            self.client.indices.delete(index=to_delete)
+            self.logger.info("Deleted old indices: {}".format(', '.join(to_delete)))
+        else:
+            self.logger.info("No old indices to delete")
+
 
 
 class EstablishIndexNameException(Exception):
