@@ -64,7 +64,6 @@ commands:
       - run: echo -e "TRINT_API_KEY=$TRINT_API_KEY\n" >> harvester/harvester/harvester/assetbank/.env
       - run: echo -e "SLACK_WEBHOOK=$SLACK_WEBHOOK\n" >> harvester/harvester/harvester/assetbank/.env
 
-
 # Jobs
 build_and_test: &build_and_test
   <<: *defaults
@@ -147,8 +146,6 @@ deploy: &deploy
     - run: ssh deploy@$CI_PROD_DEPLOY_URL mkdir /var/www/$CI_HOST_URL/current/harvester/logs
     - run: ssh deploy@$CI_PROD_DEPLOY_URL mkdir /var/www/$CI_HOST_URL/current/harvester/data
     - run: ssh deploy@$CI_PROD_DEPLOY_URL sh /var/www/$CI_HOST_URL/current/harvester/install/install_harvester_dependencies.sh
-    - run: ssh deploy@$CI_PROD_DEPLOY_URL sudo mv /var/www/$CI_HOST_URL/current/harvester/cron/run_harvester_cron /etc/cron.d
-    - run: ssh deploy@$CI_PROD_DEPLOY_URL sudo chown root:root /etc/cron.d/run_harvester_cron
     - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group
@@ -185,8 +182,6 @@ deploy_stage: &deploy_stage
     - run: ssh deploy@$CI_STAGE_HOST_URL mkdir /var/www/$CI_STAGE_HOST_URL/current/harvester/logs
     - run: ssh deploy@$CI_STAGE_HOST_URL mkdir /var/www/$CI_STAGE_HOST_URL/current/harvester/data
     - run: ssh deploy@$CI_STAGE_HOST_URL sh /var/www/$CI_STAGE_HOST_URL/current/harvester/install/install_harvester_dependencies_stage.sh
-    - run: ssh deploy@$CI_STAGE_HOST_URL sudo mv /var/www/$CI_STAGE_HOST_URL/current/harvester/cron/run_harvester_cron_stage /etc/cron.d
-    - run: ssh deploy@$CI_STAGE_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_stage
     - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group
@@ -223,8 +218,6 @@ deploy_dev: &deploy_dev
     - run: ssh deploy@$CI_DEV_HOST_URL mkdir /var/www/$CI_DEV_HOST_URL/current/harvester/logs
     - run: ssh deploy@$CI_DEV_HOST_URL mkdir /var/www/$CI_DEV_HOST_URL/current/harvester/data
     - run: ssh deploy@$CI_DEV_HOST_URL sh /var/www/$CI_DEV_HOST_URL/current/harvester/install/install_harvester_dependencies_dev.sh
-    - run: ssh deploy@$CI_DEV_HOST_URL sudo mv /var/www/$CI_DEV_HOST_URL/current/harvester/cron/run_harvester_cron_dev /etc/cron.d
-    - run: ssh deploy@$CI_DEV_HOST_URL sudo chown root:root /etc/cron.d/run_harvester_cron_dev
     - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group
