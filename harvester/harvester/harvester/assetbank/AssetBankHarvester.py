@@ -225,7 +225,10 @@ class AssetBankHarvester(HarvesterBase):
         Postprocessing callback.
         """
         self.write_summary()
-        if os.getenv("SLACK_WEBHOOK") and self.production:
+
+        # only send summary if endpoint exists, if running in production, and if the harvest fails.
+        success = self.summary.get("success") == "True"
+        if os.getenv("SLACK_WEBHOOK") and self.production and not success:
             self.post_summary_to_url(os.getenv("SLACK_WEBHOOK"))
 
     def get_asset_list(self, ids=None, since=None):
