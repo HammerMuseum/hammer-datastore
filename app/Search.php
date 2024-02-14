@@ -2,8 +2,8 @@
 
 namespace App;
 
-use Elasticsearch\ClientBuilder;
-use Elasticsearch\Client;
+use Elastic\Elasticsearch\Client;
+use Elastic\Elasticsearch\ClientBuilder;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -63,12 +63,21 @@ class Search
      */
     private function createClient()
     {
-        $params = [
-            'hosts' => [
-                config('app.es_endpoint'),
-            ]
-        ];
-        $client = ClientBuilder::fromConfig($params);
+        # if es_cloud_id is set, use es_cloud_id as host
+        if (config('app.es_cloud_id') && config('app.es_cloud_id')!== '') {
+            $client = ClientBuilder::create()
+                ->setElasticCloudId(config('app.es_cloud_id'))
+                ->setApiKey(config('app.es_api_key'))
+                ->build();
+        }
+        else {
+            $params = [
+                'hosts' => [
+                    config('app.es_endpoint'),
+                ]
+            ];
+            $client = ClientBuilder::fromConfig($params);
+        }
         $this->setClient($client);
     }
 
@@ -528,7 +537,7 @@ class Search
             'date_recorded' => [
                 'date_histogram' => [
                     'field' => 'date_recorded',
-                    'interval' => 'year',
+                    'calendar_interval' => 'year',
                 ],
             ],
             'in_playlists' => [
