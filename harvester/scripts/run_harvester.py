@@ -4,9 +4,13 @@ import logging
 import argparse
 import traceback
 import dateparser
+from dotenv import load_dotenv
 from pathlib import Path
+from elasticsearch import Elasticsearch
 from harvester.harvester.assetbank import AssetBankHarvester
 from harvester.components.adaptors import ElasticsearchAdaptor, LocalRepositoryAdaptor
+
+load_dotenv()
 
 parser = argparse.ArgumentParser("Run the Asset Bank harvester")
 
@@ -96,11 +100,7 @@ else:
     data_path = None
 
 if args.submit:
-    if not args.search_host:
-        print(
-            '\nError: The "--search-domain" option is required when using "--submit"\n'
-        )
-        exit(1)
+    print("Submitting harvested records to the search index.")
 
 if not args.storage:
     args.storage = "/tmp"
@@ -114,25 +114,35 @@ if __name__ == "__main__":
     sh.setFormatter(AssetBankHarvester.log_formatter)
 
     logger.addHandler(sh)
-
-    fh = logging.FileHandler("../logs/run_assetbank.log")
+    logpath = os.path.join(os.path.dirname(__file__), "../logs")
+    fh = logging.FileHandler(os.path.join(logpath, "run_assetbank.log"))
     fh.setLevel(AssetBankHarvester.log_level)
     fh.setFormatter(AssetBankHarvester.log_formatter)
 
     logger.addHandler(fh)
 
     try:
+        if args.search_host:
+            es_client = Elasticsearch(
+                args.search_host,
+            )
+        else:
+            es_client = Elasticsearch(
+                cloud_id=os.environ.get("ELASTICSEARCH_CLOUD_ID"),
+                api_key=os.environ.get("ELASTICSEARCH_API_KEY"),
+            )
+
         submit = args.submit
 
         if data_path is None:
             harvester = AssetBankHarvester(args.url, options)
-            harvester.output_base = "../data"
+            harvester.output_base = "./data"
             harvester.output_prefix = "assetbank"
 
             if args.debug:
                 harvester.log_level = logging.DEBUG
 
-            harvester.add_logger("../logs", "harvest.log", "AssetBankHarvester")
+            harvester.add_logger(logpath, "harvest.log", "AssetBankHarvester")
 
             # If limit is specified, only harvest the first x items.
             if args.limit:
@@ -164,7 +174,7 @@ if __name__ == "__main__":
                 # Adapts harvest data for elasticsearch
                 ElasticsearchAdaptor(
                     data_path,
-                    args.search_host,
+                    es_client,
                     **{k: v for k, v in kwargs.items() if v is not None}
                 ),
                 # Adapts harvest data for local data repository (transcripts)
@@ -173,7 +183,7 @@ if __name__ == "__main__":
             for adaptor in adaptors:
                 if args.debug:
                     adaptor.log_level = logging.DEBUG
-                adaptor.add_logger("../logs", "adaptor.log", "Adaptors")
+                adaptor.add_logger(logpath, "adaptor.log", "Adaptors")
                 adaptor.pre_process()
                 adaptor.process()
                 adaptor.post_process()

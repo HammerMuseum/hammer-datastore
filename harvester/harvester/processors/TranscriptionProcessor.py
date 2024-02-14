@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 import requests
 from time import sleep
-from filecache import filecache
 from requests import HTTPError
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -55,7 +54,7 @@ class TranscriptionProcessor():
         strategy = Retry(
             total=5,
             status_forcelist=[403, 429, 500, 502, 503, 504],
-            method_whitelist=["GET"],
+            allowed_methods=["GET"],
             backoff_factor=4,
         )
         adapter = HTTPAdapter(max_retries=strategy)

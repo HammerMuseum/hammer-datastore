@@ -1,7 +1,3 @@
-import subprocess
-import shlex
-import json
-import datetime
 import time
 from pymediainfo import MediaInfo
 from filecache import filecache

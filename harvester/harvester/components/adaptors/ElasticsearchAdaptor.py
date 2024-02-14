@@ -53,7 +53,7 @@ class ElasticsearchAdaptor:
     ]
 
     def __init__(
-        self, data_path, es_domain, alias="videos", update=False, cleanup=False
+        self, data_path, es_client, alias="videos", update=False, cleanup=False
     ):
         self.input_data_path = data_path
 
@@ -63,9 +63,7 @@ class ElasticsearchAdaptor:
         self.index_prefix = "video_"
         self.update = update
         self.cleanup = cleanup
-
-        # Create new Elasticsearch client
-        self.client = Elasticsearch(es_domain)
+        self.client: Elasticsearch = es_client
 
         if self.update:
             self.index_name = self.establish_index_name(self.alias)
@@ -153,7 +151,7 @@ class ElasticsearchAdaptor:
 
         alias = self.alias
         try:
-            self.refresh_index(self.index_name)
+            # self.refresh_index(self.index_name)
             if not self.update:
                 self.update_alias(alias, self.index_name)
                 self.logger.info("Updated {} alias to point to {}.".format(alias, self.index_name))
@@ -222,14 +220,14 @@ class ElasticsearchAdaptor:
         Adds a new index to Elasticsearch.
         :param index_name: The new index name
         """
-        settings = {
-            "settings": {
-                "index": {
-                    "refresh_interval" : "-1"
-                }
-            }
-        }
-        self.client.indices.create(index=index_name, body=settings)
+        # settings = {
+        #     "settings": {
+        #         "index": {
+        #             "refresh_interval" : "-1"
+        #         }
+        #     }
+        # }
+        self.client.indices.create(index=index_name)
         self.logger.info("Created index %s", index_name)
 
     def establish_index_name(self, alias):
@@ -271,14 +269,14 @@ class ElasticsearchAdaptor:
         current_indices = list(alias_state.keys())
 
         # Update alias swapping out old index for new
-        actions = {
+        self.client.indices.update_aliases(
+            body={
                 "actions": [
                     {"remove": {"indices": current_indices, "alias": alias}},
                     {"add": {"index": new_index_name, "alias": alias}},
                 ]
             }
-
-        self.client.indices.update_aliases(actions)
+        )
 
         self.logger.info(
             "Removed %s from alias %s", ", ".join(current_indices), alias
@@ -355,7 +353,6 @@ class ElasticsearchAdaptor:
             self.logger.info("Deleted old indices: {}".format(', '.join(to_delete)))
         else:
             self.logger.info("No old indices to delete")
-
 
 
 class EstablishIndexNameException(Exception):

@@ -11,7 +11,6 @@ import yaml
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from dotenv import load_dotenv
 from lxml import etree
 from harvester.harvester import HarvesterBase
 from harvester.processors import (
@@ -49,9 +48,6 @@ class AssetBankHarvester(HarvesterBase):
 
     def __init__(self, host, options):
         HarvesterBase.__init__(self)
-
-        env_path = Path(__file__).parent.absolute() / ".env"
-        load_dotenv(dotenv_path=env_path)
 
         self.host = host
         self.access_token = None
@@ -105,7 +101,7 @@ class AssetBankHarvester(HarvesterBase):
         strategy = Retry(
             total=3,
             status_forcelist=[429, 500, 502, 503, 504],
-            method_whitelist=["GET"],
+            allowed_methods=["GET"],
             backoff_factor=1,
         )
         adapter = HTTPAdapter(max_retries=strategy)
@@ -419,7 +415,7 @@ class AssetBankHarvester(HarvesterBase):
         # Get some non-attribute properties.
         output["video_url"] = root.xpath("//asset/contentUrl/text()")[0]
         output["thumbnail_url"] = root.xpath("//asset/previewUrl/text()")[0]
-        thumbnailId = re.match(".*file=([a-z\d]+)\.", output["thumbnail_url"]).group(
+        thumbnailId = re.match(".*file=([a-z\\d]+)\\.", output["thumbnail_url"]).group(
             1
         )
         output["thumbnailId"] = thumbnailId
@@ -484,7 +480,7 @@ class AssetBankHarvester(HarvesterBase):
         for field in present:
             try:
                 record[field]
-            except KeyError as e:
+            except KeyError:
                 self.logger.error(
                     "Record {} failed validation: missing field {}.".format(
                         record["asset_id"], field
