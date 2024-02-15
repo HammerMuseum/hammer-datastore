@@ -1,4 +1,3 @@
-
 # PHP CircleCI 2.1 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-php/ for more details
@@ -22,12 +21,12 @@ defaults: &defaults
         - ES_JAVA_OPTS: -Xms500m -Xmx500m
 
 # Defines the cache restore mechanism for composer dependencies.
-restore_cache: &restore_cache
-  # We use the composer.lock as a way to determine if we can cache our build.
+restore_cache:
+  &restore_cache # We use the composer.lock as a way to determine if we can cache our build.
   keys:
-  - composer-v3-{{ checksum "composer.lock" }}
-  # fallback to using the latest cache if no exact match is found
-  - composer-v2-
+    - composer-v3-{{ checksum "composer.lock" }}
+    # fallback to using the latest cache if no exact match is found
+    - composer-v2-
 
 # Defines the cache saving mechanism for composer dependencies.
 save_cache: &save_cache
@@ -79,7 +78,7 @@ build_and_test: &build_and_test
     - run:
         name: Set up Elasticsearch
         command: |
-          curl -s -X PUT -H "Content-Type: application/json" "localhost:9200/_template/template_video" -d @./elasticsearch/templates/video_.json
+          curl -s -X PUT -H "Content-Type: application/json" "localhost:9200/_index_template/template_video" -d @./elasticsearch/templates/video_.json
           curl -s -X PUT "localhost:9200/video_testing?pretty"
           curl -s -H "Content-Type: application/x-ndjson" -XPOST "localhost:9200/_bulk" --data-binary @./utils/sample-data/sample-elastic.json
 
