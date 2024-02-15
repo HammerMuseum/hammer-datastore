@@ -10,8 +10,7 @@ contain the python environment for the harvester.
 method outlined in the [setup guide](../docs/getting-started.md) directory.
 
 ```sh
-pip install -e .
-cd ../harvester/harvester/assetbank
+poetry install
 cp .env.example .env
 ```
 
@@ -44,7 +43,7 @@ poetry run python scripts/run_harvester.py \
 
 ### Against a remote Elasticsearch
 
->[!Note]
+> [!Note]
 > This requires ES_CLOUD_ID and ES_API_KEY to be defined in `.env`
 
 ```sh
