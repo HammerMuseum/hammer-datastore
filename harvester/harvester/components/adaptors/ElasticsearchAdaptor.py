@@ -151,7 +151,7 @@ class ElasticsearchAdaptor:
 
         alias = self.alias
         try:
-            # self.refresh_index(self.index_name)
+
             if not self.update:
                 self.update_alias(alias, self.index_name)
                 self.logger.info(
@@ -213,22 +213,11 @@ class ElasticsearchAdaptor:
         except Exception as e:
             self.logger.error("ERROR: %s", e)
 
-    def refresh_index(self, index_name):
-        self.client.indices.refresh(index=index_name)
-        self.client.indices.forcemerge(index=index_name)
-
     def create_index(self, index_name):
         """
         Adds a new index to Elasticsearch.
         :param index_name: The new index name
         """
-        # settings = {
-        #     "settings": {
-        #         "index": {
-        #             "refresh_interval" : "-1"
-        #         }
-        #     }
-        # }
         self.client.indices.create(index=index_name)
         self.logger.info("Created index %s", index_name)
 
