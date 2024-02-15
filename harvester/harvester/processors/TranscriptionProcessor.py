@@ -6,7 +6,8 @@ from requests import HTTPError
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-class TranscriptionProcessor():
+
+class TranscriptionProcessor:
     """
     A basic processor to export a transcription from an external service.
 
@@ -61,7 +62,7 @@ class TranscriptionProcessor():
         http = requests.Session()
         http.mount("https://", adapter)
         http.mount("http://", adapter)
-        http.headers.update({'api-key': api_key})
+        http.headers.update({"api-key": api_key})
         self.session = http
 
     def get_transcript_vtt(self, location):
@@ -80,17 +81,16 @@ class TranscriptionProcessor():
         }
 
         try:
-            response = self.session.get(
-                url, params=querystring)
+            response = self.session.get(url, params=querystring)
             response.raise_for_status()
             response_json = response.json()
-            url = response_json['url']
+            url = response_json["url"]
             response = self.session.get(url)
             response.raise_for_status()
             return response.text
         except HTTPError as error:
             self.harvester.logger.warning(
-                '{} code when fetching VTT transcription from {}'.format(
+                "{} code when fetching VTT transcription from {}".format(
                     error.response.status_code, url
                 )
             )
@@ -107,7 +107,7 @@ class TranscriptionProcessor():
             return json.dumps(response.json())
         except HTTPError as error:
             self.harvester.logger.warning(
-                '{} code when fetching JSON transcription from {}'.format(
+                "{} code when fetching JSON transcription from {}".format(
                     error.response.status_code, url
                 )
             )
@@ -122,13 +122,13 @@ class TranscriptionProcessor():
             response = self.session.get(url)
             response.raise_for_status()
             response_json = response.json()
-            url = response_json['url']
+            url = response_json["url"]
             response = self.session.get(url)
             response.raise_for_status()
             return response.text
         except HTTPError as error:
             self.harvester.logger.warning(
-                '{} code when fetching JSON transcription from {}'.format(
+                "{} code when fetching JSON transcription from {}".format(
                     error.response.status_code, url
                 )
             )
@@ -143,15 +143,17 @@ class TranscriptionProcessor():
             if not value:
                 # No Trint ID defined, so check for files that have been manually added to the server
                 if self.local_dir:
-                    for suffix in ['vtt', 'json', 'txt']:
-                        custom_transcript_file = f'{row[self.local_dir_key]}.{suffix}'
-                        custom_transcript = self.local_dir.joinpath(custom_transcript_file)
+                    for suffix in ["vtt", "json", "txt"]:
+                        custom_transcript_file = f"{row[self.local_dir_key]}.{suffix}"
+                        custom_transcript = self.local_dir.joinpath(
+                            custom_transcript_file
+                        )
                         if custom_transcript.exists():
                             with open(custom_transcript) as fh:
-                                row[f'{field}_{suffix}'] = fh.read()
+                                row[f"{field}_{suffix}"] = fh.read()
                 continue
             # Get transcripts from Trint
-            self.harvester.logger.debug('Processing a {!s}'.format(field))
+            self.harvester.logger.debug("Processing a {!s}".format(field))
             row["{}_vtt".format(field)] = self.get_transcript_vtt(value)
             sleep(0.4)
             row["{}_json".format(field)] = self.get_transcript_json(value)

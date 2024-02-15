@@ -22,11 +22,7 @@ parser.add_argument(
     "--asset-type", dest="type", type=str, help="The Asset Bank asset type identifier."
 )
 
-parser.add_argument(
-    "--assets",
-    type=int,
-    help="Only harvest asset with ID."
-)
+parser.add_argument("--assets", type=int, help="Only harvest asset with ID.")
 
 parser.add_argument(
     "--submit",
@@ -52,7 +48,11 @@ parser.add_argument(
 
 parser.add_argument("--alias", type=str, dest="alias")
 
-parser.add_argument("--production", action="store_true", help='Use if running on production environment.')
+parser.add_argument(
+    "--production",
+    action="store_true",
+    help="Use if running on production environment.",
+)
 
 parser.add_argument("--debug", action="store_true")
 
@@ -178,7 +178,10 @@ if __name__ == "__main__":
                     **{k: v for k, v in kwargs.items() if v is not None}
                 ),
                 # Adapts harvest data for local data repository (transcripts)
-                LocalRepositoryAdaptor(data_path, args.storage,),
+                LocalRepositoryAdaptor(
+                    data_path,
+                    args.storage,
+                ),
             ]
             for adaptor in adaptors:
                 if args.debug:

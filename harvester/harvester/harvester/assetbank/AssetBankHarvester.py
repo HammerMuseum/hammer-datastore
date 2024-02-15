@@ -36,7 +36,9 @@ class AssetBankHarvester(HarvesterBase):
 
     playlist_user = 14
 
-    log_formatter = logging.Formatter(" %(asctime)s - %(threadName)s - %(name)s - %(levelname)s - %(message)s")
+    log_formatter = logging.Formatter(
+        " %(asctime)s - %(threadName)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
     """
     The current location of the output.
@@ -82,8 +84,8 @@ class AssetBankHarvester(HarvesterBase):
                 self,
                 os.getenv("TRINT_API_KEY"),
                 fields=transcription_fields,
-                local_dir='/var/manual_transcripts',
-                local_dir_key='asset_id'
+                local_dir="/var/manual_transcripts",
+                local_dir_key="asset_id",
             ),
             FriendlyUrlProcessor(self, fields=slug_field),
             DurationProcessor(self, fields=duration_field),
@@ -210,7 +212,9 @@ class AssetBankHarvester(HarvesterBase):
         Preprocessing callback.
         """
         self.playlists = self.get_playlist_data()
-        self.assets_in_featured_playlist = [data["contents"] for pid, data in self.playlists.items()][0]
+        self.assets_in_featured_playlist = [
+            data["contents"] for pid, data in self.playlists.items()
+        ][0]
 
     def postprocess(self):
         """
@@ -237,9 +241,7 @@ class AssetBankHarvester(HarvesterBase):
         }
 
         if ids:
-            params = {
-                "assetIds": ids
-            }
+            params = {"assetIds": ids}
 
         if since:
             params["dateModLower"] = since
@@ -252,10 +254,7 @@ class AssetBankHarvester(HarvesterBase):
 
             self.logger.debug("Fetching page {}".format(params["page"]))
 
-            response =  session.get(
-                current_harvest_uri,
-                params=params
-            )
+            response = session.get(current_harvest_uri, params=params)
 
             page_number = page_number + 1
 
@@ -292,13 +291,13 @@ class AssetBankHarvester(HarvesterBase):
                 assetIds = self.assets_in_featured_playlist
 
                 for id in assetIds:
-                    response =  session.get(
+                    response = session.get(
                         "{}".format(self.harvest_uri),
-                        params = {
+                        params={
                             "assetTypeId": self.asset_type,
                             "attribute_21": "Active",
                             "assetIds": id,
-                        }
+                        },
                     )
 
                     root = etree.fromstring(response.content)
@@ -551,27 +550,33 @@ class AssetBankHarvester(HarvesterBase):
         dump = "\n".join(["{}: {}".format(k, v) for k, v in summary.items()])
 
         all_blocks = [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "*@channel, this harvest failed.*",
-                },
-            }
-            if not success
-            else {},
-            {
-                "type": "section",
-                "text": {"type": "plain_text", "text": "\n".join(message)},
-            }
-            if message
-            else {},
-            {
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": "```{}```".format(dump)},
-            }
-            if dump
-            else {},
+            (
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "*@channel, this harvest failed.*",
+                    },
+                }
+                if not success
+                else {}
+            ),
+            (
+                {
+                    "type": "section",
+                    "text": {"type": "plain_text", "text": "\n".join(message)},
+                }
+                if message
+                else {}
+            ),
+            (
+                {
+                    "type": "section",
+                    "text": {"type": "mrkdwn", "text": "```{}```".format(dump)},
+                }
+                if dump
+                else {}
+            ),
         ]
 
         payload = {"blocks": list(filter(None, all_blocks))}

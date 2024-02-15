@@ -34,7 +34,9 @@ class HarvesterBase(metaclass=ABCMeta):
     log_level = logging.INFO
 
     """Formatter for logging messages."""
-    log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    log_formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
     """The base directory to save harvest runs."""
     output_base = None
@@ -46,7 +48,7 @@ class HarvesterBase(metaclass=ABCMeta):
     current_output_path = None
 
     """The date format used for creating date stamps."""
-    date_format = '%Y.%m.%d_%H.%M.%S_%Z'
+    date_format = "%Y.%m.%d_%H.%M.%S_%Z"
 
     def __init__(self):
         # Set the base directory, which is currently two levels above the harvester.
@@ -57,7 +59,7 @@ class HarvesterBase(metaclass=ABCMeta):
         self.start_time = None
         self.end_time = None
 
-    def add_logger(self, log_directory, log_file, log_name='harvester'):
+    def add_logger(self, log_directory, log_file, log_name="harvester"):
         """
         Add a basic logger, with a file and stream handler.
         In the future this would be better as an extensible function to which
@@ -95,7 +97,7 @@ class HarvesterBase(metaclass=ABCMeta):
 
         # Create the harvest output directory.
         start_time = datetime.now(pytz.utc).strftime(self.date_format)
-        harvest_progress_directory = self.output_path() + '_IN_PROGRESS_' + start_time
+        harvest_progress_directory = self.output_path() + "_IN_PROGRESS_" + start_time
         self.start_time = start_time
 
         os.mkdir(harvest_progress_directory)
@@ -104,7 +106,7 @@ class HarvesterBase(metaclass=ABCMeta):
         self.harvest()
 
         end_time = datetime.now(pytz.utc).strftime(self.date_format)
-        harvest_complete_directory = self.output_path() + '_COMPLETE_' + end_time
+        harvest_complete_directory = self.output_path() + "_COMPLETE_" + end_time
         self.end_time = end_time
 
         self.current_output_path = harvest_complete_directory
@@ -119,14 +121,16 @@ class HarvesterBase(metaclass=ABCMeta):
 
     def output_path(self):
         if self.output_base is None or self.output_prefix is None:
-            raise AttributeError('The output_base and output_prefix attributes must be set for the harvester.')
+            raise AttributeError(
+                "The output_base and output_prefix attributes must be set for the harvester."
+            )
 
         return os.path.join(self.output_base, self.output_prefix)
 
     def write_record(self, record, file_name):
         record_path = os.path.join(self.current_output_path, file_name)
 
-        with open(record_path, 'w') as fh:
+        with open(record_path, "w") as fh:
             fh.write(record)
 
     @abstractmethod
