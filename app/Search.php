@@ -63,20 +63,16 @@ class Search
      */
     private function createClient()
     {
-        # if es_cloud_id is set, use es_cloud_id as host
-        if (config('app.es_cloud_id') && config('app.es_cloud_id')!== '') {
+        # if es_api_key is set, use it
+        if (config('app.es_api_key') && config('app.es_api_key')!== '') {
             $client = ClientBuilder::create()
-                ->setElasticCloudId(config('app.es_cloud_id'))
+                ->setHosts([config('app.es_endpoint')])
                 ->setApiKey(config('app.es_api_key'))
                 ->build();
-        }
-        else {
-            $params = [
-                'hosts' => [
-                    config('app.es_endpoint'),
-                ]
-            ];
-            $client = ClientBuilder::fromConfig($params);
+        } else {
+            $client = ClientBuilder::create()
+                ->setHosts([config('app.es_endpoint')])
+                ->build();
         }
         $this->setClient($client);
     }

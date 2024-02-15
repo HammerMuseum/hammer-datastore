@@ -134,7 +134,6 @@ return [
 
     'es_endpoint' => env('ES_ENDPOINT'),
     'es_index' => env('ES_INDEX'),
-    'es_cloud_id' => env('ES_CLOUD_ID'),
     'es_api_key' => env('ES_API_KEY'),
 
     /*
