@@ -128,8 +128,9 @@ if __name__ == "__main__":
             )
         else:
             es_client = Elasticsearch(
-                cloud_id=os.environ.get("ELASTICSEARCH_CLOUD_ID"),
-                api_key=os.environ.get("ELASTICSEARCH_API_KEY"),
+                # access variable as keys to throw error if they are not set.
+                os.environ["ELASTICSEARCH_HOST"],
+                api_key=os.environ["ELASTICSEARCH_API_KEY"],
             )
 
         submit = args.submit

@@ -44,7 +44,7 @@ poetry run python scripts/run_harvester.py \
 ### Against a remote Elasticsearch
 
 > [!Note]
-> This requires ES_CLOUD_ID and ES_API_KEY to be defined in `.env`
+> This requires ELASTICSEARCH_HOST and ELASTICSEARCH_API_KEY to be defined in `.env`
 
 ```sh
 poetry run python scripts/run_harvester.py \
