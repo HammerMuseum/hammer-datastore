@@ -55,14 +55,16 @@ commands:
       environment:
         type: string
     steps:
-      - run: rm -f harvester/harvester/harvester/assetbank/.env
-      - run: touch harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_CLIENT_ID=$AB_CLIENT_ID" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_CLIENT_SECRET=$AB_CLIENT_SECRET" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_USERNAME=$AB_USERNAME" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_PASSWORD=$AB_PASSWORD" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "TRINT_API_KEY=$TRINT_API_KEY\n" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "SLACK_WEBHOOK=$SLACK_WEBHOOK\n" >> harvester/harvester/harvester/assetbank/.env
+      - run: rm -f harvester/.env
+      - run: touch harvester/.env
+      - run: echo -e "AB_CLIENT_ID=$AB_CLIENT_ID" >> harvester/.env
+      - run: echo -e "AB_CLIENT_SECRET=$AB_CLIENT_SECRET" >> harvester/.env
+      - run: echo -e "AB_USERNAME=$AB_USERNAME" >> harvester/.env
+      - run: echo -e "AB_PASSWORD=$AB_PASSWORD" >> harvester/.env
+      - run: echo -e "TRINT_API_KEY=$TRINT_API_KEY\n" >> harvester/.env
+      - run: echo -e "ELASTICSEARCH_HOST=$ELASTICSEARCH_HOST\n" >> harvester/.env
+      - run: echo -e "ELASTICSEARCH_API_KEY=$ELASTICSEARCH_API_KEY\n" >> harvester/.env
+      - run: echo -e "SLACK_WEBHOOK=$SLACK_WEBHOOK\n" >> harvester/.env
 
 # Jobs
 build_and_test: &build_and_test
