@@ -25,7 +25,7 @@ class Validator:
     last_valid = None
 
     namespaces = {
-        'svrl': 'http://purl.oclc.org/dsdl/svrl',
+        "svrl": "http://purl.oclc.org/dsdl/svrl",
     }
 
     @property
@@ -40,7 +40,9 @@ class Validator:
         try:
             self._schema = etree.parse(schema_path)
         except Exception as e:
-            raise ValidatorSchemaError('Error creating schema from path {!s}: {!s}'.format(schema_path, e))
+            raise ValidatorSchemaError(
+                "Error creating schema from path {!s}: {!s}".format(schema_path, e)
+            )
 
     def validate(self, record):
         """
@@ -53,7 +55,9 @@ class Validator:
             self.last_report = schematron.validation_report
             return self.last_valid
         except Exception as e:
-            raise ValidatorValidationError('Error validating the record against the schema: {!s}'.format(e))
+            raise ValidatorValidationError(
+                "Error validating the record against the schema: {!s}".format(e)
+            )
 
     def validation_errors(self):
         """
@@ -65,25 +69,37 @@ class Validator:
             if self.last_report is None:
                 return errors
 
-            for element in self.last_report.xpath('/svrl:schematron-output/*', namespaces=self.namespaces):
-                if element.xpath('local-name()') == 'fired-rule':
-                    rule_context = element.xpath('@context')
+            for element in self.last_report.xpath(
+                "/svrl:schematron-output/*", namespaces=self.namespaces
+            ):
+                if element.xpath("local-name()") == "fired-rule":
+                    rule_context = element.xpath("@context")
                     next_element = element.getnext()
 
-                    if next_element is not None and next_element.xpath('local-name()') == 'failed-assert':
-                        schematron_error = element.getnext().getchildren()[0].xpath('text()')
-                        error = '{!s}. Error context: <{!s}> element'.format(schematron_error[0], rule_context)
+                    if (
+                        next_element is not None
+                        and next_element.xpath("local-name()") == "failed-assert"
+                    ):
+                        schematron_error = (
+                            element.getnext().getchildren()[0].xpath("text()")
+                        )
+                        error = "{!s}. Error context: <{!s}> element".format(
+                            schematron_error[0], rule_context
+                        )
                         errors.append(error)
 
             return errors
         except Exception as e:
-            raise ValidatorValidationError('Error processing validation errors: {!s}'.format(e))
+            raise ValidatorValidationError(
+                "Error processing validation errors: {!s}".format(e)
+            )
 
 
 class PassValidator(Validator):
     """
     Stub validator, which mimics the core Validator but always returns valid.
     """
+
     @property
     def schema(self):
         return None
@@ -101,14 +117,17 @@ class PassValidator(Validator):
 
 class ValidatorError(Exception):
     """Generic base class for validation exceptions."""
+
     pass
 
 
 class ValidatorSchemaError(ValidatorError):
     """Exception to be used as a catch-all for validation schema issues."""
+
     pass
 
 
 class ValidatorValidationError(ValidatorError):
     """Exception to be used as a catch-all for validation issues."""
+
     pass

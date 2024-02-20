@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
-use GuzzleHttp\Ring\Client\MockHandler;
-use Elasticsearch\ClientBuilder;
+use Elastic\Elasticsearch\ClientBuilder;
+use Elastic\Elasticsearch\Response\Elasticsearch;
+use Http\Mock\Client;
+use Nyholm\Psr7\Response;
 
 class TermTest extends TestCase
 {
@@ -17,21 +19,24 @@ class TermTest extends TestCase
      */
     public function testTerm()
     {
-        $handler = new MockHandler([
-            'status' => 200,
-            'transfer_stats' => [
-                'total_time' => 100,
-                'primary_port' => 9200
-            ],
-            'body' => fopen(base_path() . '/utils/sample-data/mockelasticsearch.json', 'r'),
-            'effective_url' => 'http://localhost:9200'
-        ]);
-        $builder = ClientBuilder::create();
+        $mock = new Client();
 
-        $builder->setHosts(['localhost']);
-        $builder->setHandler($handler);
-        $client = $builder->build();
-        $response = $client->search([
+        $client = ClientBuilder::create()
+            ->setHttpClient($mock)
+            ->build();
+
+        $response = new Response(
+            200,
+            [
+                Elasticsearch::HEADER_CHECK => Elasticsearch::PRODUCT_NAME,
+                'Content-Type' => 'application/json',
+            ],
+            fopen(base_path() . '/utils/sample-data/mockelasticsearch.json', 'r')
+        );
+
+        $mock->addResponse($response);
+
+        $result = $client->search([
             'index' => 'videos',
             'type' => '_doc',
             'body' => [
@@ -48,8 +53,8 @@ class TermTest extends TestCase
                 ]
             ]
         ]);
-        $this->assertArrayHasKey('hits', $response);
-        $this->assertArrayHasKey('speakers', $response['hits']['hits'][0]['_source']);
-        $this->assertEquals(['Leonard Nimoy'], $response['hits']['hits'][0]['_source']['speakers']);
+        $this->assertArrayHasKey('hits', $result);
+        $this->assertArrayHasKey('speakers', $result['hits']['hits'][0]['_source']);
+        $this->assertEquals(['Leonard Nimoy'], $result['hits']['hits'][0]['_source']['speakers']);
     }
 }
