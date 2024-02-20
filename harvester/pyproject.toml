@@ -3,7 +3,6 @@ name = "hammer-channel-harvester"
 version = "0.1.0"
 description = ""
 authors = ["Neil Hawkins <neilh@cogapp.com>"]
-readme = "README.md"
 packages = [ { include = "**/*.py", from = "."  }]
 
 [tool.poetry.dependencies]

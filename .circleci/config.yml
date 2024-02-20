@@ -118,7 +118,8 @@ build_and_test: &build_and_test
           - public/js/
 
 deploy: &deploy
-  <<: *defaults
+  docker:
+    - image: cimg/php:8.1.4-browsers
   steps:
     - checkout
     - add_ssh_keys:
@@ -144,17 +145,21 @@ deploy: &deploy
         environment: $CI_HOST_URL
     - run: ssh-keyscan -H $(echo "$CI_PROD_DEPLOY_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: ./vendor/deployer/deployer/deployer.phar deploy live
-    - run: ssh deploy@$CI_PROD_DEPLOY_URL sudo systemctl reload php8.1-fpm.service
-    - run: ssh deploy@$CI_PROD_DEPLOY_URL mkdir /var/www/$CI_HOST_URL/current/harvester/logs
-    - run: ssh deploy@$CI_PROD_DEPLOY_URL mkdir /var/www/$CI_HOST_URL/current/harvester/data
-    - run: ssh deploy@$CI_PROD_DEPLOY_URL sh /var/www/$CI_HOST_URL/current/harvester/install/install_harvester_dependencies.sh
+    - run: |
+        ssh deploy@$CI_PROD_DEPLOY_URL \<< EOF
+          cd /var/www/$CI_PROD_DEPLOY_URL/current/harvester
+          mkdir -p logs data
+          /home/deploy/.local/bin/poetry install
+          sudo systemctl reload php8.1-fpm.service
+        EOF
     - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group
         tag-value: bastion
 
 deploy_stage: &deploy_stage
-  <<: *defaults
+  docker:
+    - image: cimg/php:8.1.4-browsers
   steps:
     - checkout
     - add_ssh_keys:
@@ -180,17 +185,21 @@ deploy_stage: &deploy_stage
         environment: $CI_STAGE_HOST_URL
     - run: ssh-keyscan -H $(echo "$CI_STAGE_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: ./vendor/deployer/deployer/deployer.phar deploy stage
-    - run: ssh deploy@$CI_STAGE_HOST_URL sudo systemctl reload php8.1-fpm.service
-    - run: ssh deploy@$CI_STAGE_HOST_URL mkdir /var/www/$CI_STAGE_HOST_URL/current/harvester/logs
-    - run: ssh deploy@$CI_STAGE_HOST_URL mkdir /var/www/$CI_STAGE_HOST_URL/current/harvester/data
-    - run: ssh deploy@$CI_STAGE_HOST_URL sh /var/www/$CI_STAGE_HOST_URL/current/harvester/install/install_harvester_dependencies_stage.sh
+    - run: |
+        ssh deploy@$CI_STAGE_HOST_URL \<< EOF
+          cd /var/www/$CI_STAGE_HOST_URL/current/harvester
+          mkdir -p logs data
+          /home/deploy/.local/bin/poetry install
+          sudo systemctl reload php8.1-fpm.service
+        EOF
     - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group
         tag-value: bastion
 
 deploy_dev: &deploy_dev
-  <<: *defaults
+  docker:
+    - image: cimg/php:8.1.4-browsers
   steps:
     - checkout
     - add_ssh_keys:
@@ -216,10 +225,13 @@ deploy_dev: &deploy_dev
         environment: $CI_DEV_HOST_URL
     - run: ssh-keyscan -H $(echo "$CI_DEV_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: ./vendor/deployer/deployer/deployer.phar deploy dev
-    - run: ssh deploy@$CI_DEV_HOST_URL sudo systemctl reload php8.1-fpm.service
-    - run: ssh deploy@$CI_DEV_HOST_URL mkdir /var/www/$CI_DEV_HOST_URL/current/harvester/logs
-    - run: ssh deploy@$CI_DEV_HOST_URL mkdir /var/www/$CI_DEV_HOST_URL/current/harvester/data
-    - run: ssh deploy@$CI_DEV_HOST_URL sh /var/www/$CI_DEV_HOST_URL/current/harvester/install/install_harvester_dependencies_dev.sh
+    - run: |
+        ssh deploy@$CI_DEV_HOST_URL \<< EOF
+          cd /var/www/$CI_DEV_HOST_URL/current/harvester
+          mkdir -p logs data
+          /home/deploy/.local/bin/poetry install
+          sudo systemctl reload php8.1-fpm.service
+        EOF
     - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group
