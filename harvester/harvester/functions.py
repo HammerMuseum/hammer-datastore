@@ -35,13 +35,15 @@ def get_harvest_dirs(input_directory, input_pattern, timestamp_format):
             if timestamp > datetime.now():
                 continue
 
-            complete_harvest_dirs.append({
-                'directory': os.path.join(input_directory, directory),
-                'created': timestamp,
-            })
+            complete_harvest_dirs.append(
+                {
+                    "directory": os.path.join(input_directory, directory),
+                    "created": timestamp,
+                }
+            )
 
     # Sort the complete directories by timestamp, newest to oldest.
-    complete_harvest_dirs.sort(key=lambda d: d['created'].timestamp(), reverse=True)
+    complete_harvest_dirs.sort(key=lambda d: d["created"].timestamp(), reverse=True)
 
     return complete_harvest_dirs
 
@@ -68,10 +70,10 @@ def exceeds_threshold(last_run_created, threshold):
 def dict_to_uri(uri_dict):
     """
     Convert a dict to a / separated URI.
-    
+
     :param uri_dict:
         A dictionary of values to join.
     :return:
         The joined dictionary as a / separated string. Contains both the index and value of each element.
     """
-    return '/'.join([i + '/' + v for i, v in uri_dict.items()])
+    return "/".join([i + "/" + v for i, v in uri_dict.items()])

@@ -1,7 +1,8 @@
 import re
 import unicodedata
 
-class FriendlyUrlProcessor():
+
+class FriendlyUrlProcessor:
     """
     A processor to duplicate a field into a url friendly version.
 
@@ -17,18 +18,19 @@ class FriendlyUrlProcessor():
         self.harvester = harvester
         self.fields = fields
 
-
     def slugify(self, text):
-        value = unicodedata.normalize('NFKD', str(text)).encode(
-            'ascii', 'ignore').decode('ascii')
-        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
-        return re.sub(r'[-\s]+', '-', value)
-
+        value = (
+            unicodedata.normalize("NFKD", str(text))
+            .encode("ascii", "ignore")
+            .decode("ascii")
+        )
+        value = re.sub(r"[^\w\s-]", "", value).strip().lower()
+        return re.sub(r"[-\s]+", "-", value)
 
     def process(self, row):
         for field in self.fields:
             try:
-                self.harvester.logger.debug('Processing a {!s}'.format(field))
+                self.harvester.logger.debug("Processing a {!s}".format(field))
                 new_field = "{}_slug".format(field)
                 text = row[field]
                 row[new_field] = self.slugify(text)

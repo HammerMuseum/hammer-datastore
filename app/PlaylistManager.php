@@ -97,10 +97,7 @@ class PlaylistManager
                                 "field" => "playlists.position",
                                 "format" => "use_field_mapping"
                             ],
-                            [
-                                "field" => "playlists.name",
-                                "format" => "use_field_mapping"
-                            ]
+                            "playlists.name",
                         ]
                     ]
                 ]
