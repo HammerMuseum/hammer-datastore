@@ -35,7 +35,7 @@ if [ -z "$TEMPLATE_NAME" ]; then usage "Template name not provided."; fi;
 if [ -z "$TEMPLATE_PATH" ]; then usage "Template file not provided."; fi;
 
 echo "Uploading Elasticsearch index template..."
-if curl --fail -X PUT "$HOST/_template/$TEMPLATE_NAME?pretty" -H 'Content-Type: application/json' --data-binary "@$TEMPLATE_PATH"; then
+if curl --fail -X PUT "$HOST/_index_template/$TEMPLATE_NAME?pretty" -H 'Content-Type: application/json' --data-binary "@$TEMPLATE_PATH"; then
     echo -e "${GREEN}\nUploaded Elasticsearch index template successfully.${CLEAR}"
 else
     echo -e "${RED}\nFailed to upload \"$TEMPLATE_PATH\" as \"$TEMPLATE_NAME\" Elasticsearch index template.${CLEAR}"

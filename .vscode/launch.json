@@ -1,0 +1,22 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/harvester/.venv/bin/python",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File with Arguments",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/harvester/scripts/run_harvester.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "--submit",
+                "--host=https://hammer.assetbank-server.com/assetbank-hammer",
+                "--alias=videos",
+                "--asset-type=1",
+                "--search-domain=http://hammer-datastore.ddev.site:9200",
+                "--storage=/path/to/repo/shared/storage/app",
+                "--limit=20"
+            ],
+        }
+    ],
+}
