@@ -53,7 +53,7 @@ class ElasticsearchAdaptor:
     ]
 
     def __init__(
-        self, data_path, es_domain, alias="videos", update=False, cleanup=False
+        self, data_path, es_client, alias="videos", update=False, cleanup=False
     ):
         self.input_data_path = data_path
 
@@ -63,9 +63,7 @@ class ElasticsearchAdaptor:
         self.index_prefix = "video_"
         self.update = update
         self.cleanup = cleanup
-
-        # Create new Elasticsearch client
-        self.client = Elasticsearch(es_domain)
+        self.client: Elasticsearch = es_client
 
         if self.update:
             self.index_name = self.establish_index_name(self.alias)
@@ -111,7 +109,7 @@ class ElasticsearchAdaptor:
             self.prepare_alias(alias)
             self.logger.info("Using alias: %s", alias)
         except Exception as e:
-            self.logger.error('Error: could not create index -  {}'.format(e))
+            self.logger.error("Error: could not create index -  {}".format(e))
             exit(1)
 
     def process(self):
@@ -153,10 +151,12 @@ class ElasticsearchAdaptor:
 
         alias = self.alias
         try:
-            self.refresh_index(self.index_name)
+
             if not self.update:
                 self.update_alias(alias, self.index_name)
-                self.logger.info("Updated {} alias to point to {}.".format(alias, self.index_name))
+                self.logger.info(
+                    "Updated {} alias to point to {}.".format(alias, self.index_name)
+                )
         except Exception as e:
             self.logger.error("ERROR: Failed to update alias: {}.".format(e))
         finally:
@@ -174,7 +174,7 @@ class ElasticsearchAdaptor:
                 yield {
                     "_index": self.index_name,
                     "_source": data,
-                    "_id": data['asset_id'],
+                    "_id": data["asset_id"],
                 }
 
     def select_fields(self, data):
@@ -213,23 +213,12 @@ class ElasticsearchAdaptor:
         except Exception as e:
             self.logger.error("ERROR: %s", e)
 
-    def refresh_index(self, index_name):
-        self.client.indices.refresh(index=index_name)
-        self.client.indices.forcemerge(index=index_name)
-
     def create_index(self, index_name):
         """
         Adds a new index to Elasticsearch.
         :param index_name: The new index name
         """
-        settings = {
-            "settings": {
-                "index": {
-                    "refresh_interval" : "-1"
-                }
-            }
-        }
-        self.client.indices.create(index=index_name, body=settings)
+        self.client.indices.create(index=index_name)
         self.logger.info("Created index %s", index_name)
 
     def establish_index_name(self, alias):
@@ -237,7 +226,9 @@ class ElasticsearchAdaptor:
             alias_state = self.client.indices.get_alias(index=alias)
             current_indices = list(alias_state.keys())
             if len(current_indices) > 1:
-                raise EstablishIndexNameException('Cannot use "since" because multiple indexes are in use for this alias.')
+                raise EstablishIndexNameException(
+                    'Cannot use "since" because multiple indexes are in use for this alias.'
+                )
             else:
                 return current_indices[0]
         except EstablishIndexNameException as e:
@@ -271,18 +262,16 @@ class ElasticsearchAdaptor:
         current_indices = list(alias_state.keys())
 
         # Update alias swapping out old index for new
-        actions = {
+        self.client.indices.update_aliases(
+            body={
                 "actions": [
                     {"remove": {"indices": current_indices, "alias": alias}},
                     {"add": {"index": new_index_name, "alias": alias}},
                 ]
             }
-
-        self.client.indices.update_aliases(actions)
-
-        self.logger.info(
-            "Removed %s from alias %s", ", ".join(current_indices), alias
         )
+
+        self.logger.info("Removed %s from alias %s", ", ".join(current_indices), alias)
         self.logger.info("Added %s to alias %s", new_index_name, alias)
 
     def reset_playlist_content_prior_to_rebuild(self):
@@ -298,16 +287,10 @@ class ElasticsearchAdaptor:
             "query": {
                 "nested": {
                     "path": "playlists",
-                    "query": {
-                        "term": {
-                            "playlists.id": {
-                                "value": 16
-                            }
-                        }
-                    }
+                    "query": {"term": {"playlists.id": {"value": 16}}},
                 }
             },
-            "script" : "ctx._source.playlists = []"
+            "script": "ctx._source.playlists = []",
         }
         self.client.update_by_query(index=self.alias, body=body)
 
@@ -352,12 +335,12 @@ class ElasticsearchAdaptor:
 
         if to_delete:
             self.client.indices.delete(index=to_delete)
-            self.logger.info("Deleted old indices: {}".format(', '.join(to_delete)))
+            self.logger.info("Deleted old indices: {}".format(", ".join(to_delete)))
         else:
             self.logger.info("No old indices to delete")
 
 
-
 class EstablishIndexNameException(Exception):
     """Exception raised when a suitable index cannot be found"""
+
     pass

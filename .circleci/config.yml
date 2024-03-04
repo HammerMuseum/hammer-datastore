@@ -1,4 +1,3 @@
-
 # PHP CircleCI 2.1 configuration file
 #
 # Check https://circleci.com/docs/2.0/language-php/ for more details
@@ -16,18 +15,19 @@ defaults: &defaults
         MYSQL_USER: php
         MYSQL_PASSWORD: php
 
-    - image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+    - image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
       environment:
         - discovery.type=single-node
+        - xpack.security.enabled=false
         - ES_JAVA_OPTS: -Xms500m -Xmx500m
 
 # Defines the cache restore mechanism for composer dependencies.
-restore_cache: &restore_cache
-  # We use the composer.lock as a way to determine if we can cache our build.
+restore_cache:
+  &restore_cache # We use the composer.lock as a way to determine if we can cache our build.
   keys:
-  - composer-v3-{{ checksum "composer.lock" }}
-  # fallback to using the latest cache if no exact match is found
-  - composer-v2-
+    - composer-v3-{{ checksum "composer.lock" }}
+    # fallback to using the latest cache if no exact match is found
+    - composer-v2-
 
 # Defines the cache saving mechanism for composer dependencies.
 save_cache: &save_cache
@@ -55,14 +55,16 @@ commands:
       environment:
         type: string
     steps:
-      - run: rm -f harvester/harvester/harvester/assetbank/.env
-      - run: touch harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_CLIENT_ID=$AB_CLIENT_ID" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_CLIENT_SECRET=$AB_CLIENT_SECRET" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_USERNAME=$AB_USERNAME" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "AB_PASSWORD=$AB_PASSWORD" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "TRINT_API_KEY=$TRINT_API_KEY\n" >> harvester/harvester/harvester/assetbank/.env
-      - run: echo -e "SLACK_WEBHOOK=$SLACK_WEBHOOK\n" >> harvester/harvester/harvester/assetbank/.env
+      - run: rm -f harvester/.env
+      - run: touch harvester/.env
+      - run: echo -e "AB_CLIENT_ID=$AB_CLIENT_ID" >> harvester/.env
+      - run: echo -e "AB_CLIENT_SECRET=$AB_CLIENT_SECRET" >> harvester/.env
+      - run: echo -e "AB_USERNAME=$AB_USERNAME" >> harvester/.env
+      - run: echo -e "AB_PASSWORD=$AB_PASSWORD" >> harvester/.env
+      - run: echo -e "TRINT_API_KEY=$TRINT_API_KEY\n" >> harvester/.env
+      - run: echo -e "ELASTICSEARCH_HOST=$ELASTICSEARCH_HOST\n" >> harvester/.env
+      - run: echo -e "ELASTICSEARCH_API_KEY=$ELASTICSEARCH_API_KEY\n" >> harvester/.env
+      - run: echo -e "SLACK_WEBHOOK=$SLACK_WEBHOOK\n" >> harvester/.env
 
 # Jobs
 build_and_test: &build_and_test
@@ -79,7 +81,7 @@ build_and_test: &build_and_test
     - run:
         name: Set up Elasticsearch
         command: |
-          curl -s -X PUT -H "Content-Type: application/json" "localhost:9200/_template/template_video" -d @./elasticsearch/templates/video_.json
+          curl -s -X PUT -H "Content-Type: application/json" "localhost:9200/_index_template/template_video" -d @./elasticsearch/templates/video_.json
           curl -s -X PUT "localhost:9200/video_testing?pretty"
           curl -s -H "Content-Type: application/x-ndjson" -XPOST "localhost:9200/_bulk" --data-binary @./utils/sample-data/sample-elastic.json
 
@@ -116,7 +118,8 @@ build_and_test: &build_and_test
           - public/js/
 
 deploy: &deploy
-  <<: *defaults
+  docker:
+    - image: cimg/php:8.1.4-browsers
   steps:
     - checkout
     - add_ssh_keys:
@@ -142,17 +145,21 @@ deploy: &deploy
         environment: $CI_HOST_URL
     - run: ssh-keyscan -H $(echo "$CI_PROD_DEPLOY_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: ./vendor/deployer/deployer/deployer.phar deploy live
-    - run: ssh deploy@$CI_PROD_DEPLOY_URL sudo systemctl reload php8.1-fpm.service
-    - run: ssh deploy@$CI_PROD_DEPLOY_URL mkdir /var/www/$CI_HOST_URL/current/harvester/logs
-    - run: ssh deploy@$CI_PROD_DEPLOY_URL mkdir /var/www/$CI_HOST_URL/current/harvester/data
-    - run: ssh deploy@$CI_PROD_DEPLOY_URL sh /var/www/$CI_HOST_URL/current/harvester/install/install_harvester_dependencies.sh
+    - run: |
+        ssh deploy@$CI_PROD_DEPLOY_URL \<< EOF
+          cd /var/www/$CI_PROD_DEPLOY_URL/current/harvester
+          mkdir -p logs data
+          /home/deploy/.local/bin/poetry install
+          sudo systemctl reload php8.1-fpm.service
+        EOF
     - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group
         tag-value: bastion
 
 deploy_stage: &deploy_stage
-  <<: *defaults
+  docker:
+    - image: cimg/php:8.1.4-browsers
   steps:
     - checkout
     - add_ssh_keys:
@@ -178,17 +185,21 @@ deploy_stage: &deploy_stage
         environment: $CI_STAGE_HOST_URL
     - run: ssh-keyscan -H $(echo "$CI_STAGE_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: ./vendor/deployer/deployer/deployer.phar deploy stage
-    - run: ssh deploy@$CI_STAGE_HOST_URL sudo systemctl reload php8.1-fpm.service
-    - run: ssh deploy@$CI_STAGE_HOST_URL mkdir /var/www/$CI_STAGE_HOST_URL/current/harvester/logs
-    - run: ssh deploy@$CI_STAGE_HOST_URL mkdir /var/www/$CI_STAGE_HOST_URL/current/harvester/data
-    - run: ssh deploy@$CI_STAGE_HOST_URL sh /var/www/$CI_STAGE_HOST_URL/current/harvester/install/install_harvester_dependencies_stage.sh
+    - run: |
+        ssh deploy@$CI_STAGE_HOST_URL \<< EOF
+          cd /var/www/$CI_STAGE_HOST_URL/current/harvester
+          mkdir -p logs data
+          /home/deploy/.local/bin/poetry install
+          sudo systemctl reload php8.1-fpm.service
+        EOF
     - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group
         tag-value: bastion
 
 deploy_dev: &deploy_dev
-  <<: *defaults
+  docker:
+    - image: cimg/php:8.1.4-browsers
   steps:
     - checkout
     - add_ssh_keys:
@@ -214,10 +225,13 @@ deploy_dev: &deploy_dev
         environment: $CI_DEV_HOST_URL
     - run: ssh-keyscan -H $(echo "$CI_DEV_HOST_URL" | sed 's/.*@\(.*\):.*/\1/') >> ~/.ssh/known_hosts
     - run: ./vendor/deployer/deployer/deployer.phar deploy dev
-    - run: ssh deploy@$CI_DEV_HOST_URL sudo systemctl reload php8.1-fpm.service
-    - run: ssh deploy@$CI_DEV_HOST_URL mkdir /var/www/$CI_DEV_HOST_URL/current/harvester/logs
-    - run: ssh deploy@$CI_DEV_HOST_URL mkdir /var/www/$CI_DEV_HOST_URL/current/harvester/data
-    - run: ssh deploy@$CI_DEV_HOST_URL sh /var/www/$CI_DEV_HOST_URL/current/harvester/install/install_harvester_dependencies_dev.sh
+    - run: |
+        ssh deploy@$CI_DEV_HOST_URL \<< EOF
+          cd /var/www/$CI_DEV_HOST_URL/current/harvester
+          mkdir -p logs data
+          /home/deploy/.local/bin/poetry install
+          sudo systemctl reload php8.1-fpm.service
+        EOF
     - aws-sg-white-list-circleci-ip/del:
         port: 22
         tag-key: group

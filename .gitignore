@@ -16,7 +16,6 @@ yarn-error.log
 .idea/
 storage/testing.sqlite
 .pytest_cache
-.vscode
 __pycache__
 harvester/data
 harvester/logs
