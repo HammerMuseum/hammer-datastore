@@ -2,82 +2,81 @@
   "index_patterns": [
     "video*"
   ],
-  "settings": {
-    "number_of_shards": 1
-  },
-  "mappings": {
-    "properties": {
-      "asset_id": {
-        "type": "keyword"
-      },
-      "date_recorded": {
-        "type": "date"
-      },
-      "description": {
-        "type": "text",
-        "analyzer": "english"
-      },
-      "duration": {
-        "type": "keyword"
-      },
-      "in_playlists": {
-        "type": "keyword"
-      },
-      "playlists": {
-        "type": "nested",
-        "properties": {
-          "id": {
-            "type": "keyword"
-          },
-          "name": {
-            "type": "keyword"
-          },
-          "position": {
-            "type": "integer"
+  "template": {
+    "mappings": {
+      "properties": {
+        "asset_id": {
+          "type": "keyword"
+        },
+        "date_recorded": {
+          "type": "date"
+        },
+        "description": {
+          "type": "text",
+          "analyzer": "english"
+        },
+        "duration": {
+          "type": "keyword"
+        },
+        "in_playlists": {
+          "type": "keyword"
+        },
+        "playlists": {
+          "type": "nested",
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "name": {
+              "type": "keyword"
+            },
+            "position": {
+              "type": "integer"
+            }
           }
-        }
-      },
-      "quote": {
-        "type": "keyword"
-      },
-      "speakers": {
-        "type": "keyword"
-      },
-      "tags": {
-        "type": "keyword"
-      },
-      "thumbnailId": {
-        "type": "keyword"
-      },
-      "thumbnail_url": {
-        "type": "keyword"
-      },
-      "title": {
-        "type": "text",
-        "analyzer": "english",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
+        },
+        "quote": {
+          "type": "keyword"
+        },
+        "speakers": {
+          "type": "keyword"
+        },
+        "tags": {
+          "type": "keyword"
+        },
+        "thumbnailId": {
+          "type": "keyword"
+        },
+        "thumbnail_url": {
+          "type": "keyword"
+        },
+        "title": {
+          "type": "text",
+          "analyzer": "english",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
           }
+        },
+        "title_slug": {
+          "type": "keyword"
+        },
+        "topics": {
+          "type": "keyword"
+        },
+        "transcription": {
+          "type": "keyword"
+        },
+        "transcription_txt": {
+          "type": "text",
+          "analyzer": "english",
+          "position_increment_gap": 100
+        },
+        "video_url": {
+          "type": "keyword"
         }
-      },
-      "title_slug": {
-        "type": "keyword"
-      },
-      "topics": {
-        "type": "keyword"
-      },
-      "transcription": {
-        "type": "keyword"
-      },
-      "transcription_txt": {
-        "type": "text",
-        "analyzer": "english",
-        "position_increment_gap": 100
-      },
-      "video_url": {
-        "type": "keyword"
       }
     }
   }

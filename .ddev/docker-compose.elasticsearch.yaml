@@ -1,9 +1,9 @@
-version: '3.6'
+#ddev-generated
 services:
   elasticsearch:
     container_name: ddev-${DDEV_SITENAME}-elasticsearch
     hostname: ${DDEV_SITENAME}-elasticsearch
-    image: elasticsearch:7.16.1
+    image: elasticsearch:7.17.14
     expose:
       - "9200"
       - "9300"
@@ -22,7 +22,7 @@ services:
       - elasticsearch:/usr/share/elasticsearch/data
       - ".:/mnt/ddev_config"
     healthcheck:
-      test: ["CMD-SHELL", "curl --fail -s localhost:9200"]
+      test: ["CMD-SHELL", "curl --fail -s elasticsearch:9200"]
 
 volumes:
   elasticsearch:

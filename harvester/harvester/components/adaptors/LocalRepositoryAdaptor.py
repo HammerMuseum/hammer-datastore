@@ -93,9 +93,7 @@ class LocalRepositoryAdaptor:
                     self.records_succeeded += 1
             except KeyError as e:
                 self.records_processed += 1
-                self.logger.warning(
-                    "%s not found in input data %s", e, abs_input_path
-                )
+                self.logger.warning("%s not found in input data %s", e, abs_input_path)
             except Exception as e:
                 self.records_processed += 1
                 self.records_failed += 1
@@ -107,7 +105,9 @@ class LocalRepositoryAdaptor:
             self.success = False
 
         if self.success:
-            self.logger.info("Local repository adaptor processing completed successfully.")
+            self.logger.info(
+                "Local repository adaptor processing completed successfully."
+            )
         else:
             self.logger.info("Local repository adaptor processing failed.")
 

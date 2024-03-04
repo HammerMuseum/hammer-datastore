@@ -1,2 +1,1 @@
 from .HarvesterBase import HarvesterBase
-
