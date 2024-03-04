@@ -1,12 +1,9 @@
-import subprocess
-import shlex
-import json
-import datetime
 import time
 from pymediainfo import MediaInfo
 from filecache import filecache
 
-class DurationProcessor():
+
+class DurationProcessor:
     """
     A processor to determine the duration of a video.
 
@@ -22,19 +19,22 @@ class DurationProcessor():
     def process(self, row):
         for field in self.fields:
             try:
-                self.harvester.logger.debug('Processing a video duration')
-                new_field = 'duration'
+                self.harvester.logger.debug("Processing a video duration")
+                new_field = "duration"
                 video_url = str(row[field])
 
                 tic = time.perf_counter()
                 duration = get_duration(video_url)
                 toc = time.perf_counter()
-                self.harvester.logger.debug(f"Duration determined in {toc - tic:0.4f} seconds")
+                self.harvester.logger.debug(
+                    f"Duration determined in {toc - tic:0.4f} seconds"
+                )
                 formatted_duration = format_duration(duration)
 
                 row[new_field] = formatted_duration
             except Exception as e:
                 self.harvester.logger.error(e)
+
 
 @filecache
 def get_duration(path):
@@ -44,5 +44,6 @@ def get_duration(path):
             duration = track.other_duration[3]
             return duration
 
+
 def format_duration(duration):
-    return duration.split('.')[0]
+    return duration.split(".")[0]

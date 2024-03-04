@@ -2,3 +2,7 @@
 build
 dist
 *.egg-info
+.venv
+data
+logs
+*.cache.db
