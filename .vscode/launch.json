@@ -15,7 +15,7 @@
                 "--asset-type=1",
                 "--search-domain=http://hammer-datastore.ddev.site:9200",
                 "--storage=../shared/storage/app",
-                "--limit=200"
+                "--limit=20"
             ],
         }
     ],
