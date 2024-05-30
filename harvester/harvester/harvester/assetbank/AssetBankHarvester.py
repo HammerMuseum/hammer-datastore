@@ -336,8 +336,13 @@ class AssetBankHarvester(HarvesterBase):
                     self.records_failed += 1
             else:
                 self.records_failed += 1
+        except AttributeError as error:
+            self.logger.info("Failed to retrieve metadata %s: %s", identifier, error)
+            self.logger.debug("Response %s:", response.content)
+            self.records_failed += 1
         except Exception as error:
             self.logger.info("Failed to retrieve metadata %s: %s", identifier, error)
+            self.logger.debug("Response %s:", response.content)
             self.records_failed += 1
 
     def do_record_harvest(self, record, identifier):
