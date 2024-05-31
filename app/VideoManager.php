@@ -81,7 +81,7 @@ class VideoManager
             'description',
             'title',
             'title_slug',
-            'thumbnailId',
+            'thumbnail_url',
             'duration',
             'date_recorded'
         ];

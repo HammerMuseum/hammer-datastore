@@ -71,7 +71,7 @@ class PlaylistManager
             'asset_id',
             'title',
             'title_slug',
-            'thumbnailId',
+            'thumbnail_url',
             'description',
             'duration',
             'quote',
@@ -115,7 +115,7 @@ class PlaylistManager
                 $source = $el['_source'];
                 return [
                     'title' => $source['title'],
-                    'thumbnailId' => $source['thumbnailId'],
+                    'thumbnail_url' => $source['thumbnail_url'],
                     'asset_id' => $source['asset_id'],
                     'title_slug' => $source['title_slug'],
                     'description' => $source['description'],

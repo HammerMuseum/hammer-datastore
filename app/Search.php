@@ -464,7 +464,7 @@ class Search
                             'size' => 10,
                             '_source' => [
                                 'title',
-                                'thumbnailId',
+                                'thumbnail_url',
                                 'title_slug',
                                 'asset_id',
                                 'duration',

@@ -41,7 +41,6 @@ class ElasticsearchAdaptor:
         "program_series",
         "quote",
         "speakers",
-        "thumbnailId",
         "thumbnail_url",
         "title",
         "title_slug",

@@ -336,8 +336,13 @@ class AssetBankHarvester(HarvesterBase):
                     self.records_failed += 1
             else:
                 self.records_failed += 1
+        except AttributeError as error:
+            self.logger.info("Failed to retrieve metadata %s: %s", identifier, error)
+            self.logger.debug("Response %s:", response.content)
+            self.records_failed += 1
         except Exception as error:
             self.logger.info("Failed to retrieve metadata %s: %s", identifier, error)
+            self.logger.debug("Response %s:", response.content)
             self.records_failed += 1
 
     def do_record_harvest(self, record, identifier):
@@ -414,10 +419,6 @@ class AssetBankHarvester(HarvesterBase):
         # Get some non-attribute properties.
         output["video_url"] = root.xpath("//asset/contentUrl/text()")[0]
         output["thumbnail_url"] = root.xpath("//asset/previewUrl/text()")[0]
-        thumbnailId = re.match(".*file=([a-z\\d]+)\\.", output["thumbnail_url"]).group(
-            1
-        )
-        output["thumbnailId"] = thumbnailId
 
         return output
 
@@ -455,7 +456,6 @@ class AssetBankHarvester(HarvesterBase):
             "playlists",
             "quote",
             "speakers",
-            "thumbnailId",
             "thumbnail_url",
             "title",
             "title_slug",
@@ -469,7 +469,6 @@ class AssetBankHarvester(HarvesterBase):
             "date_recorded",
             "description",
             "duration",
-            "thumbnailId",
             "thumbnail_url",
             "title",
             "title_slug",
