@@ -429,12 +429,12 @@ class AssetBankHarvester(HarvesterBase):
         """
         record_path = os.path.join(self.current_output_path, file_name)
 
-        if os.path.exists(record_path):
-            self.logger.error("Record already exists at %s. Skipping.", record_path)
-            return False
-
         try:
-            os.makedirs(os.path.dirname(record_path), exist_ok=True)
+            if os.path.exists(record_path):
+                self.logger.info("Record already exists at %s. Overwriting.", record_path)
+            else:
+                os.makedirs(os.path.dirname(record_path), exist_ok=True)
+
             with open(record_path, "w", encoding="utf-8") as f:
                 json.dump(record, f, ensure_ascii=False, separators=(",", ":"))
             return True
