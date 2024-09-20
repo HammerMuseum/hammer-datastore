@@ -115,6 +115,8 @@ if __name__ == "__main__":
 
     logger.addHandler(sh)
     logpath = os.path.join(os.path.dirname(__file__), "../logs")
+    os.makedirs(logpath, exist_ok=True)
+
     fh = logging.FileHandler(os.path.join(logpath, "run_assetbank.log"))
     fh.setLevel(AssetBankHarvester.log_level)
     fh.setFormatter(AssetBankHarvester.log_formatter)
