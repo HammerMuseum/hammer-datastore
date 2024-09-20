@@ -1,14 +1,16 @@
+import argparse
+import logging
 import os
 import sys
-import logging
-import argparse
 import traceback
+from pathlib import Path
+
 import dateparser
 from dotenv import load_dotenv
-from pathlib import Path
+
 from elasticsearch import Elasticsearch
-from harvester.harvester.assetbank import AssetBankHarvester
 from harvester.components.adaptors import ElasticsearchAdaptor, LocalRepositoryAdaptor
+from harvester.harvester.assetbank import AssetBankHarvester
 
 load_dotenv()
 
