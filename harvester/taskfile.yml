@@ -1,0 +1,16 @@
+# taskfile to run poetry commands
+
+version: '3'
+tasks:
+  harvest:limited:
+    cmds:
+      - poetry run \
+        python scripts/run_harvester.py \
+        --host=https://hammer.assetbank-server.com/assetbank-hammer \
+        --alias=videos \
+        --asset-type=1 \
+        --search-domain=http://hammer-datastore.ddev.site:9200 \
+        --storage=`pwd`/../storage/app \
+        --limit=20 \
+        {{.CLI_ARGS}}
+
