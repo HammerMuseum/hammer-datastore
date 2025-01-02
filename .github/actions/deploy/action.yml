@@ -1,0 +1,94 @@
+name: 'Deploy App'
+description: 'Deploy the application to a specified environment'
+inputs:
+  php-version:
+    description: 'PHP version to use'
+    required: true
+    default: '8.3'
+  ssh-private-key:
+    description: 'SSH private key for deployment'
+    required: true
+  known-hosts:
+    description: 'Known hosts for SSH'
+    required: true
+  deploy-env:
+    description: 'Deployment environment (dev/staging/prod)'
+    required: true
+  host-url:
+    description: 'Host URL for deployment'
+    required: true
+  aws-access-key-id:
+    description: 'AWS Access Key ID'
+    required: true
+  aws-secret-access-key:
+    description: 'AWS Secret Access Key'
+    required: true
+  aws-region:
+    description: 'AWS Region'
+    required: true
+  aws-security-group-id:
+    description: 'AWS Security Group ID'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set deployment URLs
+      id: deploy-urls
+      shell: bash
+      run: |
+        case "${{ inputs.deploy-env }}" in
+          "dev")
+            echo "DEV_DEPLOY_URL=${{ inputs.host-url }}" >> $GITHUB_ENV
+            ;;
+          "stage")
+            echo "STAGING_DEPLOY_URL=${{ inputs.host-url }}" >> $GITHUB_ENV
+            ;;
+          "prod")
+            echo "PROD_DEPLOY_URL=${{ inputs.host-url }}" >> $GITHUB_ENV
+            ;;
+        esac
+
+    - name: Setup PHP and install composer dependencies
+      uses: ./.github/actions/setup-php-environment
+      with:
+        php-version: ${{ inputs.php-version }}
+
+    - name: Install Composer dependencies (production)
+      shell: bash
+      run: composer install --optimize-autoloader --no-dev
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Whitelist GitHub Actions IP
+      shell: bash
+      run: |
+        IP=$(curl -s https://api.ipify.org)
+        aws ec2 authorize-security-group-ingress --group-id ${{ inputs.aws-security-group-id }} --protocol tcp --port 22 --cidr $IP/32
+
+    - name: Install SSH Key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ inputs.ssh-private-key }}
+        known_hosts: ${{ inputs.known-hosts }}
+
+    - name: Deploy
+      uses: deployphp/action@v1
+      # env:
+      #   DEV_DEPLOY_URL: ${{ steps.deploy-urls.outputs.DEV_DEPLOY_URL }}
+      #   STAGING_DEPLOY_URL: ${{ steps.deploy-urls.outputs.STAGING_DEPLOY_URL }}
+      #   PROD_DEPLOY_URL: ${{ steps.deploy-urls.outputs.PROD_DEPLOY_URL }}
+      with:
+        dep: deploy ${{ inputs.deploy-env }}
+
+    - name: Remove GitHub Actions IP from whitelist
+      if: always()
+      shell: bash
+      run: |
+        IP=$(curl -s https://api.ipify.org)
+        aws ec2 revoke-security-group-ingress --group-id ${{ inputs.aws-security-group-id }} --protocol tcp --port 22 --cidr $IP/32
