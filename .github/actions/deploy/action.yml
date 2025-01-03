@@ -79,10 +79,6 @@ runs:
 
     - name: Deploy
       uses: deployphp/action@v1
-      # env:
-      #   DEV_DEPLOY_URL: ${{ steps.deploy-urls.outputs.DEV_DEPLOY_URL }}
-      #   STAGING_DEPLOY_URL: ${{ steps.deploy-urls.outputs.STAGING_DEPLOY_URL }}
-      #   PROD_DEPLOY_URL: ${{ steps.deploy-urls.outputs.PROD_DEPLOY_URL }}
       with:
         dep: deploy ${{ inputs.deploy-env }}
 
