@@ -149,7 +149,7 @@ jobs:
         echo -e "SLACK_WEBHOOK=${{ secrets.SLACK_WEBHOOK }}\n" >> harvester/.env
 
     - name: Deploy to staging
-      uses: ./.github/actions/deploy-app
+      uses: ./.github/actions/deploy
       with:
         php-version: ${{ env.PHP_VERSION }}
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -188,7 +188,7 @@ jobs:
         echo -e "SLACK_WEBHOOK=${{ secrets.SLACK_WEBHOOK }}\n" >> harvester/.env
 
     - name: Deploy to production
-      uses: ./.github/actions/deploy-app
+      uses: ./.github/actions/deploy
       with:
         php-version: ${{ env.PHP_VERSION }}
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
