@@ -41,7 +41,7 @@ runs:
           "dev")
             echo "DEV_DEPLOY_URL=${{ inputs.host-url }}" >> $GITHUB_ENV
             ;;
-          "stage")
+          "staging")
             echo "STAGING_DEPLOY_URL=${{ inputs.host-url }}" >> $GITHUB_ENV
             ;;
           "prod")
