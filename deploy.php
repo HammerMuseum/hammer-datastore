@@ -1,24 +1,23 @@
 <?php
+
 namespace Deployer;
 
 require 'contrib/rsync.php';
 require 'recipe/laravel.php';
 require 'recipe/tasks.php';
 
-// Project name
+// Project name.
 set('application', 'Hammer Datastore');
-
-// Project repository
 set('repository', 'git@github.com:HammerMuseum/hammer-datastore.git');
-
-// [Optional] Allocate tty for git clone. Default value is false.
 set('git_tty', true);
+set('allow_anonymous_stats', false);
+set('http_user', 'www-data');
 
-// Shared files/dirs between deploys
+// Shared files/dirs between deploys.
 add('shared_files', ['.env']);
 add('shared_dirs', ['storage']);
 
-// Writable dirs by web server
+// Writable dirs by web server.
 add('writable_dirs', [
     'bootstrap/cache',
     'storage',
@@ -30,12 +29,10 @@ add('writable_dirs', [
     'storage/framework/views',
     'storage/logs',
 ]);
-set('allow_anonymous_stats', false);
 
-set('http_user', 'www-data');
+// Rsync configuration.
 set('rsync_src', __DIR__);
 set('rsync_dest', '{{release_path}}');
-
 set('rsync', [
     'exclude'      => [
         'deploy.php',
@@ -80,21 +77,28 @@ set('rsync', [
 ]);
 
 // Get host from CI environment variable
-$dev_host = getenv('CI_DEV_HOST_URL');
-$stage_host = getenv('CI_STAGE_HOST_URL');
-$prod_host = getenv('CI_PROD_DEPLOY_URL');
+$dev_host = getenv('DEV_DEPLOY_URL');
+$staging_host = getenv('STAGING_DEPLOY_URL');
+$prod_host = getenv('PROD_DEPLOY_URL');
+
+// If no hosts set, abort deployment with a instructions.
+if (empty($dev_host) && empty($staging_host) && empty($prod_host)) {
+    echo "No hosts set. Please set one of the following environment variables:\n";
+    echo "- DEV_DEPLOY_URL \n- STAGING_DEPLOY_URL \n- PROD_DEPLOY_URL.\n";
+    die();
+}
 
 // Hosts
-host('live')
+host('prod')
     ->set('hostname', $prod_host)
     ->set('remote_user', 'deploy')
     ->set('deploy_path', '/var/www/datastore.hammer.ucla.edu')
     ->set('stage', 'production');
 
-host('stage')
-    ->set('hostname', $stage_host)
+host('staging')
+    ->set('hostname', $staging_host)
     ->set('remote_user', 'deploy')
-    ->set('deploy_path', '/var/www/' . $stage_host)
+    ->set('deploy_path', '/var/www/' . $staging_host)
     ->set('stage', 'staging');
 
 host('dev')
@@ -121,11 +125,8 @@ task('deploy', [
     'deploy:publish',
 ]);
 
-
-
 // [Optional] if deploy fails automatically unlock.
 after('deploy:failed', 'deploy:unlock');
 
 // Migrate database before symlink new release.
-
 before('deploy:symlink', 'artisan:migrate');
