@@ -1,14 +1,16 @@
+import argparse
+import logging
 import os
 import sys
-import logging
-import argparse
 import traceback
+from pathlib import Path
+
 import dateparser
 from dotenv import load_dotenv
-from pathlib import Path
+
 from elasticsearch import Elasticsearch
-from harvester.harvester.assetbank import AssetBankHarvester
 from harvester.components.adaptors import ElasticsearchAdaptor, LocalRepositoryAdaptor
+from harvester.harvester.assetbank import AssetBankHarvester
 
 load_dotenv()
 
@@ -115,6 +117,8 @@ if __name__ == "__main__":
 
     logger.addHandler(sh)
     logpath = os.path.join(os.path.dirname(__file__), "../logs")
+    os.makedirs(logpath, exist_ok=True)
+
     fh = logging.FileHandler(os.path.join(logpath, "run_assetbank.log"))
     fh.setLevel(AssetBankHarvester.log_level)
     fh.setFormatter(AssetBankHarvester.log_formatter)
