@@ -1,0 +1,201 @@
+name: Build, Test, Deploy
+on:
+  push:
+  pull_request:
+    branches: [master, develop]
+
+env:
+  PHP_VERSION: '8.3'
+  NODE_VERSION: '22'
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3306/tcp
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: php
+          MYSQL_USER: php
+          MYSQL_PASSWORD: php
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure sysctl limits
+      run: |
+        sudo swapoff -a
+        sudo sysctl -w vm.swappiness=1
+        sudo sysctl -w fs.file-max=262144
+        sudo sysctl -w vm.max_map_count=262144
+
+    - name: Runs Elasticsearch
+      uses: elastic/elastic-github-actions/elasticsearch@master
+      with:
+        stack-version: 8.11.0
+        security-enabled: false
+
+    - name: Set up Elasticsearch
+      run: |
+        curl -s -X PUT -H "Content-Type: application/json" "http://localhost:9200/_index_template/template_video" -d @./elasticsearch/templates/video_.json
+        curl -s -X PUT "http://localhost:9200/video_testing?pretty"
+        curl -s -H "Content-Type: application/x-ndjson" -XPOST "http://localhost:9200/_bulk" --data-binary @./utils/sample-data/sample-elastic.json
+
+    - run: rm .env.testing
+    - run: mv .github/.env.testing .env.testing
+
+    - name: Setup PHP and install Composer dependencies
+      uses: ./.github/actions/setup-php-environment
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install Node dependencies
+      run: npm install
+
+    - run: npm run production
+
+    - name: Run PHP CodeSniffer
+      run: ./vendor/bin/phpcs
+
+    - name: Prepare database
+      run: |
+        php artisan key:generate --env=testing
+        php artisan config:clear
+
+    - name: Run PHPUnit tests
+      run: ./vendor/bin/phpunit tests
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: |
+          vendor/
+          public/css/
+          public/js/
+
+  deploy_dev:
+    needs: build_and_test
+    if: startsWith(github.ref, 'refs/tags/dev-')
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+
+    - name: Create harvester env file
+      run: |
+        rm -f harvester/.env
+        touch harvester/.env
+        echo -e "AB_CLIENT_ID=${{ secrets.AB_CLIENT_ID }}" >> harvester/.env
+        echo -e "AB_CLIENT_SECRET=${{ secrets.AB_CLIENT_SECRET }}" >> harvester/.env
+        echo -e "AB_USERNAME=${{ secrets.AB_USERNAME }}" >> harvester/.env
+        echo -e "AB_PASSWORD=${{ secrets.AB_PASSWORD }}" >> harvester/.env
+        echo -e "TRINT_API_KEY=${{ secrets.TRINT_API_KEY }}\n" >> harvester/.env
+        echo -e "ELASTICSEARCH_HOST=${{ secrets.ELASTICSEARCH_HOST }}\n" >> harvester/.env
+        echo -e "ELASTICSEARCH_API_KEY=${{ secrets.ELASTICSEARCH_API_KEY }}\n" >> harvester/.env
+        echo -e "SLACK_WEBHOOK=${{ secrets.SLACK_WEBHOOK }}\n" >> harvester/.env
+
+    - name: Deploy to dev
+      uses: ./.github/actions/deploy
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known-hosts: ssh-keyscan -H $(echo "${{ secrets.DEV_DEPLOY_URL }}" | sed 's/.*@\(.*\):.*/\1/')
+        deploy-env: 'dev'
+        host-url: ${{ secrets.DEV_DEPLOY_URL }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        aws-security-group-id: ${{ secrets.AWS_SECURITY_GROUP_ID }}
+
+  deploy_staging:
+    needs: build_and_test
+    if: github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags/staging-')
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+
+    - name: Create harvester env file
+      run: |
+        rm -f harvester/.env
+        touch harvester/.env
+        echo -e "AB_CLIENT_ID=${{ secrets.AB_CLIENT_ID }}" >> harvester/.env
+        echo -e "AB_CLIENT_SECRET=${{ secrets.AB_CLIENT_SECRET }}" >> harvester/.env
+        echo -e "AB_USERNAME=${{ secrets.AB_USERNAME }}" >> harvester/.env
+        echo -e "AB_PASSWORD=${{ secrets.AB_PASSWORD }}" >> harvester/.env
+        echo -e "TRINT_API_KEY=${{ secrets.TRINT_API_KEY }}\n" >> harvester/.env
+        echo -e "ELASTICSEARCH_HOST=${{ secrets.ELASTICSEARCH_HOST }}\n" >> harvester/.env
+        echo -e "ELASTICSEARCH_API_KEY=${{ secrets.ELASTICSEARCH_API_KEY }}\n" >> harvester/.env
+        echo -e "SLACK_WEBHOOK=${{ secrets.SLACK_WEBHOOK }}\n" >> harvester/.env
+
+    - name: Deploy to staging
+      uses: ./.github/actions/deploy
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known-hosts: ssh-keyscan -H $(echo "${{ secrets.STAGING_DEPLOY_URL }}" | sed 's/.*@\(.*\):.*/\1/')
+        deploy-env: 'staging'
+        host-url: ${{ secrets.STAGING_DEPLOY_URL }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        aws-security-group-id: ${{ secrets.AWS_SECURITY_GROUP_ID }}
+
+  deploy_prod:
+    needs: build_and_test
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+
+    - name: Create harvester env file
+      run: |
+        rm -f harvester/.env
+        touch harvester/.env
+        echo -e "AB_CLIENT_ID=${{ secrets.AB_CLIENT_ID }}" >> harvester/.env
+        echo -e "AB_CLIENT_SECRET=${{ secrets.AB_CLIENT_SECRET }}" >> harvester/.env
+        echo -e "AB_USERNAME=${{ secrets.AB_USERNAME }}" >> harvester/.env
+        echo -e "AB_PASSWORD=${{ secrets.AB_PASSWORD }}" >> harvester/.env
+        echo -e "TRINT_API_KEY=${{ secrets.TRINT_API_KEY }}\n" >> harvester/.env
+        echo -e "ELASTICSEARCH_HOST=${{ secrets.ELASTICSEARCH_HOST }}\n" >> harvester/.env
+        echo -e "ELASTICSEARCH_API_KEY=${{ secrets.ELASTICSEARCH_API_KEY }}\n" >> harvester/.env
+        echo -e "SLACK_WEBHOOK=${{ secrets.SLACK_WEBHOOK }}\n" >> harvester/.env
+
+    - name: Deploy to production
+      uses: ./.github/actions/deploy
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known-hosts: ssh-keyscan -H $(echo "${{ secrets.PROD_DEPLOY_URL }}" | sed 's/.*@\(.*\):.*/\1/')
+        deploy-env: 'prod'
+        host-url: ${{ secrets.PROD_DEPLOY_URL }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        aws-security-group-id: ${{ secrets.AWS_SECURITY_GROUP_ID }}
