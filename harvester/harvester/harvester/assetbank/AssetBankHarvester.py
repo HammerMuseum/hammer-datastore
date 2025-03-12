@@ -278,7 +278,7 @@ class AssetBankHarvester(HarvesterBase):
 
                 for asset in page:
                     executor.submit(self.harvest_asset, asset)
-                    sleep(0.2)
+                    sleep(1)
                     read += 1
                     if read >= self.max_items:
                         self.logger.info("Harvesting reached max limit")
@@ -303,7 +303,7 @@ class AssetBankHarvester(HarvesterBase):
                     root = etree.fromstring(response.content)
                     assets = root.xpath("//assetSummary")
                     executor.submit(self.harvest_asset, assets[0])
-                    sleep(0.2)
+                    sleep(1)
 
     def harvest_asset(self, asset):
         """
