@@ -9,7 +9,7 @@ packages = [ { include = "**/*.py", from = "."  }]
 python = "^3.12"
 PyYAML = "^6.0.1"
 lxml = "^5.1.0"
-pytz = "^2024.1"
+pytz = ">=2024.1,<2027.0"
 tqdm = "^4.66.3"
 elasticsearch = "^8"
 requests = "^2.32.0"
