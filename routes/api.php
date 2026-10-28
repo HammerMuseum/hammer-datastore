@@ -36,12 +36,6 @@ Route::group(['middleware' => 'cacheResponse:3600'], function () {
     Route::get('videos/{id}/transcript', 'TranscriptController@show');
 });
 
-Route::group(['middleware' => 'auth:api'], function () {
-    Route::delete('videos/{id}', 'ApiController@delete');
-});
-
-Route::post('login', ['as' => 'login', 'uses' => 'Auth\LoginController@login']);
-
 Route::fallback(function () {
     return response()->json(['message' => 'Not found'], 404);
 })->name('api.fallback.404');

@@ -18,6 +18,7 @@ hooks:
         - exec-host: |
             cd elasticsearch/scripts && \
             ./upload-index-template.sh --host http://hammer-datastore.ddev.site:9200 --name template_video --file ../templates/video_.json
+omit_containers: [db]
 use_dns_when_possible: true
 composer_version: "2"
 web_environment: []

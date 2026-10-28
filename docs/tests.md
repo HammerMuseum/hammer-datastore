@@ -1,34 +1,24 @@
-# Unit tests
+# Tests
 
-The Datastore system utilises Laravel Dusk browser tests.
+The feature tests call each API endpoint against a test Elasticsearch index.
 
 ## Testing environment
-When running tests, Dusk will use the `.env.testing` environment file.
 
-The `config/database.php` file defines the credentials for the testing database to be used under the `mysql_testing` key.
+Tests use the `.env.testing` environment file. It uses the
+`video_testing` index by default.
+
+Load the test index before running the tests:
+
+    ./elasticsearch/scripts/load-test-index.py http://localhost:9200 video_testing
 
 ## Running tests
+
 Run from the project root:
 
-    phpunit
+    ./vendor/bin/phpunit tests
 
 ## Creating tests
+
 Run from the project root:
 
     php artisan make:test MyTestClass
-    
-
-## Current tests
-There are tests for each API endpoint:
-
-    GetVideoTest
-    GetAllVideosTest
-    CreateVideoTest
-    UpdateVideoTest
-    DeleteVideoTest
-    
-These tests utilise two factory classes, which can be found under `database/factories`.
-
-`UserFactory`: Creates a fake user
-
-`VideoFactory`: Creates a fake video asset

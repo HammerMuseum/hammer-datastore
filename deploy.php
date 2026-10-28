@@ -117,12 +117,9 @@ task('deploy', [
     'artisan:view:clear',
     'artisan:cache:clear',
     'artisan:config:cache',
-    // publish is a group task which includes migrate, symlink, unlock, cleanup and success.
+    // publish is a group task which includes symlink, unlock, cleanup and success.
     'deploy:publish',
 ]);
 
 // [Optional] if deploy fails automatically unlock.
 after('deploy:failed', 'deploy:unlock');
-
-// Migrate database before symlink new release.
-before('deploy:symlink', 'artisan:migrate');
