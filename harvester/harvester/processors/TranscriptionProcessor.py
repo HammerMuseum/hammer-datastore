@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 import requests
 from time import sleep
-from requests import HTTPError
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -65,6 +64,31 @@ class TranscriptionProcessor:
         http.headers.update({"api-key": api_key})
         self.session = http
 
+    def log_transcript_failure(self, kind, url, error):
+        """
+        Logs a transcript fetch failure, covering both a direct HTTP error
+        response and retries exhausted on a repeated status (e.g. 403, 429, 5xx).
+        """
+        status_code = getattr(getattr(error, "response", None), "status_code", None)
+        if status_code:
+            self.harvester.logger.warning(
+                "{} code when fetching {} transcription from {}".format(
+                    status_code, kind, url
+                )
+            )
+        else:
+            self.harvester.logger.warning(
+                "Failed to fetch {} transcription from {}: {}".format(kind, url, error)
+            )
+        if status_code == 403 or "403" in str(error):
+            self.harvester.logger.warning(
+                "A 403 from Trint for {} usually means the transcript ID stored "
+                "in Asset Bank for this asset is wrong. Check the Trint ID.".format(
+                    url
+                )
+            )
+        self.harvester.logger.debug(error)
+
     def get_transcript_vtt(self, location):
         """
         Fetches a VTT transcription.
@@ -88,13 +112,8 @@ class TranscriptionProcessor:
             response = self.session.get(url)
             response.raise_for_status()
             return response.text
-        except HTTPError as error:
-            self.harvester.logger.warning(
-                "{} code when fetching VTT transcription from {}".format(
-                    error.response.status_code, url
-                )
-            )
-            self.harvester.logger.debug(error)
+        except requests.exceptions.RequestException as error:
+            self.log_transcript_failure("VTT", url, error)
 
     def get_transcript_json(self, location):
         """
@@ -105,13 +124,8 @@ class TranscriptionProcessor:
             response = self.session.get(url)
             response.raise_for_status()
             return json.dumps(response.json())
-        except HTTPError as error:
-            self.harvester.logger.warning(
-                "{} code when fetching JSON transcription from {}".format(
-                    error.response.status_code, url
-                )
-            )
-            self.harvester.logger.debug(error)
+        except requests.exceptions.RequestException as error:
+            self.log_transcript_failure("JSON", url, error)
 
     def get_transcript_text(self, location):
         """
@@ -126,13 +140,8 @@ class TranscriptionProcessor:
             response = self.session.get(url)
             response.raise_for_status()
             return response.text
-        except HTTPError as error:
-            self.harvester.logger.warning(
-                "{} code when fetching JSON transcription from {}".format(
-                    error.response.status_code, url
-                )
-            )
-            self.harvester.logger.debug(error)
+        except requests.exceptions.RequestException as error:
+            self.log_transcript_failure("text", url, error)
 
     def process(self, row):
         """

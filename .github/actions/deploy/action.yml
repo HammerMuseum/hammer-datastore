@@ -72,13 +72,13 @@ runs:
         aws ec2 authorize-security-group-ingress --group-id ${{ inputs.aws-security-group-id }} --protocol tcp --port 22 --cidr $IP/32
 
     - name: Install SSH Key
-      uses: shimataro/ssh-key-action@v2
+      uses: shimataro/ssh-key-action@87a8f067114a8ce263df83e9ed5c849953548bc3 # v2.8.1
       with:
         key: ${{ inputs.ssh-private-key }}
         known_hosts: ${{ inputs.known-hosts }}
 
     - name: Deploy
-      uses: deployphp/action@v1
+      uses: deployphp/action@a1b46c204dbde25a32ed0d7bb6751ac3377ca1e9 # v1.0.26
       with:
         dep: deploy ${{ inputs.deploy-env }}
 

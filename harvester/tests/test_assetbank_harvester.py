@@ -119,3 +119,14 @@ def example_invalid_records():
             "title_slug": "example-invalid-record-2",
         },
     ]
+
+
+def test_http_session_retries_failed_gets():
+    session = TestAssetBankHarvester().setup_http_session()
+    retry = session.get_adapter("https://example.com").max_retries
+
+    assert retry.total == 3
+    assert retry.backoff_factor == 1
+    assert retry.is_retry("GET", 503)
+    assert not retry.is_retry("POST", 503)
+    assert not retry.is_retry("GET", 404)
