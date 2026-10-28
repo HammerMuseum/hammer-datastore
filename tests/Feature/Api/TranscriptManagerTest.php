@@ -20,7 +20,7 @@ class TranscriptManagerTest extends TestCase
 
         $response = $this->get('/api/videos/222/transcript?format=vtt');
         $response->assertStatus(200);
-        $response->assertHeader('Content-Type', 'text/vtt; charset=UTF-8');
+        $response->assertHeader('Content-Type', 'text/vtt; charset=utf-8');
     }
 
     /**
