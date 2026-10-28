@@ -93,10 +93,7 @@ class PlaylistManager
                     "inner_hits" => [
                         "_source" => false,
                         "docvalue_fields" => [
-                            [
-                                "field" => "playlists.position",
-                                "format" => "use_field_mapping"
-                            ],
+                            "playlists.position",
                             "playlists.name",
                         ]
                     ]
