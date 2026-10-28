@@ -1,9 +1,5 @@
 /node_modules
-/public/hot
 /public/storage
-/public/css
-/public/js
-/public/mix-manifest.json
 /storage/*.key
 /vendor
 .env
@@ -12,8 +8,6 @@
 .phpunit.cache
 Homestead.json
 Homestead.yaml
-npm-debug.log
-yarn-error.log
 .idea/
 storage/testing.sqlite
 .pytest_cache

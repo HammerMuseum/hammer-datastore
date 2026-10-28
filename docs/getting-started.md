@@ -4,7 +4,6 @@
 
 - Docker
 - DDEV
-- NodeJS 14 (use [nvm](https://github.com/nvm-sh/nvm/blob/master/README.md#intro))
 
 ## Setup
 
