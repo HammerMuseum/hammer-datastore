@@ -13,6 +13,13 @@ class AuthApiTest extends TestCase
             ->assertJsonPath('error', 'Unable to authenticate request. API token missing or invalid');
     }
 
+    public function testDeleteWithoutJsonAcceptHeaderRequiresApiToken()
+    {
+        $this->delete('/api/videos/2000')
+            ->assertUnauthorized()
+            ->assertJsonPath('error', 'Unable to authenticate request. API token missing or invalid');
+    }
+
     public function testLoginRequiresCredentials()
     {
         $this->postJson('/api/login')

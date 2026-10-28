@@ -40,7 +40,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::delete('videos/{id}', 'ApiController@delete');
 });
 
-Route::post('login', ['as' => 'login', 'uses' => 'Auth\LoginController@login'])->name('login');
+Route::post('login', ['as' => 'login', 'uses' => 'Auth\LoginController@login']);
 
 Route::fallback(function () {
     return response()->json(['message' => 'Not found'], 404);
