@@ -15,4 +15,3 @@ __pycache__
 harvester/data
 harvester/logs
 .DS_Store
-.insomnia/docs
